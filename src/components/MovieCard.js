@@ -1,5 +1,6 @@
 import React from "react";
 import Default from "./Default.jpg"
+import {Link} from "react-router-dom";
 
 const IMG_API = "https://image.tmdb.org/t/p/w1280";
 
@@ -13,8 +14,8 @@ const setVoteClass = (vote) => {
     }
 }
 
-const Movie = ({ title, poster_path, overview, vote_average }) => (
-    <div className="movie">
+const MovieCard = ({ title, poster_path, overview, vote_average, id }) => (
+    <Link className="movie" to={`/movie/${id}`}>
         <img src={poster_path ? IMG_API + poster_path : Default} alt={title} />
         <div className="movie-info">
             <h3>{title}</h3>
@@ -24,7 +25,7 @@ const Movie = ({ title, poster_path, overview, vote_average }) => (
             <h2>Overview:</h2>
             <p>{overview}</p>
         </div>
-    </div>
+    </Link>
 );
 
-export default Movie;
+export default MovieCard;
