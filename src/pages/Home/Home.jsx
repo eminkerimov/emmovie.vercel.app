@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import MovieCard from "../../components/MovieCard";
+import MovieCard from "../../components/MovieCard/MovieCard";
 import {FEATURED_API, SEARCH_API} from "../../helpers/baseURL"
 
 
@@ -31,7 +31,6 @@ const Home = () => {
     setSearchTerm(e.target.value);
   };
 
-  console.log(movies)
 
   return (
     <div>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import BASE_URL from "../helpers/baseURL"
+import { BASE_URL } from "../helpers/baseURL";
 
 const useFetch = (url) => {
 

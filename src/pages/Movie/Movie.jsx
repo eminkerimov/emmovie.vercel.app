@@ -1,9 +1,55 @@
-import React from 'react'
+import React from "react";
+import { useParams } from "react-router-dom";
+import useFetch from "../../custom/useFetch";
+import { IMG_API } from "../../helpers/baseURL.js";
+import Default from "../../components/Default.jpg";
+import "./Movie.scss";
 
 const Movie = () => {
-  return (
-    <div>Movie pAGE !!!!!!!!</div>
-  )
-}
+  const id = useParams().id;
+  const { data, loading, error } = useFetch(
+    `${id}?api_key=e86f2bbf1c8ee2160e90df236faed478`
+  );
 
-export default Movie
+  return (
+    <div className="movie">
+      <img
+        className="movie__poster"
+        src={data?.backdrop_path ? IMG_API + data?.backdrop_path : Default}
+        alt={data?.title}
+      />
+      <img
+        className="movie__image"
+        src={data?.poster_path ? IMG_API + data?.poster_path : Default}
+        alt={data?.title}
+      />
+      <div className="movie__info">
+        <h1>{data?.title}</h1>
+        <p>
+          <b>Release date: </b>
+          {data?.release_date}
+        </p>
+        <p>
+          <b>Genres: </b>
+          {data?.genres?.map((e) => e.name + " ")}
+        </p>
+        <p>
+          <b>Budget: </b>
+          {data?.budget} $
+        </p>
+        <p>
+          <b>Revenue: </b>
+          {data?.revenue} $
+        </p>
+        <p>
+          <b>Tagline : </b>
+          {data?.tagline}
+        </p>
+        <h2>Overview</h2>
+        <p>{data?.overview}</p>
+      </div>
+    </div>
+  );
+};
+
+export default Movie;
