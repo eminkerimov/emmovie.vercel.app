@@ -12,7 +12,7 @@ const useFetch = (url) => {
     const fetchData = async () => {
       try {
         setLoading(true)
-        const res = await axios.get(BASE_URL + url);
+        const res = await axios.get(BASE_URL + "/movie/" + url);
         setData(res.data)
       } catch (error) {
         setError(true)

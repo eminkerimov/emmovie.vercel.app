@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import MovieCard from "../../components/MovieCard/MovieCard";
-import {FEATURED_API, SEARCH_API} from "../../helpers/baseURL"
+import {API_KEY, BASE_URL} from "../../helpers/baseURL"
 
 
 const Home = () => {
@@ -16,13 +16,13 @@ const Home = () => {
   };
 
   useEffect(() => {
-    getMovies(FEATURED_API)
+    getMovies(BASE_URL + "/discover/movie?sort_by=popularity.desc&" + API_KEY)
   }, []);
 
   const handleOnSubmit = (e) => {
     e.preventDefault();
     if (searchTerm) {
-      getMovies(SEARCH_API + searchTerm);
+      getMovies(BASE_URL + "/search/movie?&" + API_KEY + "&query=" + searchTerm);
       setSearchTerm('');
     }
   }

@@ -12,19 +12,21 @@ const Movie = () => {
   );
 
   return (
-    <div className="movie">
-      <img
-        className="movie__poster"
-        src={data?.backdrop_path ? IMG_API + data?.backdrop_path : Default}
-        alt={data?.title}
-      />
+    <div
+      className="movie"
+      style={{
+        backgroundImage: `url(${
+          data?.backdrop_path ? IMG_API + data?.backdrop_path : Default
+        })`,
+      }}
+    >
       <img
         className="movie__image"
         src={data?.poster_path ? IMG_API + data?.poster_path : Default}
         alt={data?.title}
       />
       <div className="movie__info">
-        <h1>{data?.title}</h1>
+        <h1>{data?.title + ` (${data?.release_date.substr(0,4)})`}</h1>
         <p>
           <b>Release date: </b>
           {data?.release_date}
