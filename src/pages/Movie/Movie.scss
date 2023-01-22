@@ -54,7 +54,8 @@
     .movie {
         flex-direction: column;
         height: 100%;
-        gap: 10px;
+        gap: 20px;
+        padding: 20px 0;
         &__info {
             width: auto;
         }
