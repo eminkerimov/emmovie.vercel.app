@@ -1,14 +1,19 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import useFetch from "../../custom/useFetch";
-import { IMG_API } from "../../helpers/baseURL.js";
+import { API_KEY, IMG_API } from "../../helpers/baseURL.js";
 import Default from "../../components/Default.jpg";
 import "./Movie.scss";
 
 const Movie = () => {
   const id = useParams().id;
+
+  const details = useFetch(
+    `/${id}/credits?${API_KEY}&language=en-US`
+  );
+
   const { data, loading, error } = useFetch(
-    `${id}?api_key=e86f2bbf1c8ee2160e90df236faed478`
+    `${id}?${API_KEY}`
   );
 
   return (
@@ -49,6 +54,12 @@ const Movie = () => {
         </p>
         <h2>Overview</h2>
         <p>{data?.overview}</p>
+      </div>
+      <div className="movie__cast">
+        <h3>Top cast :</h3>
+        {details?.data?.cast?.map((e,index)=>(
+            index < 10 && <p>{e.name}</p>
+          ))}
       </div>
     </div>
   );
