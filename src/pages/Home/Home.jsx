@@ -13,7 +13,7 @@ const Home = () => {
       .then((data) => {
         setMovies(data.results);
       });
-  };
+  }
 
   useEffect(() => {
     getMovies(BASE_URL + "/discover/movie?sort_by=popularity.desc&" + API_KEY)
