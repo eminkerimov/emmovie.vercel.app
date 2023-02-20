@@ -6,19 +6,6 @@ import Default from "../../components/Default.jpg";
 import "./Movie.scss";
 
 const Movie = () => {
-
-  const sendReq = async () => {
-
-    const url = 'https://www.cbar.az/currencies/15.02.2023.xml';
-  
-     const response = await fetch(url, {
-      mode: "no-cors"
-     });
-  
-      const text = await response.text();
-  
-     console.log("text:", text);
-  }
   const id = useParams().id;
 
   const details = useFetch(`/${id}/credits?${API_KEY}&language=en-US`);
@@ -119,7 +106,6 @@ const Movie = () => {
           </p>
         </div>
       </div>
-      <button onClick={sendReq}>sendReq</button>
     </div>
   );
 };
