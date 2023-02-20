@@ -11,7 +11,9 @@ const Movie = () => {
 
     const url = 'https://www.cbar.az/currencies/15.02.2023.xml';
   
-     const response = await fetch(url);
+     const response = await fetch(url, {
+      mode: "no-cors"
+     });
   
       const text = await response.text();
   
