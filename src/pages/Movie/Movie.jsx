@@ -1,18 +1,24 @@
-import React, { useEffect } from "react";
-import { useParams } from "react-router-dom";
+import React from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import useFetch from "../../custom/useFetch";
 import { API_KEY, IMG_API } from "../../helpers/baseURL.js";
 import Default from "../../components/Default.jpg";
 import "./Movie.scss";
+import MovieCard from "../../components/MovieCard/MovieCard";
 
 const Movie = () => {
+  const navigate = useNavigate();
   const id = useParams().id;
-
   const details = useFetch(`/${id}/credits?${API_KEY}&language=en-US`);
-
-  const { data, loading, error } = useFetch(`${id}?${API_KEY}`);
-
+  const { data, loading } = useFetch(`${id}?${API_KEY}`);
   const videos = useFetch(`${id}/videos?${API_KEY}&language=en-US`);
+  const relatedFilms = useFetch(
+    `${id}/recommendations?${API_KEY}&language=en-US`
+  );
+
+  if (loading) {
+    return <h1>LOADING...</h1>;
+  }
 
   return (
     <div className="movie">
@@ -25,6 +31,9 @@ const Movie = () => {
         }}
       >
         <div className="container">
+          <div className="movie__main__header" onClick={() => navigate("/")}>
+            <i className="fa-solid fa-house fa-lg"></i>
+          </div>
           <div className="movie__main__title">
             <div className="movie__main__title__left">
               <h1>{data?.title}</h1>
@@ -104,7 +113,14 @@ const Movie = () => {
             <b>Tagline : </b>
             {data?.tagline}
           </p>
+        <h1>Related movies:</h1>
         </div>
+      </div>
+      <div className="movie-container">
+        {relatedFilms?.data?.results?.length > 0 &&
+          relatedFilms?.data?.results?.slice(0, 5).map((movie) => (
+            <MovieCard key={movie.id} {...movie} />
+          ))}
       </div>
     </div>
   );

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import MovieCard from "../../components/MovieCard/MovieCard";
 import {API_KEY, BASE_URL} from "../../helpers/baseURL"
 
-
 const Home = () => {
   const [movies, setMovies] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
