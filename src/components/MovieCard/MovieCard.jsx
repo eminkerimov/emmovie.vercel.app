@@ -19,7 +19,7 @@ const MovieCard = ({ title, poster_path, overview, vote_average, id }) => (
         <img src={poster_path ? IMG_API + poster_path : Default} alt={title} />
         <div className="movieCard-info">
             <h3>{title}</h3>
-            <span className={`tag ${setVoteClass(vote_average)}`}>{vote_average}</span>
+            <span className={`tag ${setVoteClass(vote_average)}`}>{vote_average?.toString()?.slice(0,3)}</span>
         </div>
         <div className="movieCard-over">
             <h2>Overview:</h2>

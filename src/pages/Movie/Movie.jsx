@@ -13,7 +13,7 @@ const Movie = () => {
   const { data, loading } = useFetch(`${id}?${API_KEY}`);
   const videos = useFetch(`${id}/videos?${API_KEY}&language=en-US`);
   const relatedFilms = useFetch(
-    `${id}/recommendations?${API_KEY}&language=en-US`
+    `${id}/similar?${API_KEY}&language=en-US`
   );
 
   if (loading) {
