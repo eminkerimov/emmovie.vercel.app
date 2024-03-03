@@ -1,3 +1,32 @@
-.home {
-    
+header form{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    .logo {
+        height: 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 26px;
+        color:rgb(27, 37, 37);
+        font-weight: 800;
+        i {
+            height: 100%;
+            font-size: 36px;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+        }
+    }
+}
+
+// Responsive
+
+@media only screen and (max-width: 550px) {
+    header form{
+        .logo {
+            display: none;
+        }
+    }
 }

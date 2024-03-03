@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import MovieCard from "../../components/MovieCard/MovieCard";
-import {API_KEY, BASE_URL} from "../../helpers/baseURL"
+import {API_KEY, BASE_URL} from "../../helpers/baseURL";
+import "./Home.scss";
 
 const Home = () => {
   const [movies, setMovies] = useState([]);
@@ -35,6 +36,10 @@ const Home = () => {
     <div>
       <header>
         <form onSubmit={handleOnSubmit}>
+          <div className="logo">
+          <i class="fa-solid fa-film"></i>
+          M-movie
+          </div>
           <input
             className="search"
             type="search"
