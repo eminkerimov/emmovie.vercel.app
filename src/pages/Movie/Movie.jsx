@@ -5,6 +5,7 @@ import { API_KEY, IMG_API } from "../../helpers/baseURL.js";
 import Default from "../../components/Default.jpg";
 import "./Movie.scss";
 import MovieCard from "../../components/MovieCard/MovieCard";
+import Slider from "react-slick";
 
 const Movie = () => {
   const navigate = useNavigate();
@@ -12,9 +13,19 @@ const Movie = () => {
   const details = useFetch(`/${id}/credits?${API_KEY}&language=en-US`);
   const { data, loading } = useFetch(`${id}?${API_KEY}`);
   const videos = useFetch(`${id}/videos?${API_KEY}&language=en-US`);
-  const relatedFilms = useFetch(
-    `${id}/similar?${API_KEY}&language=en-US`
-  );
+  const relatedFilms = useFetch(`${id}/similar?${API_KEY}&language=en-US`);
+  const images = useFetch(`${id}/images?${API_KEY}&language=en`);
+  const reviews = useFetch(`${id}/reviews?${API_KEY}&language=en`);
+
+  const settings = {
+    infinite: true,
+    autoplay: true,
+    cssEase: "linear",
+    autoplaySpeed: 2000,
+    speed: 1000,
+    slidesToShow: 5,
+    slidesToScroll: 1,
+  };
 
   if (loading) {
     return <h1>LOADING...</h1>;
@@ -43,7 +54,7 @@ const Movie = () => {
               <div className="rating">
                 <span>Rating:</span>
                 <h2>
-                  <i class="fa-solid fa-star"></i>
+                  <i className="fa-solid fa-star"></i>
                   {data?.vote_average.toFixed(1)}
                 </h2>
                 {/* <h3>({data?.vote_count})</h3> */}
@@ -51,7 +62,7 @@ const Movie = () => {
               <div className="popularity">
                 <span>Popularity:</span>
                 <h2>
-                  <i class="fa-solid fa-arrow-up-short-wide"></i>
+                  <i className="fa-solid fa-arrow-up-short-wide"></i>
                   {data?.popularity.toFixed(0)}
                 </h2>
               </div>
@@ -113,14 +124,32 @@ const Movie = () => {
             <b>Tagline : </b>
             {data?.tagline}
           </p>
-        <h1>Related movies:</h1>
         </div>
       </div>
+      {images?.data?.posters?.length && (
+        <div className="movie__images">
+          <div className="container">
+            <h1>Posters:</h1>
+            <div className="movie__images__box">
+              <Slider {...settings}>
+                {images?.data?.posters?.map((poster, index) => (
+                  <div className="movie__images__box__container" key={index}>
+                    <img src={IMG_API + poster.file_path} alt="poster" />
+                  </div>
+                ))}
+              </Slider>
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="container">
+        <h1>Related movies:</h1>
+      </div>
       <div className="movie-container">
-        {relatedFilms?.data?.results?.length > 0 &&
-          relatedFilms?.data?.results?.slice(0, 5).map((movie) => (
-            <MovieCard key={movie.id} {...movie} />
-          ))}
+        {relatedFilms?.data?.results?.length &&
+          relatedFilms?.data?.results
+            ?.slice(0, 5)
+            .map((movie) => <MovieCard key={movie.id} {...movie} />)}
       </div>
     </div>
   );

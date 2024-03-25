@@ -37,7 +37,7 @@ const Home = () => {
       <header>
         <form onSubmit={handleOnSubmit}>
           <div className="logo">
-          <i class="fa-solid fa-film"></i>
+          <i className="fa-solid fa-film"></i>
           M-movie
           </div>
           <input

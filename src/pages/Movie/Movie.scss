@@ -164,6 +164,21 @@
     &-container {
         background: #fff;
     }
+
+    &__images {
+        &__box {
+            height: 100%;
+            &__container {
+                width: 220px!important;
+                height: 320px;
+                img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+            }
+        }
+    }
 }
 
 
@@ -172,6 +187,9 @@
     margin: 0 auto;
     height: 100%;
     z-index: 2;
+    h1 {
+        color: rgb(27, 37, 37)
+    }
 }
 
 
