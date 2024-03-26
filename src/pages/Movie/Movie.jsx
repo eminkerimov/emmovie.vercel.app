@@ -46,13 +46,21 @@ const Movie = () => {
           title: "Production Companies",
           value: data?.production_companies
             ?.slice(0, 3)
-            .map((e, index) => (index == 2 ? e.name : e.name + ", ")),
+            .map((e, index) =>
+              index == data?.production_companies?.slice(0, 3).length - 1 
+                ? e.name
+                : e.name + ", "
+            ),
         },
         {
           title: "Countries",
           value: data?.production_countries
             ?.slice(0, 3)
-            .map((e, index) => (index === 2 ? e.name : e.name + ", ")),
+            .map((e, index) =>
+              index === data?.production_countries?.slice(0, 3).length - 1
+                ? e.name
+                : e.name + ", "
+            ),
         },
       ];
       setDetailsData(detailsData);
