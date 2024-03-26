@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import useFetch from "../../custom/useFetch";
 import { API_KEY, IMG_API } from "../../helpers/baseURL.js";
@@ -7,25 +7,57 @@ import "./Movie.scss";
 import MovieCard from "../../components/MovieCard/MovieCard";
 import Slider from "react-slick";
 
+const settings = {
+  infinite: true,
+  autoplay: true,
+  cssEase: "linear",
+  autoplaySpeed: 2000,
+  speed: 1000,
+  slidesToShow: 5,
+  slidesToScroll: 1,
+};
+
 const Movie = () => {
   const navigate = useNavigate();
   const id = useParams().id;
   const details = useFetch(`/${id}/credits?${API_KEY}&language=en-US`);
   const { data, loading } = useFetch(`${id}?${API_KEY}`);
+  const [detailsData, setDetailsData] = useState([]);
   const videos = useFetch(`${id}/videos?${API_KEY}&language=en-US`);
   const relatedFilms = useFetch(`${id}/similar?${API_KEY}&language=en-US`);
   const images = useFetch(`${id}/images?${API_KEY}&language=en`);
   const reviews = useFetch(`${id}/reviews?${API_KEY}&language=en`);
 
-  const settings = {
-    infinite: true,
-    autoplay: true,
-    cssEase: "linear",
-    autoplaySpeed: 2000,
-    speed: 1000,
-    slidesToShow: 5,
-    slidesToScroll: 1,
-  };
+  useEffect(() => {
+    if (data) {
+      const detailsData = [
+        { title: "Release date", value: data?.release_date },
+        {
+          title: "Genres",
+          value: data?.genres?.map((e, index) =>
+            index === data.genres.length - 1 ? e.name : e.name + ", "
+          ),
+        },
+        { title: "Budget", value: data?.budget + " $" },
+        { title: "Revenue", value: data?.revenue + " $" },
+        { title: "Tagline", value: data?.tagline },
+        { title: "Runtime", value: data?.runtime + " min" },
+        {
+          title: "Production Companies",
+          value: data?.production_companies
+            ?.slice(0, 3)
+            .map((e, index) => (index == 2 ? e.name : e.name + ", ")),
+        },
+        {
+          title: "Countries",
+          value: data?.production_countries
+            ?.slice(0, 3)
+            .map((e, index) => (index === 2 ? e.name : e.name + ", ")),
+        },
+      ];
+      setDetailsData(detailsData);
+    }
+  }, [data]);
 
   if (loading) {
     return <h1>LOADING...</h1>;
@@ -100,30 +132,23 @@ const Movie = () => {
           </div>
         </div>
       </div>
-      <div className="overview">
+      <div className="movie__overview">
         <div className="container">
           <h2>Overview</h2>
           <p>{data?.overview}</p>
-          <p>
-            <b>Release date: </b>
-            {data?.release_date}
-          </p>
-          <p>
-            <b>Genres: </b>
-            {data?.genres?.map((e) => e.name + " ")}
-          </p>
-          <p>
-            <b>Budget: </b>
-            {data?.budget} $
-          </p>
-          <p>
-            <b>Revenue: </b>
-            {data?.revenue} $
-          </p>
-          <p>
-            <b>Tagline : </b>
-            {data?.tagline}
-          </p>
+          <div className="movie__overview__details">
+            {detailsData?.length &&
+              detailsData.map((data, index) => (
+                <div className="movie__overview__details__box" key={index}>
+                  <div className="movie__overview__details__box-title">
+                    {data.title}:
+                  </div>
+                  <div className="movie__overview__details__box-name">
+                    {data.value}
+                  </div>
+                </div>
+              ))}
+          </div>
         </div>
       </div>
       {images?.data?.posters?.length && (
