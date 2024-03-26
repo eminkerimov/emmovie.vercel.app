@@ -50,7 +50,7 @@ const Home = () => {
         </form>
       </header>
       <div className="movie-container">
-        {movies.length > 0 && movies.map(movie => (
+        {movies.length && movies.map(movie => (
           <MovieCard key={movie.id} {...movie} />
         ))}
       </div>

@@ -1,5 +1,5 @@
 import React from "react";
-import Default from "../Default.jpg"
+import Default from "../../images/Default.jpg"
 import {Link} from "react-router-dom";
 import { IMG_API } from "../../helpers/baseURL";
 import "./MovieCard.scss"
