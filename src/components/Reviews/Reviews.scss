@@ -9,7 +9,7 @@
     &__box {
         border-radius: 5px;
         width: 48%;
-        height: 350px;
+        height: 345px;
         border: 2px dashed darkslategrey;
         display: flex;
         flex-direction: column;
@@ -20,9 +20,8 @@
         margin-bottom: 40px;
         cursor: pointer;
         &:hover {
-            transform: scale(1.02);
-            border: solid;
-            transition: transform 0.5s ease;
+            background: rgb(240,248,255);
+            background: linear-gradient(90deg, rgba(240,248,255,1) 0%, rgba(193,245,193,1) 100%);
         }
 
         &__header {
@@ -50,4 +49,16 @@
     &__empty {
         font-size: 20px;
     }
+}
+
+.round {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    border-radius: 50%;
+    background: #a4abab;
+    color: rgb(27, 37, 37);
+    text-align: center;
+    font-size: 22px;
 }
