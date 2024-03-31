@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import Loading from "../../components/Loading/Loading";
 import MovieCard from "../../components/MovieCard/MovieCard";
 import useFetchMovies from "../../hooks/useFetchMovies";
 import "./Home.scss";
@@ -11,11 +12,11 @@ const Home = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchMode, setSearchMode] = useState(false);
-  const { data: searchData, fetchData: fetchSearchData } = useFetchMovies();
-  const { data: popularMoviesData, fetchData: fetchPopularMoviesData } = useFetchMovies();
-  const { data: nowPlayingMoviesData, fetchData: fetchNowPlayingMoviesData } = useFetchMovies();
-  const { data: topRatedMoviesData, fetchData: fetchTopRatedMoviesData } = useFetchMovies();
-  const { data: upcomingMoviesData, fetchData: fetchUpcomingMoviesData } = useFetchMovies();
+  const { data: searchData, fetchData: fetchSearchData, loading: searchDataLoading } = useFetchMovies();
+  const { data: popularMoviesData, fetchData: fetchPopularMoviesData, loading: popularMovieLoading } = useFetchMovies();
+  const { data: nowPlayingMoviesData, fetchData: fetchNowPlayingMoviesData, loading: nowPlayingMovieLoading } = useFetchMovies();
+  const { data: topRatedMoviesData, fetchData: fetchTopRatedMoviesData, loading: topRatedMovieLoading } = useFetchMovies();
+  const { data: upcomingMoviesData, fetchData: fetchUpcomingMoviesData, loading: upcomingMovieLoading } = useFetchMovies();
 
   useEffect(() => {
     fetchPopularMoviesData("GET", "/movie/popular?language=en-US&page=1", null);
@@ -81,6 +82,9 @@ const Home = () => {
   };
 
   // ===================================================
+  if (searchDataLoading || popularMovieLoading || nowPlayingMovieLoading || topRatedMovieLoading || upcomingMovieLoading){
+    return <Loading/>
+  }
 
   return (
     <div className="home">
