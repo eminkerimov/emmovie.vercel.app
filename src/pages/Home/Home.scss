@@ -1,30 +1,99 @@
-header form{
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    .logo {
-        height: 40px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 26px;
-        color:rgb(27, 37, 37);
-        font-weight: 800;
-        i {
-            height: 100%;
-            font-size: 36px;
-            margin-right: 15px;
+.home {
+    background: rgb(240,248,255);
+    background: linear-gradient(90deg, rgba(240,248,255,1) 0%, rgb(84, 175, 84) 100%);
+
+    header {
+        .title {
             display: flex;
-            align-items: center;
+
+            a {
+                text-decoration: none;
+                color: inherit;
+                font-size: 20px;
+                font-weight: bold;
+                padding: 10px;
+                margin-right: 5px;
+
+                &:hover {
+                    color: rgb(231, 240, 237);
+                }
+            }
+
+            .active {
+                border: 3px solid #fff;
+                border-radius: 15px;
+            }
         }
+
+        form {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            .logo {
+                height: 40px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-size: 26px;
+                color: rgb(27, 37, 37);
+                font-weight: 800;
+                cursor: pointer;
+
+                i {
+                    height: 100%;
+                    font-size: 36px;
+                    margin-right: 15px;
+                    display: flex;
+                    align-items: center;
+                }
+            }
+        }
+    }
+
+    &__search {
+        margin: 30px auto;
+        color: #034150;
+        text-align: center;
+        width: max-content;
+        border: 3px solid #034150;
+        border-radius: 10px;
+        padding: 5px 15px;
+    }
+
+    &__section {
+        width: 85%;
+        margin: auto;
+        margin-top: 50px;
+        position: relative;
+        &-title {
+            color: #fff;
+            margin: 0;
+            padding: 5px 20px;
+            width: max-content;
+            border-radius: 15px;
+            background: #186969;
+            cursor: pointer;
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            z-index: 5;
+            border: 1px solid #fff;
+            transform: rotate(-30deg);
+
+        }
+    }
+
+    .movie-container {
+        background:darkslategrey;
     }
 }
 
 // Responsive
 
 @media only screen and (max-width: 550px) {
-    header form{
+    header form {
         .logo {
             display: none;
         }
