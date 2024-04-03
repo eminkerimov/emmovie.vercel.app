@@ -27,7 +27,7 @@ const Reviews = (reviews) => {
                     result.created_at.slice(11, 16)}
                 </div>
                 <div className="reviews__box__header-section">
-                <i class="fa-solid fa-star"></i>
+                <i className="fa-solid fa-star"></i>
                   {result.author_details.rating}
                 </div>
               </div>

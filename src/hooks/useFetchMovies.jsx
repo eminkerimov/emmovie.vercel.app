@@ -8,7 +8,7 @@ const useFetchMovies = () => {
   const [error, setError] = useState(false);
 
   const headers = {
-    Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlODZmMmJiZjFjOGVlMjE2MGU5MGRmMjM2ZmFlZDQ3OCIsInN1YiI6IjYxODA0OTUyM2ZhYmEwMDA2MjUwMjAxNCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.0wAkmq7kBxCyd1UbBghyEwQVf5JDMa2RA8069-lRq-0',
+    Authorization: `Bearer ${process.env.REACT_APP_BEARER_TOKEN}`,
     accept: 'application/json'
   };
 
