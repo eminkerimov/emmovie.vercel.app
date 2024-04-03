@@ -29,7 +29,6 @@ const useFetchMovies = () => {
       setLoading(false);
     }
   };
-
   return { data, loading, error, fetchData};
 };
 
