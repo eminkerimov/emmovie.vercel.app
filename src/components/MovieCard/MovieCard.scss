@@ -1,72 +1,134 @@
+@import "../../styles/variables";
+
 .movieCard {
-    width: 271px;
-    margin: 1rem;
-    background-color: #527c7c;
-    border-radius: 5px;
-    overflow: hidden;
-    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.1);
+  width: 271px;
+  margin: 1rem;
+  position: relative;
+  overflow: hidden;
+  border-radius: $radius-md;
+  background: $color-card-bg;
+  color: $color-text-light;
+  text-decoration: none;
+  box-shadow: $shadow-card;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+
+  img {
+    width: 100%;
+    height: 410px;
+    display: block;
+    object-fit: cover;
+    transition: transform 0.35s ease;
+  }
+
+  &-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  &-info {
+    min-height: 82px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px;
+    background: $color-card-bg;
     position: relative;
-    text-decoration: none;
-    color: #fff;
+    z-index: 2;
+
+    h3 {
+      margin: 0;
+      color: $color-text-light;
+      font-size: 16px;
+      line-height: 1.35;
+      font-weight: 700;
+    }
+
+    .tag {
+      min-width: 44px;
+      padding: 7px 9px;
+      border-radius: 999px;
+      background: $color-card-bg-light;
+      font-size: 14px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .green {
+      color: #22c55e;
+    }
+
+    .orange {
+      color: #f59e0b;
+    }
+
+    .red {
+      color: #ef4444;
+    }
+  }
+
+  &-over {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 82px;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    color: $color-text-light;
+    background: linear-gradient(
+      180deg,
+      rgba(16, 40, 44, 0.15) 0%,
+      rgba(16, 40, 44, 0.84) 55%,
+      rgba(16, 40, 44, 0.98) 100%
+    );
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+    z-index: 1;
+
+    h2 {
+      margin: 0 0 10px;
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.82);
+      font-size: 14px;
+      line-height: 1.55;
+      display: -webkit-box;
+      -webkit-line-clamp: 7;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  }
+
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: $shadow-card-hover;
 
     img {
-        width: 100%;
-        object-fit: cover;
-        height: 400px;
+      transform: scale(1.06);
     }
 
-    &-container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
+    .movieCard-over {
+      transform: translateY(0);
     }
+  }
+}
 
-    &-info {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 1rem;
+@media (max-width: 600px) {
+  .movieCard {
+    width: 100%;
+    max-width: 320px;
+    margin: 0.75rem;
 
-        h3 {
-            margin: 0;
-        }
-
-        .tag {
-            background-color: darkslategrey;
-            border-radius: 5px;
-            padding: 0.5rem;
-        }
-        .green {
-            color: green;
-        }
-
-        .orange {
-            color: orange;
-        }
-
-        .red {
-            color: red;
-        }
+    img {
+      height: 440px;
     }
-
-    &-over {
-        color: darkslategrey;
-        background-color: #fff;
-        border-top-left-radius: 5px;
-        border-top-right-radius: 5px;
-        box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.1);
-        padding: 1rem;
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        max-height: 100%;
-        overflow: auto;
-        transform: translateY(100%);
-        transition: transform 0.3s ease-in-out;
-    }
-
-    &:hover .movieCard-over {
-        transform: translateY(0%);
-    }
+  }
 }
