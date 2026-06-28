@@ -3,7 +3,6 @@
 .movieCard {
   width: 271px;
   margin: 1rem;
-  position: relative;
   overflow: hidden;
   border-radius: $radius-md;
   background: $color-card-bg;
@@ -12,18 +11,25 @@
   box-shadow: $shadow-card;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 
-  img {
-    width: 100%;
-    height: 410px;
-    display: block;
-    object-fit: cover;
-    transition: transform 0.35s ease;
-  }
-
   &-container {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
+  }
+
+  &-poster {
+    position: relative;
+    height: 410px;
+    overflow: hidden;
+    background: $color-card-bg;
+
+    img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      transition: transform 0.35s ease;
+    }
   }
 
   &-info {
@@ -34,15 +40,21 @@
     gap: 12px;
     padding: 16px;
     background: $color-card-bg;
-    position: relative;
-    z-index: 2;
 
     h3 {
       margin: 0;
       color: $color-text-light;
       font-size: 16px;
       line-height: 1.35;
-      font-weight: 700;
+      font-weight: 800;
+    }
+
+    .movieCard-year {
+      display: block;
+      margin-top: 6px;
+      color: rgba(255, 255, 255, 0.45);
+      font-size: 13px;
+      font-weight: 600;
     }
 
     .tag {
@@ -70,38 +82,32 @@
 
   &-over {
     position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 82px;
+    inset: 0;
     padding: 22px;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    color: $color-text-light;
-    background: linear-gradient(
-      180deg,
-      rgba(16, 40, 44, 0.15) 0%,
-      rgba(16, 40, 44, 0.84) 55%,
-      rgba(16, 40, 44, 0.98) 100%
-    );
+    background: linear-gradient(180deg,
+        rgba(13, 37, 42, 0.08) 0%,
+        rgba(13, 37, 42, 0.68) 45%,
+        rgba(13, 37, 42, 0.98) 100%);
     transform: translateY(100%);
     transition: transform 0.3s ease;
-    z-index: 1;
 
     h2 {
-      margin: 0 0 10px;
+      margin: 0 0 12px;
+      color: $color-accent;
       font-size: 20px;
-      font-weight: 800;
+      font-weight: 900;
     }
 
     p {
       margin: 0;
-      color: rgba(255, 255, 255, 0.82);
-      font-size: 14px;
-      line-height: 1.55;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 13px;
+      line-height: 1.5;
       display: -webkit-box;
-      -webkit-line-clamp: 7;
+      -webkit-line-clamp: 5;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
@@ -111,7 +117,7 @@
     transform: translateY(-8px);
     box-shadow: $shadow-card-hover;
 
-    img {
+    .movieCard-poster img {
       transform: scale(1.06);
     }
 
@@ -127,7 +133,7 @@
     max-width: 320px;
     margin: 0.75rem;
 
-    img {
+    &-poster {
       height: 440px;
     }
   }

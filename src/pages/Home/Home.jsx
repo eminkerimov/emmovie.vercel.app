@@ -1,77 +1,93 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Loading from "../../components/Loading/Loading";
 import MovieCard from "../../components/MovieCard/MovieCard";
 import useFetchMovies from "../../hooks/useFetchMovies";
 import "./Home.scss";
 
+const MOVIE_SECTIONS = [
+  {
+    id: "popular",
+    title: "Popular",
+    endpoint: "/movie/popular?language=en-US&page=1",
+  },
+  {
+    id: "top-rated",
+    title: "Top Rated",
+    endpoint: "/movie/top_rated?language=en-US&page=1",
+  },
+  {
+    id: "upcoming",
+    title: "Upcoming",
+    endpoint: "/movie/upcoming?language=en-US&page=1",
+  },
+  {
+    id: "now-playing",
+    title: "Now Playing",
+    endpoint: "/movie/now_playing?language=en-US&page=1",
+  },
+];
+
 const Home = () => {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [popularMovies, setPopularMovies] = useState([]);
-  const [nowPlayingMovies, setNowPlayingMovies] = useState([]);
-  const [topRatedMovies, setTopRatedMovies] = useState([]);
-  const [upcomingMovies, setUpcomingMovies] = useState([]);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [moviesBySection, setMoviesBySection] = useState({});
   const [searchResults, setSearchResults] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchMode, setSearchMode] = useState(false);
 
   const { data: searchData, fetchData: fetchSearchData, loading: searchDataLoading } = useFetchMovies();
-  const { data: popularMoviesData, fetchData: fetchPopularMoviesData, loading: popularMovieLoading } = useFetchMovies();
-  const { data: nowPlayingMoviesData, fetchData: fetchNowPlayingMoviesData, loading: nowPlayingMovieLoading } = useFetchMovies();
-  const { data: topRatedMoviesData, fetchData: fetchTopRatedMoviesData, loading: topRatedMovieLoading } = useFetchMovies();
-  const { data: upcomingMoviesData, fetchData: fetchUpcomingMoviesData, loading: upcomingMovieLoading } = useFetchMovies();
+
+  const popularMoviesRequest = useFetchMovies();
+  const topRatedMoviesRequest = useFetchMovies();
+  const upcomingMoviesRequest = useFetchMovies();
+  const nowPlayingMoviesRequest = useFetchMovies();
+
+  const sectionRequests = useMemo(
+    () => ({
+      popular: popularMoviesRequest,
+      "top-rated": topRatedMoviesRequest,
+      upcoming: upcomingMoviesRequest,
+      "now-playing": nowPlayingMoviesRequest,
+    }),
+    [popularMoviesRequest, topRatedMoviesRequest, upcomingMoviesRequest, nowPlayingMoviesRequest]
+  );
 
   useEffect(() => {
-    fetchPopularMoviesData("GET", "/movie/popular?language=en-US&page=1", null);
-    fetchNowPlayingMoviesData("GET", "/movie/now_playing?language=en-US&page=1", null);
-    fetchTopRatedMoviesData("GET", "/movie/top_rated?language=en-US&page=1", null);
-    fetchUpcomingMoviesData("GET", "/movie/upcoming?language=en-US&page=1", null);
+    MOVIE_SECTIONS.forEach(({ id, endpoint }) => {
+      sectionRequests[id].fetchData("GET", endpoint, null);
+    });
   }, []);
 
   useEffect(() => {
-    if (popularMoviesData) setPopularMovies(popularMoviesData.data.results);
-  }, [popularMoviesData]);
+    MOVIE_SECTIONS.forEach(({ id }) => {
+      const sectionData = sectionRequests[id].data;
 
-  useEffect(() => {
-    if (nowPlayingMoviesData) setNowPlayingMovies(nowPlayingMoviesData.data.results);
-  }, [nowPlayingMoviesData]);
-
-  useEffect(() => {
-    if (topRatedMoviesData) setTopRatedMovies(topRatedMoviesData.data.results);
-  }, [topRatedMoviesData]);
-
-  useEffect(() => {
-    if (upcomingMoviesData) setUpcomingMovies(upcomingMoviesData.data.results);
-  }, [upcomingMoviesData]);
-
-  const toHome = () => {
-    setSearchMode(false);
-    setSearchResults([]);
-    setSearchTerm("");
-    setMenuOpen(false);
-  };
+      if (sectionData) {
+        setMoviesBySection((prev) => ({
+          ...prev,
+          [id]: sectionData.data.results,
+        }));
+      }
+    });
+  }, [
+    sectionRequests.popular.data,
+    sectionRequests["top-rated"].data,
+    sectionRequests.upcoming.data,
+    sectionRequests["now-playing"].data,
+  ]);
 
   useEffect(() => {
     if (searchData) setSearchResults(searchData.data.results);
   }, [searchData]);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 10);
 
-    if (searchTerm.trim()) {
-      setSearchMode(true);
-      setMenuOpen(false);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll);
 
-      fetchSearchData("GET", "/search/movie", {
-        query: searchTerm.trim(),
-      });
-
-      setSearchTerm("");
-    }
-  };
-
-  const handleOnChange = (e) => {
-    setSearchTerm(e.target.value);
-  };
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
@@ -81,21 +97,35 @@ const Home = () => {
     };
   }, [menuOpen]);
 
-  if (
-    searchDataLoading ||
-    popularMovieLoading ||
-    nowPlayingMovieLoading ||
-    topRatedMovieLoading ||
-    upcomingMovieLoading
-  ) {
-    return <Loading />;
-  }
+  const toHome = () => {
+    setSearchMode(false);
+    setSearchResults([]);
+    setSearchTerm("");
+    setMenuOpen(false);
+  };
 
-  const heroMovie = popularMovies[0];
+  const handleSearch = (e) => {
+    e.preventDefault();
+
+    if (searchTerm.trim()) {
+      setSearchMode(true);
+      setMenuOpen(false);
+      fetchSearchData("GET", "/search/movie", { query: searchTerm.trim() });
+      setSearchTerm("");
+    }
+  };
+
+  const isLoading =
+    searchDataLoading ||
+    Object.values(sectionRequests).some((request) => request.loading);
+
+  if (isLoading) return <Loading />;
+
+  const heroMovie = moviesBySection.popular?.[0];
 
   return (
     <div className="home">
-      <header className="home-header">
+      <header className={`home-header ${isScrolled && !menuOpen ? "is-scrolled" : ""}`}>
         <div className="home-header__logo" onClick={toHome}>
           <i className="fa-solid fa-film"></i>
           <span>M-movie</span>
@@ -117,16 +147,17 @@ const Home = () => {
               type="search"
               placeholder="Search movies..."
               value={searchTerm}
-              onChange={handleOnChange}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </form>
 
           <nav className="home-header__nav">
             <button type="button" onClick={toHome}>Home</button>
-            <a href="#popular" onClick={() => setMenuOpen(false)}>Popular</a>
-            <a href="#top-rated" onClick={() => setMenuOpen(false)}>Top Rated</a>
-            <a href="#upcoming" onClick={() => setMenuOpen(false)}>Upcoming</a>
-            <a href="#now-playing" onClick={() => setMenuOpen(false)}>Now Playing</a>
+            {MOVIE_SECTIONS.map(({ id, title }) => (
+              <a key={id} href={`#${id}`} onClick={() => setMenuOpen(false)}>
+                {title}
+              </a>
+            ))}
           </nav>
         </div>
       </header>
@@ -140,7 +171,6 @@ const Home = () => {
         >
           <div className="home-hero__content">
             <span className="home-hero__label">Popular Now</span>
-
             <h1>{heroMovie.title}</h1>
 
             <div className="home-hero__meta">
@@ -161,55 +191,23 @@ const Home = () => {
         <>
           <h2 className="home__search">Search Results</h2>
           <div className="movie-container">
-            {searchResults.length &&
-              searchResults.map((movie) => (
-                <MovieCard key={movie.id} {...movie} />
-              ))}
+            {searchResults.map((movie) => (
+              <MovieCard key={movie.id} {...movie} />
+            ))}
           </div>
         </>
       )}
 
-      <>
-        <div className="home__section" id="popular">
-          <h2 className="home__section-title">Popular</h2>
+      {MOVIE_SECTIONS.map(({ id, title }) => (
+        <div className="home__section" id={id} key={id}>
+          <h2 className="home__section-title">{title}</h2>
           <div className="movie-container">
-            {popularMovies?.length &&
-              popularMovies
-                .slice(0, 4)
-                .map((movie) => <MovieCard key={movie.id} {...movie} />)}
+            {moviesBySection[id]?.slice(0, 4).map((movie) => (
+              <MovieCard key={movie.id} {...movie} />
+            ))}
           </div>
         </div>
-
-        <div className="home__section" id="top-rated">
-          <h2 className="home__section-title">Top Rated</h2>
-          <div className="movie-container">
-            {topRatedMovies?.length &&
-              topRatedMovies
-                .slice(0, 4)
-                .map((movie) => <MovieCard key={movie.id} {...movie} />)}
-          </div>
-        </div>
-
-        <div className="home__section" id="upcoming">
-          <h2 className="home__section-title">Upcoming</h2>
-          <div className="movie-container">
-            {upcomingMovies?.length &&
-              upcomingMovies
-                .slice(0, 4)
-                .map((movie) => <MovieCard key={movie.id} {...movie} />)}
-          </div>
-        </div>
-
-        <div className="home__section" id="now-playing">
-          <h2 className="home__section-title">Now Playing</h2>
-          <div className="movie-container">
-            {nowPlayingMovies?.length &&
-              nowPlayingMovies
-                .slice(0, 4)
-                .map((movie) => <MovieCard key={movie.id} {...movie} />)}
-          </div>
-        </div>
-      </>
+      ))}
     </div>
   );
 };

@@ -9,19 +9,20 @@
   position: sticky;
   top: 0;
   z-index: 50;
-
   padding: 10px 7.5%;
-
   display: flex;
   align-items: center;
   gap: 28px;
-
-background: $color-header-bg;
-  backdrop-filter: saturate(180%) blur(18px);
-  -webkit-backdrop-filter: saturate(180%) blur(18px);
-
+  background: $color-header-bg;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+
+  &.is-scrolled {
+    background: $color-header-scroll-bg;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
 
   &__logo {
     display: flex;
@@ -60,7 +61,7 @@ background: $color-header-bg;
       font-weight: 600;
       text-decoration: none;
       cursor: pointer;
-      transition: color .2s ease;
+      transition: color 0.2s ease;
 
       &:hover {
         color: $color-text-light;
@@ -72,21 +73,19 @@ background: $color-header-bg;
     width: 270px;
     height: 42px;
     padding: 0 16px;
-
     border-radius: 999px;
-    border: 1px solid rgba(255,255,255,.14);
-
-    background: rgba(255,255,255,.07);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.07);
     color: $color-text-light;
     outline: none;
 
     &::placeholder {
-      color: rgba(255,255,255,.45);
+      color: rgba(255, 255, 255, 0.45);
     }
 
     &:focus {
       border-color: $color-accent;
-      background: rgba(255,255,255,.1);
+      background: rgba(255, 255, 255, 0.1);
     }
   }
 
@@ -107,7 +106,7 @@ background: $color-header-bg;
       margin: 6px auto;
       background: $color-text-light;
       border-radius: 2px;
-      transition: .25s ease;
+      transition: 0.25s ease;
     }
 
     &.is-open {
@@ -171,30 +170,29 @@ background: $color-header-bg;
   font-weight: 700;
 }
 
-.home-hero__actions {
-  a {
-    display: inline-flex;
-    align-items: center;
-    padding: 14px 24px;
-    border-radius: 999px;
-    background: $color-accent;
-    color: #081219;
-    font-weight: 800;
-    text-decoration: none;
-  }
+.home-hero__actions a {
+  display: inline-flex;
+  align-items: center;
+  padding: 14px 24px;
+  border-radius: 999px;
+  background: $color-accent;
+  color: $color-header-bg;
+  font-weight: 800;
+  text-decoration: none;
 }
 
 .home__section {
   width: 92%;
   max-width: 1680px;
-  margin: 36px auto;
-  padding: 24px 28px 32px;
+  margin: 56px auto;
+  padding: 28px 32px 36px;
   background: $color-section-bg;
+  border-radius: 24px;
   scroll-margin-top: 90px;
 }
 
 .home__section-title {
-  margin: 0 0 20px;
+  margin: 0 0 24px;
   color: $color-text-light;
   font-size: 28px;
   font-weight: 800;
@@ -203,7 +201,7 @@ background: $color-header-bg;
 .home__search {
   width: 92%;
   max-width: 1680px;
-  margin: 36px auto 24px;
+  margin: 96px auto 24px;
   color: $color-text-dark;
   font-size: 32px;
   font-weight: 800;
@@ -229,8 +227,9 @@ background: $color-header-bg;
       align-items: stretch;
       gap: 24px;
       padding: 28px 7%;
-      background: $color-header-bg;
-      backdrop-filter: blur(14px);
+      background: $color-mobile-menu-bg;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
 
       &.is-open {
         display: flex;
@@ -275,7 +274,7 @@ background: $color-header-bg;
 
   .home__section {
     width: 94%;
-    margin: 24px auto;
+    margin: 28px auto;
     padding: 20px 16px 28px;
   }
 }
