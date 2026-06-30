@@ -1,64 +1,125 @@
-.reviews {
-    color: darkslategrey;
-    width: 100%;
+@import "../../styles/variables";
+
+.reviews-section {
+  padding: 32px 0 56px;
+  background: #f1f4f6;
+
+  .container {
+    width: 92%;
+    max-width: 1680px;
+    margin: 0 auto;
+  }
+
+  &__header {
     display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    padding: 20px 0;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
 
-    &__box {
-        border-radius: 5px;
-        width: 48%;
-        height: 345px;
-        border: 2px dashed darkslategrey;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        padding: 20px;
-        box-shadow: rgb(38, 57, 77) 0px 20px 30px -10px;
-        overflow-y: auto;
-        margin-bottom: 40px;
-        cursor: pointer;
-        &:hover {
-            background: rgb(240,248,255);
-            background: linear-gradient(90deg, rgba(240,248,255,1) 0%, rgba(193,245,193,1) 100%);
-        }
-
-        &__header {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            font-weight: bold;
-            &-section {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                margin-right: 20px;
-            }
-        }
-
-        &__content {
-            font-family: "Edu NSW ACT Foundation", cursive;
-            font-optical-sizing: auto;
-            font-weight: 400;
-            font-style: normal;
-            font-size: 19px;
-        }
+    h2 {
+      margin: 0;
+      color: $color-text-dark;
+      font-size: 38px;
+      font-weight: 900;
     }
 
-    &__empty {
-        font-size: 20px;
+    span {
+      min-width: 42px;
+      height: 42px;
+      padding: 0 12px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: $color-card-bg;
+      color: $color-accent;
+      font-size: 20px;
+      font-weight: 900;
     }
+  }
 }
 
-.round {
-    display: inline-block;
-    width: 40px;
-    height: 40px;
-    line-height: 40px;
-    border-radius: 50%;
-    background: #a4abab;
-    color: rgb(27, 37, 37);
-    text-align: center;
-    font-size: 22px;
+.reviews {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+
+  &__box {
+    min-height: 260px;
+    padding: 24px;
+    border-radius: $radius-md;
+    background: #ffffff;
+    color: $color-text-dark;
+    text-decoration: none;
+    box-shadow: 0 14px 34px rgba(8, 18, 25, 0.09);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 22px 44px rgba(8, 18, 25, 0.14);
+    }
+
+    &__header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 18px;
+
+      span {
+        padding: 7px 10px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 800;
+
+        &:nth-child(1) {
+          background: $color-card-bg;
+          color: $color-text-light;
+        }
+
+        &:nth-child(2) {
+          background: #e7edf2;
+          color: #52616f;
+        }
+
+        &:nth-child(3) {
+          background: rgba(125, 211, 252, 0.18);
+          color: #0369a1;
+        }
+      }
+    }
+
+    &__content {
+      margin: 0 0 18px;
+      color: #26384a;
+      font-size: 15px;
+      line-height: 1.7;
+
+      display: -webkit-box;
+      -webkit-line-clamp: 6;
+      line-clamp: 6;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    &__link {
+      color: #0284c7;
+      font-size: 14px;
+      font-weight: 900;
+    }
+  }
+
+  &__empty {
+    padding: 24px;
+    border-radius: $radius-md;
+    background: #ffffff;
+    color: #64748b;
+    font-size: 18px;
+    font-weight: 700;
+  }
+}
+
+@media (max-width: 900px) {
+  .reviews {
+    grid-template-columns: 1fr;
+  }
 }

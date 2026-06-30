@@ -1,76 +1,81 @@
-import React from 'react'
+import React from "react";
 import Default from "../../images/Default.jpg";
 import { IMG_API } from "../../helpers/baseURL.js";
 import { useNavigate } from "react-router-dom";
 
-const MovieMain = ({data, details, videos}) => {
-    const navigate = useNavigate();
+const MovieMain = ({ data, details, videos }) => {
+  const navigate = useNavigate();
+
+  const year = data?.release_date ? data.release_date.slice(0, 4) : "";
+  const rating = data?.vote_average ? data.vote_average.toFixed(1) : "—";
+  const popularity = data?.popularity ? data.popularity.toFixed(0) : "—";
+  const trailerKey = videos?.[0]?.key;
 
   return (
-    <div
-    className="movie__main"
-    style={{
-      backgroundImage: `url(${
-        data?.backdrop_path ? IMG_API + data?.backdrop_path : Default
-      })`,
-    }}
-  >
-    <div className="container">
-      <div className="movie__main__header" onClick={() => navigate("/")}>
-        <i className="fa-solid fa-house fa-lg"></i>
-      </div>
-      <div className="movie__main__title">
-        <div className="movie__main__title__left">
-          <h1>{data?.title}</h1>
-          <span>{data?.release_date.substr(0, 4)}</span>
-        </div>
-        <div className="movie__main__title__right">
-          <div className="rating">
-            <span>Rating:</span>
-            <h2>
-              <i className="fa-solid fa-star"></i>
-              {data?.vote_average.toFixed(1)}
-            </h2>
-          </div>
-          <div className="popularity">
-            <span>Popularity:</span>
-            <h2>
-              <i className="fa-solid fa-arrow-up-short-wide"></i>
-              {data?.popularity.toFixed(0)}
-            </h2>
-          </div>
-        </div>
-      </div>
-      <div className="movie__main__info">
-        <img
-          className="movie__main__info__image"
-          src={data?.poster_path ? IMG_API + data?.poster_path : Default}
-          alt={data?.title}
-        />
-        <div className="movie__main__info__video">
-          <iframe
-            width="100%"
-            height="450"
-            src={`https://www.youtube.com/embed/${videos?.[0]?.key}`}
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            title="Embedded youtube"
-          />
-        </div>
-        <div className="movie__main__info__cast">
-          <h3>Top cast :</h3>
-          {details?.data?.cast?.map(
-            (e, index) =>
-              index < 10 && (
-                  <p key={index}>{e.name}</p>
-              )
-          )}
-        </div>
-      </div>
-    </div>
-  </div>
-  )
-}
+    <section
+      className="movie__main"
+      style={{
+        backgroundImage: `linear-gradient(90deg, rgba(8, 18, 25, 0.96) 0%, rgba(8, 18, 25, 0.78) 45%, rgba(8, 18, 25, 0.42) 100%), url(${data?.backdrop_path ? IMG_API + data.backdrop_path : Default
+          })`,
+      }}
+    >
+      <div className="container">
+        <button className="movie__main__back" onClick={() => navigate(-1)}>
+          <i className="fa-solid fa-arrow-left"></i>
+          <span>Back</span>
+        </button>
 
-export default MovieMain
+        <div className="movie__main__content">
+          <img
+            className="movie__main__poster"
+            src={data?.poster_path ? IMG_API + data.poster_path : Default}
+            alt={data?.title}
+          />
+
+          <div className="movie__main__details">
+            <span className="movie__main__label">Movie Details</span>
+
+            <h1>{data?.title}</h1>
+
+            <div className="movie__main__meta">
+              {year && <span>{year}</span>}
+              <span>⭐ {rating}</span>
+              <span><i className="fa-solid fa-arrow-up-short-wide"></i> {popularity}</span>
+            </div>
+
+            {data?.overview && <p>{data.overview}</p>}
+
+            <div className="movie__main__actions">
+              {trailerKey && (
+                <a
+                  className="movie__main__trailer"
+                  href={`https://www.youtube.com/watch?v=${trailerKey}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Watch Trailer
+                </a>
+              )}
+
+              <a className="movie__main__tmdb" href={`https://www.themoviedb.org/movie/${data?.id}`} target="_blank" rel="noreferrer">
+                TMDB
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div className="movie__main__cast">
+          <h3>Top Cast</h3>
+
+          <div className="movie__main__cast-list">
+            {details?.data?.cast?.slice(0, 8).map((actor) => (
+              <span key={actor.id || actor.name}>{actor.name}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default MovieMain;

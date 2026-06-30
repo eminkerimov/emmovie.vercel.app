@@ -2,43 +2,43 @@ import React from "react";
 import "./Reviews.scss";
 
 const Reviews = (reviews) => {
+  const reviewCount = reviews?.results?.length || 0;
+
   return (
-    <div className="container">
-      <h1>
-        User reviews: <span className="round">{reviews?.results?.length}</span>
-      </h1>
-      <div className="reviews">
-        {reviews?.results?.length ? (
-          reviews.results.map((result, index) => (
-            <div
-              className="reviews__box"
-              key={index}
-              onClick={() => window.location.replace(result.url)}
-            >
-              <div className="reviews__box__header">
-                <div className="reviews__box__header-section">
-                  <i className="fa-solid fa-user-pen"></i>
-                  {result.author}
+    <section className="reviews-section">
+      <div className="container">
+        <div className="reviews-section__header">
+          <h2>User reviews</h2>
+          <span>{reviewCount}</span>
+        </div>
+
+        <div className="reviews">
+          {reviewCount ? (
+            reviews.results.map((result, index) => (
+              <a
+                className="reviews__box"
+                key={index}
+                href={result.url}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <div className="reviews__box__header">
+                  <span>{result.author}</span>
+                  <span>{result.created_at.slice(0, 10)}</span>
+                  <span>★ {result.author_details.rating || "—"}</span>
                 </div>
-                <div className="reviews__box__header-section">
-                  <i className="fa-regular fa-calendar-days"></i>
-                  {result.created_at.slice(0, 10) +
-                    " " +
-                    result.created_at.slice(11, 16)}
-                </div>
-                <div className="reviews__box__header-section">
-                <i className="fa-solid fa-star"></i>
-                  {result.author_details.rating}
-                </div>
-              </div>
-              <div className="reviews__box__content">{result.content}</div>
-            </div>
-          ))
-        ) : (
-          <div className="reviews__empty">No reviews yet...</div>
-        )}
+
+                <p className="reviews__box__content">{result.content}</p>
+
+                <span className="reviews__box__link">Read full review</span>
+              </a>
+            ))
+          ) : (
+            <div className="reviews__empty">No reviews yet...</div>
+          )}
+        </div>
       </div>
-    </div>
+    </section>
   );
 };
 
