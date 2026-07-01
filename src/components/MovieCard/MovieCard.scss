@@ -3,6 +3,7 @@
 .movieCard {
   width: 271px;
   margin: 1rem;
+  position: relative;
   overflow: hidden;
   border-radius: $radius-md;
   background: $color-card-bg;
@@ -10,6 +11,46 @@
   text-decoration: none;
   box-shadow: $shadow-card;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
+
+  &-favorite {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 5;
+
+    width: 42px;
+    height: 42px;
+    border: 0;
+    border-radius: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(8, 18, 25, 0.76);
+    color: $color-text-light;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+
+    i {
+      font-size: 18px;
+      position: relative;
+      top: 2px;
+    }
+
+    &:hover {
+      transform: scale(1.08);
+      background: rgba(8, 18, 25, 0.92);
+      color: $color-accent;
+    }
+
+    &.is-active {
+      background: $color-accent;
+      color: $color-header-bg;
+    }
+  }
 
   &-container {
     display: flex;

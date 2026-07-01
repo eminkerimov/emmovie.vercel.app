@@ -7,7 +7,7 @@
 
     &__main {
         min-height: 720px;
-        padding: 90px 0 64px;
+        padding: 90px 0 40px;
         background-position: center;
         background-repeat: no-repeat;
         background-size: cover;
@@ -111,7 +111,8 @@
         }
 
         &__trailer,
-        &__tmdb {
+        &__tmdb,
+        &__favorite {
             display: inline-flex;
             align-items: center;
             padding: 14px 24px;
@@ -130,9 +131,35 @@
             color: $color-text-light;
         }
 
+        &__favorite {
+            font-size: 16px;
+            line-height: 1;
+            gap: 10px;
+            border: 0;
+            background: rgba(255, 255, 255, 0.1);
+            color: $color-text-light;
+            cursor: pointer;
+            transition: background 0.25s ease, color 0.25s ease;
+
+            i {
+                position: relative;
+                top: 2px;
+                font-size: 16px;
+            }
+
+            &:hover {
+                background: rgba(255, 255, 255, 0.18);
+            }
+
+            &.is-active {
+                background: $color-accent;
+                color: $color-header-bg;
+            }
+        }
+
         &__cast {
-            margin-top: 32px;
-            padding: 20px 22px;
+            margin-top: 50px;
+            padding: 16px 20px;
             border-radius: 24px;
             background: rgba(13, 37, 42, 0.58);
             backdrop-filter: blur(12px);
@@ -146,21 +173,71 @@
         }
 
         &__cast-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 14px;
+        }
+
+        &__cast-card {
+            cursor: pointer;
+            transition: transform 0.25s ease;
+
+            &:hover {
+                transform: translateY(-4px);
+
+                h4 {
+                    color: $color-accent;
+                }
+
+                img {
+                    box-shadow: $shadow-card-hover;
+                }
+            }
+
+            img {
+                width: 100%;
+                aspect-ratio: 1 / 1;
+                object-fit: cover;
+                border-radius: 14px;
+                margin-bottom: 8px;
+                transition: box-shadow 0.25s ease;
+            }
+
+            h4 {
+                margin: 0 0 3px;
+                color: #fff;
+                font-size: 13px;
+                font-weight: 800;
+                line-height: 1.25;
+                transition: color 0.25s ease;
+            }
 
             span {
-                padding: 9px 13px;
-                border-radius: 999px;
-                background: rgba(255, 255, 255, 0.08);
-                color: rgba(255, 255, 255, 0.84);
-                font-size: 14px;
-                font-weight: 700;
+                display: block;
+                color: rgba(255, 255, 255, 0.72);
+                font-size: 12px;
+                line-height: 1.35;
+            }
+        }
+
+        &__cast-placeholder {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border-radius: 14px;
+            margin-bottom: 8px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.55);
+
+            i {
+                font-size: 38px;
             }
         }
     }
-
 
     &__overview {
         padding: 56px 0;
@@ -203,7 +280,7 @@
                 border-radius: $radius-md;
                 background: #fff;
                 box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
-                transition: transform .25s ease, box-shadow .25s ease;
+                transition: transform 0.25s ease, box-shadow 0.25s ease;
 
                 &:hover {
                     transform: translateY(-4px);
@@ -269,7 +346,6 @@
                 height: 360px;
                 padding: 4px 0;
 
-
                 img {
                     width: 100%;
                     height: 100%;
@@ -291,16 +367,13 @@
             top: 50%;
             transform: translateY(-50%);
             z-index: 10;
-
             width: 42px;
             height: 42px;
             border: 0;
             border-radius: 50%;
-
             display: flex;
             align-items: center;
             justify-content: center;
-
             background: rgba(8, 18, 25, 0.9);
             color: $color-accent;
             cursor: pointer;
@@ -319,52 +392,50 @@
             }
         }
     }
-
 }
 
 .related {
-  padding: 32px 0 56px;
-  background: $color-page-bg;
+    padding: 32px 0 56px;
+    background: $color-page-bg;
+
+    .container {
+        width: 92%;
+        max-width: 1680px;
+        margin: 0 auto;
+    }
 
     .movie-container {
-    width: 100%;
-    justify-content: center;
-    gap: 24px;
-  }
-
-  .movieCard {
-    width: 260px;
-    margin: 0;
-  }
-
-  .container {
-    width: 92%;
-    max-width: 1680px;
-    margin: 0 auto;
-  }
-
-  &__header {
-    margin-bottom: 28px;
-
-    span {
-      display: block;
-      margin-bottom: 10px;
-      color: $color-accent;
-      font-size: 14px;
-      font-weight: 800;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
+        width: 100%;
+        justify-content: center;
+        gap: 24px;
     }
 
-    h2 {
-      margin: 0;
-      color: $color-text-dark;
-      font-size: 38px;
-      font-weight: 900;
+    .movieCard {
+        width: 260px;
+        margin: 0;
     }
-  }
+
+    &__header {
+        margin-bottom: 28px;
+
+        span {
+            display: block;
+            margin-bottom: 10px;
+            color: $color-accent;
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        h2 {
+            margin: 0;
+            color: $color-text-dark;
+            font-size: 38px;
+            font-weight: 900;
+        }
+    }
 }
-
 
 .container {
     width: 1200px;
@@ -372,7 +443,6 @@
     height: 100%;
     z-index: 2;
 }
-
 
 @media only screen and (max-width: 991px) {
     .movie {
@@ -385,5 +455,4 @@
             padding: 0 40px;
         }
     }
-
 }

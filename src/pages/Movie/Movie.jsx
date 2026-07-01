@@ -9,6 +9,8 @@ import Related from "../../components/Related/Related";
 import Overview from "../../components/Overview/Overview";
 import MovieMain from "../../components/MovieMain/MovieMain";
 
+const WATCHLIST_KEY = "emmovie_watchlist";
+
 const formatMoney = (value) => {
   if (!value) return "—";
 
@@ -36,6 +38,14 @@ const Movie = () => {
 
   const [detailsData, setDetailsData] = useState([]);
   const [videos, setVideos] = useState([]);
+  const [watchlist, setWatchlist] = useState(() => {
+    const savedWatchlist = localStorage.getItem(WATCHLIST_KEY);
+    return savedWatchlist ? JSON.parse(savedWatchlist) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem(WATCHLIST_KEY, JSON.stringify(watchlist));
+  }, [watchlist]);
 
   useEffect(() => {
     if (!data) return;
@@ -73,15 +83,48 @@ const Movie = () => {
     }
   }, [videosData]);
 
+  const toggleWatchlist = () => {
+    if (!data) return;
+
+    const movie = {
+      id: data.id,
+      title: data.title,
+      poster_path: data.poster_path,
+      overview: data.overview,
+      vote_average: data.vote_average,
+      release_date: data.release_date,
+    };
+
+    setWatchlist((prev) => {
+      const alreadySaved = prev.some((item) => item.id === movie.id);
+
+      if (alreadySaved) {
+        return prev.filter((item) => item.id !== movie.id);
+      }
+
+      return [movie, ...prev];
+    });
+  };
+
   if (loading) return <h1>LOADING...</h1>;
 
   return (
     <div className="movie">
-      <MovieMain data={data} details={details} videos={videos} />
+      <MovieMain
+        data={data}
+        details={details}
+        videos={videos}
+        watchlist={watchlist}
+        toggleWatchlist={toggleWatchlist}
+      />
       <Overview data={data} detailsData={detailsData} />
       <Posters {...images} />
       <Reviews {...reviews} />
-      <Related {...relatedFilms} />
+      <Related
+        {...relatedFilms}
+        watchlist={watchlist}
+        setWatchlist={setWatchlist}
+      />
     </div>
   );
 };

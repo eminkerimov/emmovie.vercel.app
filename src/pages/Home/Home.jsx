@@ -4,6 +4,8 @@ import MovieCard from "../../components/MovieCard/MovieCard";
 import useFetchMovies from "../../hooks/useFetchMovies";
 import "./Home.scss";
 
+const WATCHLIST_KEY = "emmovie_watchlist";
+
 const MOVIE_SECTIONS = [
   {
     id: "popular",
@@ -34,6 +36,10 @@ const Home = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchMode, setSearchMode] = useState(false);
+  const [watchlist, setWatchlist] = useState(() => {
+    const savedWatchlist = localStorage.getItem(WATCHLIST_KEY);
+    return savedWatchlist ? JSON.parse(savedWatchlist) : [];
+  });
 
   const { data: searchData, fetchData: fetchSearchData, loading: searchDataLoading } = useFetchMovies();
 
@@ -51,6 +57,10 @@ const Home = () => {
     }),
     [popularMoviesRequest, topRatedMoviesRequest, upcomingMoviesRequest, nowPlayingMoviesRequest]
   );
+
+  useEffect(() => {
+    localStorage.setItem(WATCHLIST_KEY, JSON.stringify(watchlist));
+  }, [watchlist]);
 
   useEffect(() => {
     MOVIE_SECTIONS.forEach(({ id, endpoint }) => {
@@ -104,6 +114,31 @@ const Home = () => {
     setMenuOpen(false);
   };
 
+  const toggleWatchlist = (movie) => {
+    setWatchlist((prev) => {
+      const alreadySaved = prev.some((item) => item.id === movie.id);
+
+      if (alreadySaved) {
+        return prev.filter((item) => item.id !== movie.id);
+      }
+
+      return [movie, ...prev];
+    });
+  };
+
+  const isInWatchlist = (movieId) => {
+    return watchlist.some((movie) => movie.id === movieId);
+  };
+
+  const renderMovieCard = (movie) => (
+    <MovieCard
+      key={movie.id}
+      {...movie}
+      isFavorite={isInWatchlist(movie.id)}
+      onToggleFavorite={toggleWatchlist}
+    />
+  );
+
   const handleSearch = (e) => {
     e.preventDefault();
 
@@ -153,6 +188,11 @@ const Home = () => {
 
           <nav className="home-header__nav">
             <button type="button" onClick={toHome}>Home</button>
+            {watchlist.length > 0 && (
+              <a href="#watchlist" onClick={() => setMenuOpen(false)}>
+                Watchlist
+              </a>
+            )}
             {MOVIE_SECTIONS.map(({ id, title }) => (
               <a key={id} href={`#${id}`} onClick={() => setMenuOpen(false)}>
                 {title}
@@ -191,20 +231,25 @@ const Home = () => {
         <>
           <h2 className="home__search">Search Results</h2>
           <div className="movie-container">
-            {searchResults.map((movie) => (
-              <MovieCard key={movie.id} {...movie} />
-            ))}
+            {searchResults.map(renderMovieCard)}
           </div>
         </>
+      )}
+
+      {watchlist.length > 0 && (
+        <div className="home__section" id="watchlist">
+          <h2 className="home__section-title">My Watchlist</h2>
+          <div className="movie-container">
+            {watchlist.slice(0, 4).map(renderMovieCard)}
+          </div>
+        </div>
       )}
 
       {MOVIE_SECTIONS.map(({ id, title }) => (
         <div className="home__section" id={id} key={id}>
           <h2 className="home__section-title">{title}</h2>
           <div className="movie-container">
-            {moviesBySection[id]?.slice(0, 4).map((movie) => (
-              <MovieCard key={movie.id} {...movie} />
-            ))}
+            {moviesBySection[id]?.slice(0, 4).map(renderMovieCard)}
           </div>
         </div>
       ))}

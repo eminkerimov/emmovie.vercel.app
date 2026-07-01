@@ -3,13 +3,14 @@ import Default from "../../images/Default.jpg";
 import { IMG_API } from "../../helpers/baseURL.js";
 import { useNavigate } from "react-router-dom";
 
-const MovieMain = ({ data, details, videos }) => {
+const MovieMain = ({ data, details, videos, watchlist, toggleWatchlist }) => {
   const navigate = useNavigate();
 
   const year = data?.release_date ? data.release_date.slice(0, 4) : "";
   const rating = data?.vote_average ? data.vote_average.toFixed(1) : "—";
   const popularity = data?.popularity ? data.popularity.toFixed(0) : "—";
   const trailerKey = videos?.[0]?.key;
+  const isFavorite = watchlist?.some((movie) => movie.id === data?.id);
 
   return (
     <section
@@ -40,7 +41,9 @@ const MovieMain = ({ data, details, videos }) => {
             <div className="movie__main__meta">
               {year && <span>{year}</span>}
               <span>⭐ {rating}</span>
-              <span><i className="fa-solid fa-arrow-up-short-wide"></i> {popularity}</span>
+              <span>
+                <i className="fa-solid fa-arrow-up-short-wide"></i> {popularity}
+              </span>
             </div>
 
             {data?.overview && <p>{data.overview}</p>}
@@ -57,9 +60,23 @@ const MovieMain = ({ data, details, videos }) => {
                 </a>
               )}
 
-              <a className="movie__main__tmdb" href={`https://www.themoviedb.org/movie/${data?.id}`} target="_blank" rel="noreferrer">
+              <a
+                className="movie__main__tmdb"
+                href={`https://www.themoviedb.org/movie/${data?.id}`}
+                target="_blank"
+                rel="noreferrer"
+              >
                 TMDB
               </a>
+
+              <button
+                className={`movie__main__favorite ${isFavorite ? "is-active" : ""}`}
+                type="button"
+                onClick={toggleWatchlist}
+              >
+                <i className={`${isFavorite ? "fa-solid" : "fa-regular"} fa-heart`}></i>
+                {isFavorite ? "In Watchlist" : "Add to Watchlist"}
+              </button>
             </div>
           </div>
         </div>
@@ -69,7 +86,22 @@ const MovieMain = ({ data, details, videos }) => {
 
           <div className="movie__main__cast-list">
             {details?.data?.cast?.slice(0, 8).map((actor) => (
-              <span key={actor.id || actor.name}>{actor.name}</span>
+              <div
+                key={actor.id}
+                className="movie__main__cast-card"
+              >
+                {actor.profile_path ? (
+                  <img src={IMG_API + actor.profile_path} alt={actor.name} />
+                ) : (
+                  <div className="movie__main__cast-placeholder">
+                    <i className="fa-solid fa-user"></i>
+                  </div>
+                )}
+
+                <h4>{actor.name}</h4>
+
+                <span>{actor.character}</span>
+              </div>
             ))}
           </div>
         </div>
