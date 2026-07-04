@@ -1,7 +1,7 @@
 import React from "react";
 import Default from "../../images/Default.jpg";
 import { IMG_API } from "../../helpers/baseURL.js";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const MovieMain = ({ data, details, videos, watchlist, toggleWatchlist }) => {
   const navigate = useNavigate();
@@ -86,10 +86,7 @@ const MovieMain = ({ data, details, videos, watchlist, toggleWatchlist }) => {
 
           <div className="movie__main__cast-list">
             {details?.data?.cast?.slice(0, 8).map((actor) => (
-              <div
-                key={actor.id}
-                className="movie__main__cast-card"
-              >
+              <Link key={actor.id} className="movie__main__cast-card" to={`/person/${actor.id}`}>
                 {actor.profile_path ? (
                   <img src={IMG_API + actor.profile_path} alt={actor.name} />
                 ) : (
@@ -101,7 +98,7 @@ const MovieMain = ({ data, details, videos, watchlist, toggleWatchlist }) => {
                 <h4>{actor.name}</h4>
 
                 <span>{actor.character}</span>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

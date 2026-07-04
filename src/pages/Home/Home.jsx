@@ -40,8 +40,13 @@ const Home = () => {
     const savedWatchlist = localStorage.getItem(WATCHLIST_KEY);
     return savedWatchlist ? JSON.parse(savedWatchlist) : [];
   });
+  const [showAllWatchlist, setShowAllWatchlist] = useState(false);
 
-  const { data: searchData, fetchData: fetchSearchData, loading: searchDataLoading } = useFetchMovies();
+  const {
+    data: searchData,
+    fetchData: fetchSearchData,
+    loading: searchDataLoading,
+  } = useFetchMovies();
 
   const popularMoviesRequest = useFetchMovies();
   const topRatedMoviesRequest = useFetchMovies();
@@ -55,7 +60,12 @@ const Home = () => {
       upcoming: upcomingMoviesRequest,
       "now-playing": nowPlayingMoviesRequest,
     }),
-    [popularMoviesRequest, topRatedMoviesRequest, upcomingMoviesRequest, nowPlayingMoviesRequest]
+    [
+      popularMoviesRequest,
+      topRatedMoviesRequest,
+      upcomingMoviesRequest,
+      nowPlayingMoviesRequest,
+    ]
   );
 
   useEffect(() => {
@@ -126,6 +136,11 @@ const Home = () => {
     });
   };
 
+  const clearWatchlist = () => {
+    setWatchlist([]);
+    setShowAllWatchlist(false);
+  };
+
   const isInWatchlist = (movieId) => {
     return watchlist.some((movie) => movie.id === movieId);
   };
@@ -157,10 +172,14 @@ const Home = () => {
   if (isLoading) return <Loading />;
 
   const heroMovie = moviesBySection.popular?.[0];
+  const visibleWatchlist = showAllWatchlist ? watchlist : watchlist.slice(0, 4);
 
   return (
     <div className="home">
-      <header className={`home-header ${isScrolled && !menuOpen ? "is-scrolled" : ""}`}>
+      <header
+        className={`home-header ${isScrolled && !menuOpen ? "is-scrolled" : ""
+          }`}
+      >
         <div className="home-header__logo" onClick={toHome}>
           <i className="fa-solid fa-film"></i>
           <span>M-movie</span>
@@ -176,7 +195,9 @@ const Home = () => {
           <span></span>
         </button>
 
-        <div className={`home-header__mobile-panel ${menuOpen ? "is-open" : ""}`}>
+        <div
+          className={`home-header__mobile-panel ${menuOpen ? "is-open" : ""}`}
+        >
           <form className="home-header__search" onSubmit={handleSearch}>
             <input
               type="search"
@@ -187,12 +208,14 @@ const Home = () => {
           </form>
 
           <nav className="home-header__nav">
-            <button type="button" onClick={toHome}>Home</button>
-            {watchlist.length > 0 && (
-              <a href="#watchlist" onClick={() => setMenuOpen(false)}>
-                Watchlist
-              </a>
-            )}
+            <button type="button" onClick={toHome}>
+              Home
+            </button>
+
+            <a href="#watchlist" onClick={() => setMenuOpen(false)}>
+              Watchlist
+            </a>
+
             {MOVIE_SECTIONS.map(({ id, title }) => (
               <a key={id} href={`#${id}`} onClick={() => setMenuOpen(false)}>
                 {title}
@@ -236,14 +259,44 @@ const Home = () => {
         </>
       )}
 
-      {watchlist.length > 0 && (
-        <div className="home__section" id="watchlist">
-          <h2 className="home__section-title">My Watchlist</h2>
-          <div className="movie-container">
-            {watchlist.slice(0, 4).map(renderMovieCard)}
+      <section className="home-watchlist" id="watchlist">
+        <div className="home-watchlist__header">
+          <div>
+            <span className="home-watchlist__label">Saved Movies</span>
+            <h2>My Watchlist</h2>
+            <p>{watchlist.length} movies saved locally</p>
           </div>
+
+          {watchlist.length > 0 && (
+            <div className="home-watchlist__actions">
+              {watchlist.length > 4 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllWatchlist((prev) => !prev)}
+                >
+                  {showAllWatchlist ? "Show Less" : "View All"}
+                </button>
+              )}
+
+              <button type="button" onClick={clearWatchlist}>
+                Clear All
+              </button>
+            </div>
+          )}
         </div>
-      )}
+
+        {watchlist.length > 0 ? (
+          <div className="movie-container">
+            {visibleWatchlist.map(renderMovieCard)}
+          </div>
+        ) : (
+          <div className="home-watchlist__empty">
+            <i className="fa-regular fa-heart"></i>
+            <h3>No saved movies yet</h3>
+            <p>Add movies using the heart button on any movie card.</p>
+          </div>
+        )}
+      </section>
 
       {MOVIE_SECTIONS.map(({ id, title }) => (
         <div className="home__section" id={id} key={id}>

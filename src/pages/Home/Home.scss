@@ -181,6 +181,105 @@
   text-decoration: none;
 }
 
+.home-watchlist {
+  width: 92%;
+  max-width: 1680px;
+  margin: 56px auto;
+  padding: 32px 36px 40px;
+  border-radius: 28px;
+  scroll-margin-top: 90px;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(125, 211, 252, 0.16),
+      transparent 34%
+    ),
+    linear-gradient(135deg, #092329 0%, #123f46 100%);
+  box-shadow: 0 22px 50px rgba(8, 18, 25, 0.18);
+}
+
+.home-watchlist__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 30px;
+
+  h2 {
+    margin: 6px 0 6px;
+    color: $color-text-light;
+    font-size: 34px;
+    font-weight: 900;
+  }
+
+  p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.58);
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  button {
+    height: 44px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.1);
+    color: $color-text-light;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background 0.25s ease, color 0.25s ease;
+
+    &:hover {
+      background: $color-accent;
+      color: $color-header-bg;
+    }
+  }
+}
+
+.home-watchlist__actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.home-watchlist__label {
+  color: $color-accent;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.home-watchlist__empty {
+  min-height: 220px;
+  border-radius: 24px;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  i {
+    margin-bottom: 14px;
+    color: $color-accent;
+    font-size: 36px;
+  }
+
+  h3 {
+    margin: 0 0 8px;
+    color: $color-text-light;
+    font-size: 24px;
+    font-weight: 900;
+  }
+
+  p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.58);
+    font-size: 15px;
+    font-weight: 700;
+  }
+}
+
 .home__section {
   width: 92%;
   max-width: 1680px;
@@ -270,6 +369,28 @@
     p {
       font-size: 15px;
     }
+  }
+
+  .home-watchlist {
+    width: 94%;
+    margin: 28px auto;
+    padding: 24px 16px 28px;
+  }
+
+  .home-watchlist__header {
+    flex-direction: column;
+
+    h2 {
+      font-size: 28px;
+    }
+
+    button {
+      width: fit-content;
+    }
+  }
+
+  .home-watchlist__actions {
+    flex-wrap: wrap;
   }
 
   .home__section {
