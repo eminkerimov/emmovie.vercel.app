@@ -29,6 +29,19 @@ const MOVIE_SECTIONS = [
   },
 ];
 
+const GENRE_OPTIONS = [
+  { id: 28, name: "Action" },
+  { id: 12, name: "Adventure" },
+  { id: 16, name: "Animation" },
+  { id: 35, name: "Comedy" },
+  { id: 80, name: "Crime" },
+  { id: 18, name: "Drama" },
+  { id: 27, name: "Horror" },
+  { id: 10749, name: "Romance" },
+  { id: 878, name: "Sci-Fi" },
+  { id: 53, name: "Thriller" },
+];
+
 const Home = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -41,11 +54,25 @@ const Home = () => {
     return savedWatchlist ? JSON.parse(savedWatchlist) : [];
   });
   const [showAllWatchlist, setShowAllWatchlist] = useState(false);
+  const [discoverMode, setDiscoverMode] = useState(false);
+  const [discoverResults, setDiscoverResults] = useState([]);
+  const [discoverFilters, setDiscoverFilters] = useState({
+    genre: "",
+    year: "",
+    rating: "",
+    sort: "popularity.desc",
+  });
 
   const {
     data: searchData,
     fetchData: fetchSearchData,
     loading: searchDataLoading,
+  } = useFetchMovies();
+
+  const {
+    data: discoverData,
+    fetchData: fetchDiscoverData,
+    loading: discoverLoading,
   } = useFetchMovies();
 
   const popularMoviesRequest = useFetchMovies();
@@ -99,6 +126,12 @@ const Home = () => {
   useEffect(() => {
     if (searchData) setSearchResults(searchData.data.results);
   }, [searchData]);
+
+  useEffect(() => {
+    if (discoverData) {
+      setDiscoverResults(discoverData.data.results || []);
+    }
+  }, [discoverData]);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
@@ -165,6 +198,52 @@ const Home = () => {
     }
   };
 
+  const handleDiscoverChange = (e) => {
+    const { name, value } = e.target;
+
+    setDiscoverFilters((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleDiscover = (e) => {
+    e.preventDefault();
+
+    const params = {
+      language: "en-US",
+      page: 1,
+      sort_by: discoverFilters.sort,
+    };
+
+    if (discoverFilters.genre) {
+      params.with_genres = discoverFilters.genre;
+    }
+
+    if (discoverFilters.year) {
+      params.primary_release_year = discoverFilters.year;
+    }
+
+    if (discoverFilters.rating) {
+      params["vote_average.gte"] = discoverFilters.rating;
+      params["vote_count.gte"] = 100;
+    }
+
+    setDiscoverMode(true);
+    fetchDiscoverData("GET", "/discover/movie", params);
+  };
+
+  const clearDiscover = () => {
+    setDiscoverMode(false);
+    setDiscoverResults([]);
+    setDiscoverFilters({
+      genre: "",
+      year: "",
+      rating: "",
+      sort: "popularity.desc",
+    });
+  };
+
   const isLoading =
     searchDataLoading ||
     Object.values(sectionRequests).some((request) => request.loading);
@@ -177,8 +256,9 @@ const Home = () => {
   return (
     <div className="home">
       <header
-        className={`home-header ${isScrolled && !menuOpen ? "is-scrolled" : ""
-          }`}
+        className={`home-header ${
+          isScrolled && !menuOpen ? "is-scrolled" : ""
+        }`}
       >
         <div className="home-header__logo" onClick={toHome}>
           <i className="fa-solid fa-film"></i>
@@ -257,6 +337,91 @@ const Home = () => {
             {searchResults.map(renderMovieCard)}
           </div>
         </>
+      )}
+
+      {!searchMode && (
+        <section className="home-discover">
+          <div className="home-discover__header">
+            <div>
+              <span className="home-discover__label">Find Your Movie</span>
+              <h2>Discover Movies</h2>
+              <p>Filter movies by genre, year, rating and popularity.</p>
+            </div>
+
+            {discoverMode && (
+              <button type="button" onClick={clearDiscover}>
+                Clear
+              </button>
+            )}
+          </div>
+
+          <form className="home-discover__form" onSubmit={handleDiscover}>
+            <select
+              name="genre"
+              value={discoverFilters.genre}
+              onChange={handleDiscoverChange}
+            >
+              <option value="">Any genre</option>
+              {GENRE_OPTIONS.map((genre) => (
+                <option key={genre.id} value={genre.id}>
+                  {genre.name}
+                </option>
+              ))}
+            </select>
+
+            <input
+              name="year"
+              type="number"
+              placeholder="Year"
+              min="1900"
+              max="2030"
+              value={discoverFilters.year}
+              onChange={handleDiscoverChange}
+            />
+
+            <select
+              name="rating"
+              value={discoverFilters.rating}
+              onChange={handleDiscoverChange}
+            >
+              <option value="">Any rating</option>
+              <option value="6">6+</option>
+              <option value="7">7+</option>
+              <option value="8">8+</option>
+            </select>
+
+            <select
+              name="sort"
+              value={discoverFilters.sort}
+              onChange={handleDiscoverChange}
+            >
+              <option value="popularity.desc">Most Popular</option>
+              <option value="vote_average.desc">Top Rated</option>
+              <option value="primary_release_date.desc">Newest</option>
+              <option value="revenue.desc">Highest Revenue</option>
+            </select>
+
+            <button type="submit">
+              {discoverLoading ? "Loading..." : "Discover"}
+            </button>
+          </form>
+
+          {discoverMode && (
+            <div className="home-discover__results">
+              <h3 className="home-discover__title">Discovery Results</h3>
+
+              {discoverResults.length > 0 ? (
+                <div className="movie-container">
+                  {discoverResults.slice(0, 8).map(renderMovieCard)}
+                </div>
+              ) : (
+                <div className="home-discover__empty">
+                  No movies found for these filters.
+                </div>
+              )}
+            </div>
+          )}
+        </section>
       )}
 
       <section className="home-watchlist" id="watchlist">
