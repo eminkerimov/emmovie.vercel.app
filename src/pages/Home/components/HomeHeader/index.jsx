@@ -1,5 +1,13 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import useFetchMovies from "../../../../hooks/useFetchMovies";
 import { IMG_API } from "../../../../helpers/baseURL";
 import Default from "../../../../images/Default.jpg";
@@ -8,7 +16,6 @@ import "./index.scss";
 const HomeHeader = ({
   menuOpen,
   isScrolled,
-  movieSections,
   onMenuToggle,
   onMenuClose,
 }) => {
@@ -16,11 +23,13 @@ const HomeHeader = ({
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const navigate = useNavigate();
+  const location = useLocation();
   const searchRef = useRef(null);
 
   const { data, loading, fetchData } = useFetchMovies();
 
-  const searchResults = data?.data?.results?.slice(0, 5) || [];
+  const searchResults =
+    data?.data?.results?.slice(0, 5) || [];
 
   useEffect(() => {
     const trimmedSearchTerm = searchTerm.trim();
@@ -55,12 +64,26 @@ const HomeHeader = ({
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener(
+      "mousedown",
+      handleClickOutside
+    );
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside
+      );
     };
   }, []);
+
+  const closeNavigation = () => {
+    setDropdownOpen(false);
+
+    if (onMenuClose) {
+      onMenuClose();
+    }
+  };
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -69,21 +92,21 @@ const HomeHeader = ({
 
     if (!query) return;
 
-    setDropdownOpen(false);
-    onMenuClose();
-    navigate(`/search?q=${encodeURIComponent(query)}`);
+    closeNavigation();
+
+    navigate(
+      `/search?q=${encodeURIComponent(query)}`
+    );
   };
 
   const handleResultClick = () => {
-    setDropdownOpen(false);
     setSearchTerm("");
-    onMenuClose();
+    closeNavigation();
   };
 
-  const handleHomeClick = () => {
-    setDropdownOpen(false);
+  const handleNavigationClick = () => {
     setSearchTerm("");
-    onMenuClose();
+    closeNavigation();
   };
 
   return (
@@ -95,14 +118,16 @@ const HomeHeader = ({
       <Link
         className="home-header__logo"
         to="/"
-        onClick={handleHomeClick}
+        onClick={handleNavigationClick}
       >
         <i className="fa-solid fa-film"></i>
         <span>M-movie</span>
       </Link>
 
       <button
-        className={`home-header__burger ${menuOpen ? "is-open" : ""}`}
+        className={`home-header__burger ${
+          menuOpen ? "is-open" : ""
+        }`}
         type="button"
         onClick={onMenuToggle}
         aria-label="Toggle navigation"
@@ -118,7 +143,10 @@ const HomeHeader = ({
           menuOpen ? "is-open" : ""
         }`}
       >
-        <div className="header-search" ref={searchRef}>
+        <div
+          className="header-search"
+          ref={searchRef}
+        >
           <form
             className="home-header__search"
             onSubmit={handleSubmit}
@@ -127,7 +155,9 @@ const HomeHeader = ({
               type="search"
               placeholder="Search movies..."
               value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
+              onChange={(event) =>
+                setSearchTerm(event.target.value)
+              }
               onFocus={() => {
                 if (searchTerm.trim().length >= 2) {
                   setDropdownOpen(true);
@@ -144,48 +174,56 @@ const HomeHeader = ({
                 </div>
               )}
 
-              {!loading && searchResults.length > 0 && (
-                <>
-                  {searchResults.map((movie) => (
-                    <Link
-                      className="header-search__result"
-                      to={`/movie/${movie.id}`}
-                      key={movie.id}
-                      onClick={handleResultClick}
+              {!loading &&
+                searchResults.length > 0 && (
+                  <>
+                    {searchResults.map((movie) => (
+                      <Link
+                        className="header-search__result"
+                        to={`/movie/${movie.id}`}
+                        key={movie.id}
+                        onClick={handleResultClick}
+                      >
+                        <img
+                          src={
+                            movie.poster_path
+                              ? IMG_API +
+                                movie.poster_path
+                              : Default
+                          }
+                          alt={movie.title}
+                        />
+
+                        <div>
+                          <strong>{movie.title}</strong>
+
+                          <span>
+                            {movie.release_date?.slice(
+                              0,
+                              4
+                            ) || "N/A"}
+                          </span>
+                        </div>
+
+                        {movie.vote_average > 0 && (
+                          <small>
+                            {movie.vote_average.toFixed(
+                              1
+                            )}
+                          </small>
+                        )}
+                      </Link>
+                    ))}
+
+                    <button
+                      className="header-search__all"
+                      type="button"
+                      onClick={handleSubmit}
                     >
-                      <img
-                        src={
-                          movie.poster_path
-                            ? IMG_API + movie.poster_path
-                            : Default
-                        }
-                        alt={movie.title}
-                      />
-
-                      <div>
-                        <strong>{movie.title}</strong>
-                        <span>
-                          {movie.release_date?.slice(0, 4) || "N/A"}
-                        </span>
-                      </div>
-
-                      {movie.vote_average > 0 && (
-                        <small>
-                          {movie.vote_average.toFixed(1)}
-                        </small>
-                      )}
-                    </Link>
-                  ))}
-
-                  <button
-                    className="header-search__all"
-                    type="button"
-                    onClick={handleSubmit}
-                  >
-                    View all results
-                  </button>
-                </>
-              )}
+                      View all results
+                    </button>
+                  </>
+                )}
 
               {!loading &&
                 searchTerm.trim().length >= 2 &&
@@ -199,19 +237,41 @@ const HomeHeader = ({
         </div>
 
         <nav className="home-header__nav">
-          <Link to="/" onClick={handleHomeClick}>
+          <Link
+            className={
+              location.pathname === "/"
+                ? "is-active"
+                : ""
+            }
+            to="/"
+            onClick={handleNavigationClick}
+          >
             Home
           </Link>
 
-          <a href="#watchlist" onClick={onMenuClose}>
-            Watchlist
-          </a>
+          <Link
+            className={
+              location.pathname === "/discover"
+                ? "is-active"
+                : ""
+            }
+            to="/discover"
+            onClick={handleNavigationClick}
+          >
+            Discover
+          </Link>
 
-          {movieSections.map(({ id, title }) => (
-            <a key={id} href={`#${id}`} onClick={onMenuClose}>
-              {title}
-            </a>
-          ))}
+          <Link
+            className={
+              location.pathname === "/watchlist"
+                ? "is-active"
+                : ""
+            }
+            to="/watchlist"
+            onClick={handleNavigationClick}
+          >
+            Watchlist
+          </Link>
         </nav>
       </div>
     </header>
