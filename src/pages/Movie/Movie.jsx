@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import useFetch from "../../custom/useFetch";
+import useFetch from "../../helpers/useFetch.js";
 import { API_KEY } from "../../helpers/baseURL.js";
 import "./Movie.scss";
 import Reviews from "../../components/Reviews/Reviews";
