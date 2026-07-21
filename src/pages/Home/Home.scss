@@ -17,7 +17,7 @@
 .home-hero {
   position: relative;
 
-  min-height: 670px;
+  min-height: 580px;
   padding: 90px max(6%, calc((100% - 1680px) / 2));
 
   display: flex;
@@ -182,7 +182,8 @@
   width: 92%;
   max-width: 1680px;
 
-  margin: -40px auto 80px;
+  margin: -36px auto 80px;
+
   padding: 38px;
 
   border: 1px solid rgba(255, 255, 255, 0.07);
@@ -250,11 +251,11 @@
 
 .home-tabs {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 
   width: fit-content;
-  margin-bottom: 30px;
-  padding: 6px;
+  margin-bottom: 26px;
+  padding: 4px;
 
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 999px;
@@ -262,8 +263,8 @@
   background: rgba(4, 15, 21, 0.48);
 
   button {
-    min-height: 42px;
-    padding: 0 20px;
+    min-height: 36px;
+    padding: 0 16px;
 
     border: 0;
     border-radius: 999px;
@@ -287,9 +288,9 @@
     }
 
     &.is-active {
-      background: $color-accent;
-      color: $color-header-bg;
-      box-shadow: 0 8px 24px rgba(125, 211, 252, 0.18);
+      background: rgba(125, 211, 252, 0.16);
+      color: $color-accent;
+      box-shadow: inset 0 0 0 1px rgba(125, 211, 252, 0.16);
     }
   }
 }
@@ -298,16 +299,28 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 28px 20px;
+
+  .movieCard {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+  }
+
+  .movieCard-poster {
+    height: auto;
+    aspect-ratio: 2 / 3;
+  }
 }
 
 @media (max-width: 1199px) {
   .home-hero {
-    min-height: 610px;
+    min-height: 520px;
     padding-inline: 5%;
   }
 
   .home-catalog {
     width: 94%;
+    margin-top: -32px;
     padding: 30px;
   }
 
@@ -322,7 +335,7 @@
   }
 
   .home-hero {
-    min-height: 570px;
+    min-height: 520px;
     padding: 64px 5% 100px;
 
     align-items: flex-end;
@@ -352,7 +365,7 @@
   }
 
   .home-catalog {
-    margin-top: -28px;
+    margin-top: -24px;
     padding: 24px 18px 30px;
     border-radius: 24px;
   }
@@ -387,7 +400,7 @@
 
 @media (max-width: 550px) {
   .home-hero {
-    min-height: 520px;
+    min-height: 470px;
     padding: 54px 18px 86px;
   }
 
@@ -436,6 +449,12 @@
     margin-bottom: 24px;
   }
 
+  .home-catalog__grid {
+    gap: 18px 10px;
+  }
+}
+
+@media (max-width: 420px) {
   .home-catalog__grid {
     grid-template-columns: 1fr;
   }
