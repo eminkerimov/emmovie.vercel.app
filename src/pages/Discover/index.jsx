@@ -6,7 +6,6 @@ import Loading from "../../components/Loading/Loading";
 import MovieCard from "../../components/MovieCard/MovieCard";
 import useFetchMovies from "../../hooks/useFetchMovies";
 import useWatchlist from "../../hooks/useWatchlist";
-import HomeHeader from "../Home/components/HomeHeader";
 import "./index.scss";
 
 const GENRE_OPTIONS = [
@@ -45,10 +44,6 @@ const Discover = () => {
     useState(null);
   const [resultsMode, setResultsMode] =
     useState("popular");
-
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] =
-    useState(false);
 
   const {
     toggleWatchlist,
@@ -112,33 +107,6 @@ const Discover = () => {
     );
   }, [data, resultsMode]);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-
-    handleScroll();
-
-    window.addEventListener("scroll", handleScroll);
-
-    return () => {
-      window.removeEventListener(
-        "scroll",
-        handleScroll
-      );
-    };
-  }, []);
-
-  useEffect(() => {
-    document.body.style.overflow = menuOpen
-      ? "hidden"
-      : "";
-
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [menuOpen]);
-
   const handleFilterChange = (event) => {
     const { name, value } = event.target;
 
@@ -180,17 +148,6 @@ const Discover = () => {
 
   return (
     <div className="discover-page">
-      <HomeHeader
-        menuOpen={menuOpen}
-        isScrolled={isScrolled}
-        onMenuToggle={() =>
-          setMenuOpen(
-            (currentValue) => !currentValue
-          )
-        }
-        onMenuClose={() => setMenuOpen(false)}
-      />
-
       <main className="discover-layout">
         <aside className="discover-sidebar">
           <div className="discover-sidebar__heading">
@@ -267,15 +224,19 @@ const Discover = () => {
                 <option value="">
                   Any rating
                 </option>
+
                 <option value="5">
                   5 and higher
                 </option>
+
                 <option value="6">
                   6 and higher
                 </option>
+
                 <option value="7">
                   7 and higher
                 </option>
+
                 <option value="8">
                   8 and higher
                 </option>

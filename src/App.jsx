@@ -4,6 +4,7 @@ import {
   Route,
   Routes,
 } from "react-router-dom";
+import Navbar from "./components/Navbar/Navbar";
 import Home from "./pages/Home/Home";
 import Movie from "./pages/Movie/Movie";
 import Movies from "./pages/Movies/Movies";
@@ -15,6 +16,8 @@ import Watchlist from "./pages/Watchlist";
 function App() {
   return (
     <Router>
+      <Navbar />
+
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/discover" element={<Discover />} />

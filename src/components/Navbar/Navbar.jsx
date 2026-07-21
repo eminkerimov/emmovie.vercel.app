@@ -1,81 +1,307 @@
-import React, { useEffect, useState } from "react";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import SearchIcon from "@mui/icons-material/Search";
-import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
-import FavouriteBorderOutlinedIcon from "@mui/icons-material/FavoriteBorderOutlined";
-import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
-import { Link } from "react-router-dom";
-import "./Navbar.scss"
-import Cart from "../Cart/Cart";
-import {useSelector, useDispatch} from "react-redux";
-import { handleCart } from "../../redux/cartReducer";
-import { useLocation } from "react-router-dom";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
+import useFetchMovies from "../../hooks/useFetchMovies";
+import { IMG_API } from "../../helpers/baseURL";
+import Default from "../../images/Default.jpg";
+import "./Navbar.scss";
 
 const Navbar = () => {
-  const products = useSelector(state=>state.cart.products);
-  const isCartOpen = useSelector(state=>state.cart.cartOpen);
-  const location = useLocation().pathname;
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [dropdownOpen, setDropdownOpen] =
+    useState(false);
 
-  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const searchRef = useRef(null);
+
+  const { data, loading, fetchData } =
+    useFetchMovies();
+
+  const searchResults =
+    data?.data?.results?.slice(0, 5) || [];
 
   useEffect(() => {
-      dispatch(handleCart(false))
-  }, [location]);
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+
+    handleScroll();
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener(
+        "scroll",
+        handleScroll
+      );
+    };
+  }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = menuOpen
+      ? "hidden"
+      : "";
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
+
+  useEffect(() => {
+    setMenuOpen(false);
+    setDropdownOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const query = searchTerm.trim();
+
+    if (query.length < 2) {
+      setDropdownOpen(false);
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      fetchData("GET", "/search/movie", {
+        query,
+        language: "en-US",
+        page: 1,
+      });
+
+      setDropdownOpen(true);
+    }, 400);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [searchTerm]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        searchRef.current &&
+        !searchRef.current.contains(event.target)
+      ) {
+        setDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener(
+      "mousedown",
+      handleClickOutside
+    );
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside
+      );
+    };
+  }, []);
+
+  const closeNavigation = () => {
+    setMenuOpen(false);
+    setDropdownOpen(false);
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
+    const query = searchTerm.trim();
+
+    if (!query) return;
+
+    closeNavigation();
+
+    navigate(
+      `/search?q=${encodeURIComponent(query)}`
+    );
+  };
+
+  const handleResultClick = () => {
+    setSearchTerm("");
+    closeNavigation();
+  };
+
+  const handleNavigationClick = () => {
+    setSearchTerm("");
+    closeNavigation();
+  };
 
   return (
-    <div className="navbar">
-      <div className="wrapper">
-        <div className="mobilBtn">
-        </div>
-        <div className="left">
-          <div className="item">
-            <img src="/img/flag.png" alt="flag" />
-            <KeyboardArrowDownIcon />
-          </div>
-          <div className="item">
-            <span>USD</span>
-            <KeyboardArrowDownIcon />
-          </div>
-          <div className="item underline">
-            <Link className="link" to="/products/1">Women</Link>
-          </div>
-          <div className="item underline">
-            <Link className="link" to="/products/2">Men</Link>
-          </div>
-          <div className="item underline">
-            <Link className="link" to="/products/3">Children</Link>
-          </div>
-        </div>
-        <div className="center">
-            <Link className="link" to="/">M-store</Link>
-        </div>
-        <div className="right">
-        <div className="item underline">
-            <Link className="link" to="/">Home</Link>
-        </div>
-        <div className="item underline">
-            <Link className="link" to="/about">About</Link>
-        </div>
-        <div className="item underline">
-            <Link className="link" to="/">Contact</Link>
-        </div>
-        <div className="icons">
-            <SearchIcon/>
-            <PersonOutlineOutlinedIcon/>
-            <FavouriteBorderOutlinedIcon/>
-            <div 
-            className="cartIcon"
-            onClick={() => dispatch(handleCart(!isCartOpen))
-            }>
-                <ShoppingCartOutlinedIcon/>
-                <span>{products?.length}</span>
+    <header
+      className={`home-header ${
+        isScrolled && !menuOpen ? "is-scrolled" : ""
+      }`}
+    >
+      <Link
+        className="home-header__logo"
+        to="/"
+        onClick={handleNavigationClick}
+      >
+        <i className="fa-solid fa-film"></i>
+        <span>M-movie</span>
+      </Link>
+
+      <button
+        className={`home-header__burger ${
+          menuOpen ? "is-open" : ""
+        }`}
+        type="button"
+        onClick={() =>
+          setMenuOpen((current) => !current)
+        }
+        aria-label="Toggle navigation"
+        aria-expanded={menuOpen}
+      >
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <div
+        className={`home-header__mobile-panel ${
+          menuOpen ? "is-open" : ""
+        }`}
+      >
+        <div className="header-search" ref={searchRef}>
+          <form
+            className="home-header__search"
+            onSubmit={handleSubmit}
+          >
+            <input
+              type="search"
+              placeholder="Search movies..."
+              value={searchTerm}
+              onChange={(event) =>
+                setSearchTerm(event.target.value)
+              }
+              onFocus={() => {
+                if (searchTerm.trim().length >= 2) {
+                  setDropdownOpen(true);
+                }
+              }}
+            />
+          </form>
+
+          {dropdownOpen && (
+            <div className="header-search__dropdown">
+              {loading && (
+                <div className="header-search__status">
+                  Searching...
+                </div>
+              )}
+
+              {!loading &&
+                searchResults.length > 0 && (
+                  <>
+                    {searchResults.map((movie) => (
+                      <Link
+                        className="header-search__result"
+                        to={`/movie/${movie.id}`}
+                        key={movie.id}
+                        onClick={handleResultClick}
+                      >
+                        <img
+                          src={
+                            movie.poster_path
+                              ? IMG_API +
+                                movie.poster_path
+                              : Default
+                          }
+                          alt={movie.title}
+                        />
+
+                        <div>
+                          <strong>{movie.title}</strong>
+
+                          <span>
+                            {movie.release_date?.slice(
+                              0,
+                              4
+                            ) || "N/A"}
+                          </span>
+                        </div>
+
+                        {movie.vote_average > 0 && (
+                          <small>
+                            {movie.vote_average.toFixed(
+                              1
+                            )}
+                          </small>
+                        )}
+                      </Link>
+                    ))}
+
+                    <button
+                      className="header-search__all"
+                      type="button"
+                      onClick={handleSubmit}
+                    >
+                      View all results
+                    </button>
+                  </>
+                )}
+
+              {!loading &&
+                searchTerm.trim().length >= 2 &&
+                searchResults.length === 0 && (
+                  <div className="header-search__status">
+                    No movies found
+                  </div>
+                )}
             </div>
-        </div>
+          )}
         </div>
 
+        <nav className="home-header__nav">
+          <Link
+            className={
+              location.pathname === "/"
+                ? "is-active"
+                : ""
+            }
+            to="/"
+            onClick={handleNavigationClick}
+          >
+            Home
+          </Link>
+
+          <Link
+            className={
+              location.pathname === "/discover"
+                ? "is-active"
+                : ""
+            }
+            to="/discover"
+            onClick={handleNavigationClick}
+          >
+            Discover
+          </Link>
+
+          <Link
+            className={
+              location.pathname === "/watchlist"
+                ? "is-active"
+                : ""
+            }
+            to="/watchlist"
+            onClick={handleNavigationClick}
+          >
+            Watchlist
+          </Link>
+        </nav>
       </div>
-      {isCartOpen && <Cart/>}
-    </div>
+    </header>
   );
 };
 

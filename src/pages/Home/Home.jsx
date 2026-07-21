@@ -1,18 +1,12 @@
-import React, {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import Loading from "../../components/Loading/Loading";
 import MovieCard from "../../components/MovieCard/MovieCard";
 import useFetchMovies from "../../hooks/useFetchMovies";
 import useWatchlist from "../../hooks/useWatchlist";
-import HomeHeader from "./components/HomeHeader";
-import HomeHero from "./components/HomeHero";
-import MovieSection from "./components/MovieSection";
 import "./Home.scss";
 
-const MOVIE_SECTIONS = [
+const TABS = [
   {
     id: "popular",
     title: "Popular",
@@ -21,151 +15,210 @@ const MOVIE_SECTIONS = [
   {
     id: "top-rated",
     title: "Top Rated",
-    endpoint:
-      "/movie/top_rated?language=en-US&page=1",
+    endpoint: "/movie/top_rated?language=en-US&page=1",
   },
   {
     id: "upcoming",
     title: "Upcoming",
-    endpoint:
-      "/movie/upcoming?language=en-US&page=1",
-  },
-  {
-    id: "now-playing",
-    title: "Now Playing",
-    endpoint:
-      "/movie/now_playing?language=en-US&page=1",
+    endpoint: "/movie/upcoming?language=en-US&page=1",
   },
 ];
 
 const Home = () => {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [moviesBySection, setMoviesBySection] =
-    useState({});
+  const [activeTab, setActiveTab] = useState("popular");
+  const [moviesByTab, setMoviesByTab] = useState({});
 
-  const {
-    toggleWatchlist,
-    isInWatchlist,
-  } = useWatchlist();
+  const popularRequest = useFetchMovies();
+  const topRatedRequest = useFetchMovies();
+  const upcomingRequest = useFetchMovies();
 
-  const popularMoviesRequest = useFetchMovies();
-  const topRatedMoviesRequest = useFetchMovies();
-  const upcomingMoviesRequest = useFetchMovies();
-  const nowPlayingMoviesRequest = useFetchMovies();
-
-  const sectionRequests = useMemo(
-    () => ({
-      popular: popularMoviesRequest,
-      "top-rated": topRatedMoviesRequest,
-      upcoming: upcomingMoviesRequest,
-      "now-playing": nowPlayingMoviesRequest,
-    }),
-    [
-      popularMoviesRequest,
-      topRatedMoviesRequest,
-      upcomingMoviesRequest,
-      nowPlayingMoviesRequest,
-    ]
-  );
+  const { toggleWatchlist, isInWatchlist } =
+    useWatchlist();
 
   useEffect(() => {
-    MOVIE_SECTIONS.forEach(({ id, endpoint }) => {
-      sectionRequests[id].fetchData(
-        "GET",
-        endpoint,
-        null
-      );
-    });
+    popularRequest.fetchData(
+      "GET",
+      "/movie/popular?language=en-US&page=1",
+      null
+    );
+
+    topRatedRequest.fetchData(
+      "GET",
+      "/movie/top_rated?language=en-US&page=1",
+      null
+    );
+
+    upcomingRequest.fetchData(
+      "GET",
+      "/movie/upcoming?language=en-US&page=1",
+      null
+    );
   }, []);
 
   useEffect(() => {
-    MOVIE_SECTIONS.forEach(({ id }) => {
-      const sectionData = sectionRequests[id].data;
+    if (!popularRequest.data) return;
 
-      if (!sectionData) return;
-
-      setMoviesBySection((previousSections) => ({
-        ...previousSections,
-        [id]: sectionData.data.results,
-      }));
-    });
-  }, [
-    sectionRequests.popular.data,
-    sectionRequests["top-rated"].data,
-    sectionRequests.upcoming.data,
-    sectionRequests["now-playing"].data,
-  ]);
+    setMoviesByTab((current) => ({
+      ...current,
+      popular: popularRequest.data.data.results,
+    }));
+  }, [popularRequest.data]);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
+    if (!topRatedRequest.data) return;
 
-    handleScroll();
-
-    window.addEventListener("scroll", handleScroll);
-
-    return () => {
-      window.removeEventListener(
-        "scroll",
-        handleScroll
-      );
-    };
-  }, []);
+    setMoviesByTab((current) => ({
+      ...current,
+      "top-rated": topRatedRequest.data.data.results,
+    }));
+  }, [topRatedRequest.data]);
 
   useEffect(() => {
-    document.body.style.overflow = menuOpen
-      ? "hidden"
-      : "";
+    if (!upcomingRequest.data) return;
 
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [menuOpen]);
+    setMoviesByTab((current) => ({
+      ...current,
+      upcoming: upcomingRequest.data.data.results,
+    }));
+  }, [upcomingRequest.data]);
 
-  const renderMovieCard = (movie) => (
-    <MovieCard
-      key={movie.id}
-      {...movie}
-      isFavorite={isInWatchlist(movie.id)}
-      onToggleFavorite={toggleWatchlist}
-    />
-  );
+  const isLoading =
+    popularRequest.loading ||
+    topRatedRequest.loading ||
+    upcomingRequest.loading;
 
-  const isLoading = Object.values(
-    sectionRequests
-  ).some((request) => request.loading);
-
-  if (isLoading) {
+  if (isLoading && !moviesByTab.popular) {
     return <Loading />;
   }
 
-  const heroMovie = moviesBySection.popular?.[0];
+  const heroMovie = moviesByTab.popular?.[0];
+  const activeMovies = moviesByTab[activeTab] || [];
+  const activeTabData = TABS.find(
+    (tab) => tab.id === activeTab
+  );
 
   return (
-    <div className="home">
-      <HomeHeader
-        menuOpen={menuOpen}
-        isScrolled={isScrolled}
-        onMenuToggle={() =>
-          setMenuOpen((current) => !current)
-        }
-        onMenuClose={() => setMenuOpen(false)}
-      />
+    <main className="home">
+      {heroMovie && (
+        <section
+          className="home-hero"
+          style={{
+            backgroundImage: `
+              linear-gradient(
+                90deg,
+                rgba(5, 14, 20, 0.98) 0%,
+                rgba(5, 14, 20, 0.84) 38%,
+                rgba(5, 14, 20, 0.32) 72%,
+                rgba(5, 14, 20, 0.12) 100%
+              ),
+              linear-gradient(
+                0deg,
+                rgba(5, 14, 20, 0.94) 0%,
+                transparent 42%
+              ),
+              url(
+                https://image.tmdb.org/t/p/original${heroMovie.backdrop_path}
+              )
+            `,
+          }}
+        >
+          <div className="home-hero__content">
+            <span className="home-hero__eyebrow">
+              Featured movie
+            </span>
 
-      <HomeHero movie={heroMovie} />
+            <h1>{heroMovie.title}</h1>
 
-      {MOVIE_SECTIONS.map(({ id, title }) => (
-        <MovieSection
-          key={id}
-          id={id}
-          title={title}
-          movies={moviesBySection[id]}
-          renderMovieCard={renderMovieCard}
-        />
-      ))}
-    </div>
+            <div className="home-hero__meta">
+              <span className="home-hero__rating">
+                <i className="fa-solid fa-star"></i>
+                {heroMovie.vote_average?.toFixed(1)}
+              </span>
+
+              <span>
+                {heroMovie.release_date?.slice(0, 4) ||
+                  "N/A"}
+              </span>
+
+              <span>Popular now</span>
+            </div>
+
+            <p>{heroMovie.overview}</p>
+
+            <div className="home-hero__actions">
+              <Link
+                className="home-hero__primary"
+                to={`/movie/${heroMovie.id}`}
+              >
+                View details
+                <i className="fa-solid fa-arrow-right"></i>
+              </Link>
+
+              <Link
+                className="home-hero__secondary"
+                to="/discover"
+              >
+                Discover movies
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
+      <section className="home-catalog">
+        <div className="home-catalog__header">
+          <div>
+            <span className="home-catalog__eyebrow">
+              Explore movies
+            </span>
+
+            <h2>{activeTabData?.title}</h2>
+          </div>
+
+          <Link
+            className="home-catalog__discover"
+            to="/discover"
+          >
+            View all
+            <i className="fa-solid fa-arrow-right"></i>
+          </Link>
+        </div>
+
+        <div
+          className="home-tabs"
+          role="tablist"
+          aria-label="Movie categories"
+        >
+          {TABS.map((tab) => (
+            <button
+              className={
+                activeTab === tab.id ? "is-active" : ""
+              }
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.title}
+            </button>
+          ))}
+        </div>
+
+        <div className="home-catalog__grid">
+          {activeMovies
+            .slice(0, 8)
+            .map((movie) => (
+              <MovieCard
+                key={movie.id}
+                {...movie}
+                isFavorite={isInWatchlist(movie.id)}
+                onToggleFavorite={toggleWatchlist}
+              />
+            ))}
+        </div>
+      </section>
+    </main>
   );
 };
 

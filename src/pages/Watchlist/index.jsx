@@ -1,14 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import MovieCard from "../../components/MovieCard/MovieCard";
 import useWatchlist from "../../hooks/useWatchlist";
-import HomeHeader from "../Home/components/HomeHeader";
 import "./index.scss";
 
 const Watchlist = () => {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-
   const {
     watchlist,
     toggleWatchlist,
@@ -16,39 +12,8 @@ const Watchlist = () => {
     isInWatchlist,
   } = useWatchlist();
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-
-    handleScroll();
-
-    window.addEventListener("scroll", handleScroll);
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
-
-  useEffect(() => {
-    document.body.style.overflow = menuOpen ? "hidden" : "";
-
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [menuOpen]);
-
   return (
     <div className="watchlist-page">
-      <HomeHeader
-        menuOpen={menuOpen}
-        isScrolled={isScrolled}
-        onMenuToggle={() =>
-          setMenuOpen((currentValue) => !currentValue)
-        }
-        onMenuClose={() => setMenuOpen(false)}
-      />
-
       <main className="watchlist-layout">
         <section className="watchlist-hero">
           <div className="watchlist-hero__content">
@@ -57,8 +22,8 @@ const Watchlist = () => {
             <h1>Watchlist</h1>
 
             <p>
-              Keep your saved movies in one place and return to
-              them whenever you want.
+              Keep your saved movies in one place
+              and return to them whenever you want.
             </p>
           </div>
 
@@ -91,8 +56,12 @@ const Watchlist = () => {
                 <MovieCard
                   key={movie.id}
                   {...movie}
-                  isFavorite={isInWatchlist(movie.id)}
-                  onToggleFavorite={toggleWatchlist}
+                  isFavorite={isInWatchlist(
+                    movie.id
+                  )}
+                  onToggleFavorite={
+                    toggleWatchlist
+                  }
                 />
               ))}
             </div>
@@ -108,8 +77,8 @@ const Watchlist = () => {
             <h2>No saved movies yet</h2>
 
             <p>
-              Explore the catalogue and use the heart button to
-              save movies here.
+              Explore the catalogue and use the
+              heart button to save movies here.
             </p>
 
             <Link to="/discover">
