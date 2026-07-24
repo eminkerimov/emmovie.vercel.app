@@ -159,15 +159,20 @@
 
 .watchlist-grid {
   display: grid;
-  grid-template-columns: repeat(5, 271px);
-  justify-content: space-between;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   align-items: start;
-  gap: 30px 16px;
+  gap: 28px 20px;
 
   > .movieCard {
-    width: 271px;
-    min-width: 271px;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
     margin: 0;
+  }
+
+  .movieCard-poster {
+    height: auto;
+    aspect-ratio: 2 / 3;
   }
 }
 
@@ -268,13 +273,13 @@
 
 @media (max-width: 1550px) {
   .watchlist-grid {
-    grid-template-columns: repeat(4, 271px);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 1250px) {
   .watchlist-grid {
-    grid-template-columns: repeat(3, 271px);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -296,8 +301,7 @@
   }
 
   .watchlist-grid {
-    grid-template-columns: repeat(2, 271px);
-    justify-content: space-around;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -328,8 +332,14 @@
   }
 
   .watchlist-grid {
-    grid-template-columns: 271px;
+    grid-template-columns: minmax(0, 1fr);
     justify-content: center;
+
+    > .movieCard {
+      width: 100%;
+      max-width: 320px;
+      justify-self: center;
+    }
   }
 
   .watchlist-empty {
