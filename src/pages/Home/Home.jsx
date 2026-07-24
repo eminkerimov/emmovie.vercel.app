@@ -10,16 +10,25 @@ const TABS = [
   {
     id: "popular",
     title: "Popular",
+    eyebrow: "Trending now",
+    description: "The movies shaping the conversation right now.",
+    sectionNumber: "01",
     endpoint: "/movie/popular?language=en-US&page=1",
   },
   {
     id: "top-rated",
     title: "Top Rated",
+    eyebrow: "Audience favorites",
+    description: "Standout stories with the strongest viewer scores.",
+    sectionNumber: "02",
     endpoint: "/movie/top_rated?language=en-US&page=1",
   },
   {
     id: "upcoming",
     title: "Upcoming",
+    eyebrow: "Coming soon",
+    description: "A first look at the releases heading to screens next.",
+    sectionNumber: "03",
     endpoint: "/movie/upcoming?language=en-US&page=1",
   },
 ];
@@ -165,14 +174,32 @@ const Home = () => {
         </section>
       )}
 
-      <section className="home-catalog">
+      <section
+        className={`home-catalog home-catalog--${activeTab}`}
+      >
         <div className="home-catalog__header">
-          <div>
-            <span className="home-catalog__eyebrow">
-              Explore movies
+          <div
+            className="home-catalog__heading"
+            key={`heading-${activeTab}`}
+          >
+            <span
+              className="home-catalog__index"
+              aria-hidden="true"
+            >
+              {activeTabData?.sectionNumber}
             </span>
 
-            <h2>{activeTabData?.title}</h2>
+            <div>
+              <span className="home-catalog__eyebrow">
+                {activeTabData?.eyebrow}
+              </span>
+
+              <h2>{activeTabData?.title}</h2>
+
+              <p className="home-catalog__description">
+                {activeTabData?.description}
+              </p>
+            </div>
           </div>
 
           <Link
@@ -205,17 +232,22 @@ const Home = () => {
           ))}
         </div>
 
-        <div className="home-catalog__grid">
-          {activeMovies
-            .slice(0, 8)
-            .map((movie) => (
-              <MovieCard
-                key={movie.id}
-                {...movie}
-                isFavorite={isInWatchlist(movie.id)}
-                onToggleFavorite={toggleWatchlist}
-              />
-            ))}
+        <div
+          className="home-catalog__content"
+          key={`content-${activeTab}`}
+        >
+          <div className="home-catalog__grid">
+            {activeMovies
+              .slice(0, 8)
+              .map((movie) => (
+                <MovieCard
+                  key={movie.id}
+                  {...movie}
+                  isFavorite={isInWatchlist(movie.id)}
+                  onToggleFavorite={toggleWatchlist}
+                />
+              ))}
+          </div>
         </div>
       </section>
     </main>
