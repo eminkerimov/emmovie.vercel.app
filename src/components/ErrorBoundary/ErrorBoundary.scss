@@ -1,0 +1,36 @@
+@import "../../styles/variables";
+
+.error-boundary {
+  &__eyebrow {
+    display: block;
+    margin-bottom: $space-3;
+    color: $color-primary;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-bold;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(2rem, 6vw, 4rem);
+    line-height: $line-height-tight;
+  }
+
+  p {
+    max-width: 560px;
+  }
+
+  button {
+    min-width: 148px;
+    min-height: 48px;
+    margin-top: $space-6;
+    padding: 0 $space-5;
+    border: 0;
+    border-radius: $radius-pill;
+    background: $color-primary;
+    color: $color-canvas;
+    font-weight: $font-weight-bold;
+    cursor: pointer;
+  }
+}

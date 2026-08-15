@@ -1,190 +1,189 @@
 @import "../../styles/variables";
 
 .person {
+  min-width: 0;
   min-height: 100vh;
-  background: $color-page-bg;
+  background: $color-canvas;
+  color: $color-text-primary;
 }
 
 .person-hero {
-  min-height: 680px;
-  padding: 90px 0 64px;
+  min-height: 640px;
+  padding: $space-8 0 $space-16;
   background:
-    radial-gradient(circle at top right, rgba(125, 211, 252, 0.16), transparent 34%),
-    linear-gradient(135deg, #081219 0%, #123f46 100%);
-  color: $color-text-light;
-
-  .container {
-    width: 92%;
-    max-width: 1680px;
-    margin: 0 auto;
-  }
+    radial-gradient(
+      circle at top right,
+      rgba(20, 40, 50, 0.72),
+      transparent 34%
+    ),
+    linear-gradient(135deg, $color-canvas 0%, $color-surface-elevated 100%);
 
   &__back {
+    min-height: 44px;
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    height: 44px;
-    padding: 0 16px;
-    border: 0;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.12);
-    color: $color-text-light;
-    font-weight: 800;
+    gap: $space-3;
+    padding: 0 $space-4;
+    border: 1px solid $color-border;
+    border-radius: $radius-pill;
+    background: rgba(14, 28, 37, 0.88);
+    color: $color-text-primary;
+    font-weight: $font-weight-bold;
     cursor: pointer;
-
-    i {
-      font-size: 15px;
-    }
   }
 
   &__content {
-    margin-top: 48px;
+    min-width: 0;
     display: grid;
-    grid-template-columns: 320px minmax(0, 920px);
-    gap: 44px;
+    grid-template-columns: 300px minmax(0, 900px);
     align-items: start;
+    gap: $space-12;
+    margin-top: $space-12;
   }
 
   &__photo {
-    width: 320px;
-    height: 480px;
-    border-radius: 22px;
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    aspect-ratio: 2 / 3;
+    border-radius: $radius-lg;
     object-fit: cover;
     box-shadow: $shadow-card-hover;
   }
 
+  &__info {
+    min-width: 0;
+  }
+
   &__label {
-    color: $color-accent;
-    font-size: 14px;
-    font-weight: 800;
-    letter-spacing: 1.5px;
+    color: $color-primary;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-extra-bold;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
   }
 
   h1 {
-    margin: 12px 0 18px;
-    color: #fff;
-    font-size: 64px;
+    margin: $space-3 0 $space-5;
+    overflow-wrap: anywhere;
+    color: $color-text-primary;
+    font-size: clamp(2.75rem, 5vw, 4rem);
+    font-weight: $font-weight-extra-bold;
     line-height: 1.05;
-    font-weight: 900;
-    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
+    letter-spacing: -0.03em;
   }
 
   &__meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 22px;
+    gap: $space-3;
+    margin-bottom: $space-6;
 
     span {
-      padding: 8px 12px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.1);
-      color: rgba(255, 255, 255, 0.9);
-      font-size: 14px;
-      font-weight: 800;
+      min-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 $space-3;
+      border: 1px solid $color-border;
+      border-radius: $radius-pill;
+      background: rgba(14, 28, 37, 0.82);
+      color: $color-link;
+      font-size: $font-size-sm;
+      font-weight: $font-weight-bold;
     }
   }
 
   p {
-    max-width: 900px;
+    max-width: 72ch;
     margin: 0;
-    color: rgba(255, 255, 255, 0.82);
+    color: $color-text-secondary;
     font-size: 17px;
-    line-height: 1.7;
+    line-height: $line-height-body;
   }
 }
 
 .person-photos {
-  width: 92%;
-  max-width: 1680px;
-  margin: 56px auto;
-  padding: 32px 36px 40px;
-  border-radius: 28px;
-  background:
-    radial-gradient(circle at top right, rgba(125, 211, 252, 0.16), transparent 34%),
-    linear-gradient(135deg, #dce7ed 0%, #cfdde4 100%);
-  box-shadow: 0 18px 42px rgba(8, 18, 25, 0.12);
+  width: calc(100% - #{2 * $container-gutter-desktop});
+  max-width: 1312px;
+  margin: $space-14 auto;
+  padding: $space-8 $space-8 $space-10;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  background: $color-surface;
+  box-shadow: $shadow-surface;
 
   &__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 24px;
-    margin-bottom: 28px;
+    gap: $space-6;
+    margin-bottom: $space-7;
 
     span {
       display: block;
-      margin-bottom: 8px;
-      color: #0284c7;
-      font-size: 13px;
-      font-weight: 900;
-      letter-spacing: 1.5px;
+      margin-bottom: $space-2;
+      color: $color-link;
+      font-size: $font-size-xs;
+      font-weight: $font-weight-extra-bold;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
     }
 
     h2 {
       margin: 0;
-      color: $color-text-dark;
-      font-size: 34px;
-      font-weight: 900;
+      color: $color-text-primary;
+      font-size: clamp(2rem, 4vw, 2.5rem);
+      font-weight: $font-weight-extra-bold;
+      line-height: $line-height-tight;
     }
   }
 
   &__actions {
     display: flex;
-    gap: 10px;
+    gap: $space-2;
 
     button {
-      width: 42px;
-      height: 42px;
-      border: 0;
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      border: 1px solid $color-border;
       border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: $color-card-bg;
-      color: $color-accent;
+      background: $color-surface-elevated;
+      color: $color-primary;
       cursor: pointer;
-      transition: transform 0.25s ease, background 0.25s ease;
+      transition: transform $motion-fast $motion-ease,
+        border-color $motion-fast $motion-ease;
 
       &:hover {
-        transform: scale(1.08);
-        background: #061820;
-      }
-
-      i {
-        font-size: 15px;
+        border-color: rgba(242, 198, 109, 0.42);
+        transform: translateY(-2px);
       }
     }
   }
 
   &__track {
     display: flex;
-    gap: 18px;
+    gap: $space-4;
+    padding: $space-1;
     overflow-x: auto;
-    scroll-behavior: smooth;
-    padding: 4px;
-
-    scrollbar-width: none;
-
-    &::-webkit-scrollbar {
-      display: none;
-    }
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+    scrollbar-color: $color-surface-elevated transparent;
   }
 
   &__item {
-    flex: 0 0 180px;
     height: 240px;
-    border-radius: 20px;
+    flex: 0 0 180px;
     overflow: hidden;
-    background: #fff;
-    box-shadow: 0 14px 28px rgba(8, 18, 25, 0.16);
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    border-radius: $radius-md;
+    background: $color-surface-elevated;
+    box-shadow: $shadow-card;
+    transition: transform $motion-base $motion-ease;
 
     &:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 22px 42px rgba(8, 18, 25, 0.22);
+      transform: translateY(-4px);
     }
 
     img {
@@ -197,90 +196,137 @@
 }
 
 .person-known {
-  width: 92%;
-  max-width: 1680px;
-  margin: 56px auto;
-  padding: 28px 32px 36px;
-  background: $color-section-bg;
-  border-radius: 24px;
-
-  .container {
-    width: 100%;
-    margin: 0 auto;
-  }
+  padding: $space-14 0 $space-20;
+  border-top: 1px solid $color-border;
+  background: $color-surface;
 
   &__header {
-    margin-bottom: 24px;
+    margin-bottom: $space-7;
 
-    span {
+    > span {
       display: block;
-      margin-bottom: 8px;
-      color: $color-accent;
-      font-size: 13px;
-      font-weight: 900;
-      letter-spacing: 1.5px;
+      margin-bottom: $space-2;
+      color: $color-link;
+      font-size: $font-size-xs;
+      font-weight: $font-weight-extra-bold;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
     }
 
     h2 {
-      margin: 0 0 6px;
-      color: $color-text-light;
-      font-size: 32px;
-      font-weight: 900;
+      margin: 0 0 $space-2;
+      color: $color-text-primary;
+      font-size: clamp(2rem, 4vw, 2.5rem);
+      font-weight: $font-weight-extra-bold;
+      line-height: $line-height-tight;
     }
 
     p {
       margin: 0;
-      color: rgba(255, 255, 255, 0.58);
+      color: $color-text-secondary;
       font-size: 15px;
-      font-weight: 700;
+      font-weight: $font-weight-bold;
+    }
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: start;
+    gap: $space-8 $space-6;
+
+    .movieCard {
+      width: 100%;
+      min-width: 0;
+      margin: 0;
+    }
+
+    .movieCard-poster {
+      height: auto;
+      aspect-ratio: 2 / 3;
     }
   }
 }
 
-@media (max-width: 820px) {
+@media (max-width: $breakpoint-desktop) {
   .person-hero {
-    padding: 60px 0 48px;
-
     &__content {
-      grid-template-columns: 1fr;
+      grid-template-columns: 260px minmax(0, 1fr);
+      gap: $space-10;
     }
 
     &__photo {
-      width: 100%;
-      max-width: 320px;
-      height: 460px;
+      max-width: 260px;
+    }
+  }
+
+  .person-known__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: $breakpoint-tablet) {
+  .person-photos {
+    width: calc(100% - #{2 * $container-gutter-tablet});
+  }
+}
+
+@media (max-width: $breakpoint-tablet-small) {
+  .person-hero {
+    min-height: 0;
+    padding-bottom: $space-12;
+
+    &__content {
+      grid-template-columns: minmax(0, 1fr);
+      gap: $space-7;
+      margin-top: $space-8;
+    }
+
+    &__photo {
+      width: 240px;
+      max-width: 100%;
+    }
+  }
+
+  .person-known__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: $space-6 $space-4;
+  }
+}
+
+@media (max-width: $breakpoint-sm) {
+  .person-hero {
+    &__photo {
+      width: 220px;
+      justify-self: center;
     }
 
     h1 {
-      font-size: 42px;
+      font-size: clamp(2.125rem, 11vw, 3rem);
     }
 
     p {
-      font-size: 15px;
+      font-size: $font-size-base;
     }
   }
 
   .person-photos {
-    width: 94%;
-    margin: 28px auto;
-    padding: 24px 16px 28px;
-
-    &__header {
-      h2 {
-        font-size: 28px;
-      }
-    }
+    width: calc(100% - #{2 * $container-gutter-mobile});
+    margin-block: $space-8;
+    padding: $space-6 $space-4 $space-7;
 
     &__item {
-      flex-basis: 150px;
       height: 210px;
+      flex-basis: 150px;
     }
   }
 
   .person-known {
-    width: 94%;
-    margin: 28px auto;
-    padding: 20px 16px 28px;
+    padding-block: $space-12;
+
+    &__grid {
+      grid-template-columns: minmax(0, 320px);
+      justify-content: center;
+    }
   }
 }

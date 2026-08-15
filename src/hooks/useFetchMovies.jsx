@@ -1,35 +1,78 @@
 import axios from "axios";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { BASE_URL } from "../helpers/baseURL";
 
 const useFetchMovies = () => {
   const [data, setData] = useState();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+  const abortControllerRef = useRef(null);
+  const requestIdRef = useRef(0);
 
-  const headers = {
-    Authorization: `Bearer ${process.env.REACT_APP_BEARER_TOKEN}`,
-    accept: 'application/json'
-  };
+  const fetchData = useCallback(async (method, url, params) => {
+    const requestId = requestIdRef.current + 1;
+    requestIdRef.current = requestId;
 
-  const fetchData = async (method, url, params) => {
+    abortControllerRef.current?.abort();
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    setData(undefined);
+    setLoading(true);
+    setError(false);
+
     try {
-      setLoading(true);
       const response = await axios({
-        method: method,
+        method,
         url: BASE_URL + url,
-        params: params,
-        headers: headers
+        params,
+        headers: {
+          Authorization: `Bearer ${process.env.REACT_APP_BEARER_TOKEN}`,
+          accept: "application/json",
+        },
+        signal: controller.signal,
       });
+
+      if (
+        requestId !== requestIdRef.current ||
+        controller.signal.aborted
+      ) {
+        return undefined;
+      }
+
       setData(response);
+      return response;
     } catch (error) {
-      setError(error);
-      console.log(error);
+      if (
+        requestId === requestIdRef.current &&
+        !controller.signal.aborted &&
+        !axios.isCancel(error)
+      ) {
+        setError(error);
+      }
+
+      return undefined;
     } finally {
-      setLoading(false);
+      if (requestId === requestIdRef.current) {
+        setLoading(false);
+
+        if (abortControllerRef.current === controller) {
+          abortControllerRef.current = null;
+        }
+      }
     }
-  };
-  return { data, loading, error, fetchData};
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      requestIdRef.current += 1;
+      abortControllerRef.current?.abort();
+      abortControllerRef.current = null;
+    };
+  }, []);
+
+  return { data, loading, error, fetchData };
 };
 
 export default useFetchMovies;

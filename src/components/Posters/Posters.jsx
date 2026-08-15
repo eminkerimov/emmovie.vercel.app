@@ -1,52 +1,94 @@
 import React from "react";
 import Slider from "react-slick";
-import { IMG_API } from "../../helpers/baseURL.js";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import { POSTER_API } from "../../helpers/baseURL.js";
+import useReveal from "../../hooks/useReveal";
 
 const PrevArrow = ({ onClick }) => (
-  <button className="movie__images__arrow movie__images__arrow--prev" onClick={onClick} type="button">
-    <i className="fa-solid fa-chevron-left"></i>
+  <button
+    className="movie__images__arrow movie__images__arrow--prev"
+    onClick={onClick}
+    type="button"
+    aria-label="Previous posters"
+  >
+    <i className="fa-solid fa-chevron-left" aria-hidden="true"></i>
   </button>
 );
 
 const NextArrow = ({ onClick }) => (
-  <button className="movie__images__arrow movie__images__arrow--next" onClick={onClick} type="button">
-    <i className="fa-solid fa-chevron-right"></i>
+  <button
+    className="movie__images__arrow movie__images__arrow--next"
+    onClick={onClick}
+    type="button"
+    aria-label="Next posters"
+  >
+    <i className="fa-solid fa-chevron-right" aria-hidden="true"></i>
   </button>
 );
 
 const settings = {
-  infinite: true,
-  autoplay: true,
-  cssEase: "linear",
-  autoplaySpeed: 2000,
-  speed: 1000,
+  infinite: false,
+  autoplay: false,
+  speed: 350,
   slidesToShow: 5,
   slidesToScroll: 1,
   prevArrow: <PrevArrow />,
   nextArrow: <NextArrow />,
+  responsive: [
+    { breakpoint: 1280, settings: { slidesToShow: 4 } },
+    { breakpoint: 1024, settings: { slidesToShow: 3 } },
+    { breakpoint: 768, settings: { slidesToShow: 2 } },
+    { breakpoint: 480, settings: { slidesToShow: 1 } },
+  ],
 };
 
 const Posters = (images) => {
+  const { elementRef, isVisible } = useReveal();
+
   return (
     <>
-      {images?.data?.posters?.length && (
-        <div className="movie__images">
-          <div className="container">
-            <div className="movie__images__header">
-              <h2>Posters</h2>
-            </div>
+      {images?.data?.posters?.length > 0 && (
+        <section
+          ref={elementRef}
+          className={`movie__images movie-section-reveal ${
+            isVisible ? "is-visible" : ""
+          }`}
+          aria-labelledby="movie-posters-title"
+        >
+          <div className="page-container">
+            <header className="movie-section-heading movie__images__header">
+              <span className="movie-section-heading__index" aria-hidden="true">
+                02
+              </span>
 
-            <div className="movie__images__box">
+              <div>
+                <span className="movie-section-heading__eyebrow">
+                  Visual archive
+                </span>
+                <h2 id="movie-posters-title">Posters</h2>
+              </div>
+            </header>
+
+            <div className="movie__images__box movie-section-content">
               <Slider {...settings}>
-                {images.data.posters.map((poster, index) => (
-                  <div className="movie__images__box__container" key={index}>
-                    <img src={IMG_API + poster.file_path} alt="poster" />
+                {images.data.posters.map((poster) => (
+                  <div
+                    className="movie__images__box__container"
+                    key={poster.file_path}
+                  >
+                    <img
+                      src={POSTER_API + poster.file_path}
+                      alt="Movie poster"
+                      loading="lazy"
+                      decoding="async"
+                    />
                   </div>
                 ))}
               </Slider>
             </div>
           </div>
-        </div>
+        </section>
       )}
     </>
   );

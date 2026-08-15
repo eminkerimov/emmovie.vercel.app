@@ -1,4 +1,5 @@
 import React, {
+  useCallback,
   useEffect,
   useState,
 } from "react";
@@ -57,14 +58,14 @@ const Discover = () => {
     fetchData,
   } = useFetchMovies();
 
-  const fetchPopularMovies = () => {
+  const fetchPopularMovies = useCallback(() => {
     fetchData("GET", "/movie/popular", {
       language: "en-US",
       page: 1,
     });
-  };
+  }, [fetchData]);
 
-  const fetchFilteredMovies = (
+  const fetchFilteredMovies = useCallback((
     currentFilters
   ) => {
     const params = {
@@ -89,11 +90,11 @@ const Discover = () => {
     }
 
     fetchData("GET", "/discover/movie", params);
-  };
+  }, [fetchData]);
 
   useEffect(() => {
     fetchPopularMovies();
-  }, []);
+  }, [fetchPopularMovies]);
 
   useEffect(() => {
     if (!data) return;
@@ -127,9 +128,13 @@ const Discover = () => {
     setResultsMode("filtered");
     fetchFilteredMovies(submittedFilters);
 
+    const reduceMotion = window.matchMedia?.(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
     window.scrollTo({
       top: 0,
-      behavior: "smooth",
+      behavior: reduceMotion ? "auto" : "smooth",
     });
   };
 

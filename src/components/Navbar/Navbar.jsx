@@ -9,7 +9,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import useFetchMovies from "../../hooks/useFetchMovies";
-import { IMG_API } from "../../helpers/baseURL";
+import { THUMBNAIL_API } from "../../helpers/baseURL";
 import Default from "../../images/Default.jpg";
 import "./Navbar.scss";
 
@@ -22,9 +22,12 @@ const Navbar = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
+  const burgerRef = useRef(null);
+  const mobilePanelRef = useRef(null);
   const searchRef = useRef(null);
+  const searchInputRef = useRef(null);
 
-  const { data, loading, fetchData } =
+  const { data, loading, error, fetchData } =
     useFetchMovies();
 
   const searchResults =
@@ -58,6 +61,39 @@ const Navbar = () => {
   }, [menuOpen]);
 
   useEffect(() => {
+    const handleEscape = (event) => {
+      if (event.key !== "Escape") return;
+
+      if (menuOpen) {
+        setMenuOpen(false);
+        setDropdownOpen(false);
+        burgerRef.current?.focus();
+        return;
+      }
+
+      setDropdownOpen(false);
+    };
+
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [menuOpen]);
+
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+
+    const frameId = window.requestAnimationFrame(() => {
+      searchInputRef.current?.focus();
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+    };
+  }, [menuOpen]);
+
+  useEffect(() => {
     setMenuOpen(false);
     setDropdownOpen(false);
   }, [location.pathname]);
@@ -83,7 +119,7 @@ const Navbar = () => {
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [searchTerm]);
+  }, [fetchData, searchTerm]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -147,12 +183,14 @@ const Navbar = () => {
         className="home-header__logo"
         to="/"
         onClick={handleNavigationClick}
+        aria-label="M-movie home"
       >
-        <i className="fa-solid fa-film"></i>
+        <i className="fa-solid fa-film" aria-hidden="true"></i>
         <span>M-movie</span>
       </Link>
 
       <button
+        ref={burgerRef}
         className={`home-header__burger ${
           menuOpen ? "is-open" : ""
         }`}
@@ -160,15 +198,18 @@ const Navbar = () => {
         onClick={() =>
           setMenuOpen((current) => !current)
         }
-        aria-label="Toggle navigation"
+        aria-label={menuOpen ? "Close navigation" : "Open navigation"}
+        aria-controls="primary-navigation-panel"
         aria-expanded={menuOpen}
       >
-        <span></span>
-        <span></span>
-        <span></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
       </button>
 
       <div
+        id="primary-navigation-panel"
+        ref={mobilePanelRef}
         className={`home-header__mobile-panel ${
           menuOpen ? "is-open" : ""
         }`}
@@ -177,11 +218,18 @@ const Navbar = () => {
           <form
             className="home-header__search"
             onSubmit={handleSubmit}
+            role="search"
           >
+            <label className="sr-only" htmlFor="header-movie-search">
+              Search movies
+            </label>
             <input
+              id="header-movie-search"
+              ref={searchInputRef}
               type="search"
               placeholder="Search movies..."
               value={searchTerm}
+              aria-controls="header-search-results"
               onChange={(event) =>
                 setSearchTerm(event.target.value)
               }
@@ -194,14 +242,24 @@ const Navbar = () => {
           </form>
 
           {dropdownOpen && (
-            <div className="header-search__dropdown">
+            <div
+              id="header-search-results"
+              className="header-search__dropdown"
+              aria-live="polite"
+            >
               {loading && (
                 <div className="header-search__status">
                   Searching...
                 </div>
               )}
 
-              {!loading &&
+              {!loading && error && (
+                <div className="header-search__status" role="alert">
+                  Search is unavailable. Try again.
+                </div>
+              )}
+
+              {!loading && !error &&
                 searchResults.length > 0 && (
                   <>
                     {searchResults.map((movie) => (
@@ -214,11 +272,13 @@ const Navbar = () => {
                         <img
                           src={
                             movie.poster_path
-                              ? IMG_API +
+                              ? THUMBNAIL_API +
                                 movie.poster_path
                               : Default
                           }
                           alt={movie.title}
+                          loading="lazy"
+                          decoding="async"
                         />
 
                         <div>
@@ -252,7 +312,7 @@ const Navbar = () => {
                   </>
                 )}
 
-              {!loading &&
+              {!loading && !error &&
                 searchTerm.trim().length >= 2 &&
                 searchResults.length === 0 && (
                   <div className="header-search__status">
@@ -263,7 +323,7 @@ const Navbar = () => {
           )}
         </div>
 
-        <nav className="home-header__nav">
+        <nav className="home-header__nav" aria-label="Primary navigation">
           <Link
             className={
               location.pathname === "/"
@@ -272,6 +332,7 @@ const Navbar = () => {
             }
             to="/"
             onClick={handleNavigationClick}
+            aria-current={location.pathname === "/" ? "page" : undefined}
           >
             Home
           </Link>
@@ -284,6 +345,9 @@ const Navbar = () => {
             }
             to="/discover"
             onClick={handleNavigationClick}
+            aria-current={
+              location.pathname === "/discover" ? "page" : undefined
+            }
           >
             Discover
           </Link>
@@ -296,6 +360,9 @@ const Navbar = () => {
             }
             to="/watchlist"
             onClick={handleNavigationClick}
+            aria-current={
+              location.pathname === "/watchlist" ? "page" : undefined
+            }
           >
             Watchlist
           </Link>

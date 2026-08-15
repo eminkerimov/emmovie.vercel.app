@@ -18,9 +18,9 @@
     ),
     linear-gradient(
       135deg,
-      #061018 0%,
-      #081720 48%,
-      #061119 100%
+      $color-canvas 0%,
+      $color-surface 48%,
+      $color-canvas 100%
     );
 
   color: $color-text-light;
@@ -36,16 +36,16 @@
   align-items: flex-start;
 
   width: 100%;
-  max-width: 1800px;
+  max-width: $container-max-width;
   margin: 0 auto;
-  padding: 150px 48px 100px;
+  padding: $space-12 $container-gutter-desktop $space-24;
 
   box-sizing: border-box;
 }
 
 .discover-sidebar {
   position: sticky;
-  top: 118px;
+  top: calc(var(--header-height) + $space-8);
 
   &__heading {
     margin-bottom: 32px;
@@ -139,8 +139,6 @@
       font-size: 13px;
       font-weight: 800;
 
-      outline: none;
-
       transition:
         border-color 0.2s ease,
         background 0.2s ease,
@@ -155,9 +153,9 @@
         background: rgba(255, 255, 255, 0.07);
       }
 
-      &:focus {
+      &:focus-visible {
         border-color: $color-accent;
-        box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.1);
+        box-shadow: 0 0 0 3px rgba(242, 198, 109, 0.14);
       }
 
       option {
@@ -330,16 +328,15 @@
 
 .discover-grid {
   display: grid;
-  grid-template-columns: repeat(4, 271px);
-  justify-content: space-between;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   align-items: start;
-  gap: 26px 10px;
+  gap: 26px 18px;
 
   width: 100%;
 
   > .movieCard {
-    width: 271px;
-    min-width: 271px;
+    width: 100%;
+    min-width: 0;
     margin: 0;
   }
 }
@@ -348,19 +345,16 @@
   .discover-layout {
     grid-template-columns: 260px minmax(0, 1fr);
     gap: 32px;
-    padding-right: 36px;
-    padding-left: 36px;
   }
 
   .discover-grid {
-    grid-template-columns: repeat(3, 271px);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 1180px) {
   .discover-grid {
-    grid-template-columns: repeat(2, 271px);
-    justify-content: space-around;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -369,7 +363,7 @@
     grid-template-columns: 1fr;
     gap: 45px;
 
-    padding: 135px 40px 80px;
+    padding: $space-12 $container-gutter-tablet $space-20;
   }
 
   .discover-sidebar {
@@ -396,21 +390,19 @@
   }
 
   .discover-grid {
-    grid-template-columns: repeat(3, 271px);
-    justify-content: space-between;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 930px) {
   .discover-grid {
-    grid-template-columns: repeat(2, 271px);
-    justify-content: space-around;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 767px) {
   .discover-layout {
-    padding: 120px 24px 70px;
+    padding: $space-12 $container-gutter-tablet 70px;
   }
 
   .discover-sidebar__heading {
@@ -421,25 +413,24 @@
   }
 
   .discover-grid {
-    grid-template-columns: repeat(2, 271px);
-    justify-content: space-between;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 24px 14px;
   }
 }
 
 @media (max-width: 620px) {
+  .discover-layout {
+    padding-right: $container-gutter-mobile;
+    padding-left: $container-gutter-mobile;
+  }
+
   .discover-grid {
-    grid-template-columns: 271px;
+    grid-template-columns: minmax(0, 320px);
     justify-content: center;
   }
 }
 
 @media (max-width: 550px) {
-  .discover-layout {
-    padding-right: 14px;
-    padding-left: 14px;
-  }
-
   .discover-filters {
     grid-template-columns: 1fr;
   }
@@ -464,7 +455,7 @@
   }
 
   .discover-grid {
-    grid-template-columns: 271px;
+    grid-template-columns: minmax(0, 320px);
     justify-content: center;
   }
 }

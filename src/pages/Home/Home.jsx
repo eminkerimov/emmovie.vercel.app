@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Loading from "../../components/Loading/Loading";
 import MovieCard from "../../components/MovieCard/MovieCard";
+import { IMG_API } from "../../helpers/baseURL";
 import useFetchMovies from "../../hooks/useFetchMovies";
 import useWatchlist from "../../hooks/useWatchlist";
 import "./Home.scss";
@@ -40,29 +41,32 @@ const Home = () => {
   const popularRequest = useFetchMovies();
   const topRatedRequest = useFetchMovies();
   const upcomingRequest = useFetchMovies();
+  const fetchPopular = popularRequest.fetchData;
+  const fetchTopRated = topRatedRequest.fetchData;
+  const fetchUpcoming = upcomingRequest.fetchData;
 
   const { toggleWatchlist, isInWatchlist } =
     useWatchlist();
 
   useEffect(() => {
-    popularRequest.fetchData(
+    fetchPopular(
       "GET",
       "/movie/popular?language=en-US&page=1",
       null
     );
 
-    topRatedRequest.fetchData(
+    fetchTopRated(
       "GET",
       "/movie/top_rated?language=en-US&page=1",
       null
     );
 
-    upcomingRequest.fetchData(
+    fetchUpcoming(
       "GET",
       "/movie/upcoming?language=en-US&page=1",
       null
     );
-  }, []);
+  }, [fetchPopular, fetchTopRated, fetchUpcoming]);
 
   useEffect(() => {
     if (!popularRequest.data) return;
@@ -126,7 +130,7 @@ const Home = () => {
                 transparent 42%
               ),
               url(
-                https://image.tmdb.org/t/p/original${heroMovie.backdrop_path}
+                ${IMG_API}${heroMovie.backdrop_path}
               )
             `,
           }}

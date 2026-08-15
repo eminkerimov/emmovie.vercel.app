@@ -2,27 +2,71 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { BASE_URL } from "./baseURL";
 
-const useFetch = (url) => {
+const createRequestState = (url) => ({
+  url,
+  data: null,
+  loading: true,
+  error: false,
+});
 
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
+const useFetch = (url) => {
+  const [requestState, setRequestState] = useState(() =>
+    createRequestState(url)
+  );
 
   useEffect(() => {
+    const controller = new AbortController();
+    let isActive = true;
+
     const fetchData = async () => {
+      setRequestState(createRequestState(url));
+
       try {
-        setLoading(true)
-        const res = await axios.get(BASE_URL + "/movie/" + url);
-        setData(res.data)
+        const response = await axios.get(BASE_URL + "/movie/" + url, {
+          signal: controller.signal,
+        });
+
+        if (!isActive || controller.signal.aborted) return;
+
+        setRequestState({
+          url,
+          data: response.data,
+          loading: false,
+          error: false,
+        });
       } catch (error) {
-        setError(true)
+        if (
+          !isActive ||
+          controller.signal.aborted ||
+          axios.isCancel(error)
+        ) {
+          return;
+        }
+
+        setRequestState({
+          url,
+          data: null,
+          loading: false,
+          error,
+        });
       }
-      setLoading(false)
     };
-    fetchData()
+
+    fetchData();
+
+    return () => {
+      isActive = false;
+      controller.abort();
+    };
   }, [url]);
 
-  return {data, loading, error};
+  const isCurrentRequest = requestState.url === url;
+
+  return {
+    data: isCurrentRequest ? requestState.data : null,
+    loading: isCurrentRequest ? requestState.loading : true,
+    error: isCurrentRequest ? requestState.error : false,
+  };
 };
 
 export default useFetch;

@@ -1,42 +1,159 @@
 import React from "react";
+import useReveal from "../../hooks/useReveal";
 import "./Reviews.scss";
 
-const Reviews = (reviews) => {
-  const reviewCount = reviews?.results?.length || 0;
+const formatReviewDate = (value) => {
+  if (!value) return "Date unavailable";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return value.slice(0, 10);
+
+  return new Intl.DateTimeFormat("en", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(date);
+};
+
+const getInitials = (author) =>
+  author
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part.charAt(0))
+    .join("")
+    .toUpperCase();
+
+const Reviews = ({ results = [] }) => {
+  const { elementRef, isVisible } = useReveal();
+  const reviewCount = results.length;
 
   return (
-    <section className="reviews-section">
-      <div className="container">
-        <div className="reviews-section__header">
-          <h2>User reviews</h2>
-          <span>{reviewCount}</span>
-        </div>
+    <section
+      ref={elementRef}
+      className={`reviews-section movie-section-reveal ${
+        isVisible ? "is-visible" : ""
+      }`}
+      aria-labelledby="movie-reviews-title"
+    >
+      <div className="page-container">
+        <header className="movie-section-heading reviews-section__header">
+          <span className="movie-section-heading__index" aria-hidden="true">
+            03
+          </span>
 
-        <div className="reviews">
-          {reviewCount ? (
-            reviews.results.map((result, index) => (
-              <a
-                className="reviews__box"
-                key={index}
-                href={result.url}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <div className="reviews__box__header">
-                  <span>{result.author}</span>
-                  <span>{result.created_at.slice(0, 10)}</span>
-                  <span>★ {result.author_details.rating || "—"}</span>
-                </div>
+          <div className="reviews-section__heading-copy">
+            <span className="movie-section-heading__eyebrow">
+              Audience notes
+            </span>
+            <h2 id="movie-reviews-title">User reviews</h2>
+          </div>
 
-                <p className="reviews__box__content">{result.content}</p>
+          <div
+            className="reviews-section__count"
+            aria-label={`${reviewCount} ${
+              reviewCount === 1 ? "review" : "reviews"
+            }`}
+          >
+            <strong>{String(reviewCount).padStart(2, "0")}</strong>
+            <span>{reviewCount === 1 ? "review" : "reviews"}</span>
+          </div>
+        </header>
 
-                <span className="reviews__box__link">Read full review</span>
-              </a>
-            ))
-          ) : (
-            <div className="reviews__empty">No reviews yet...</div>
-          )}
-        </div>
+        {reviewCount ? (
+          <ol className="reviews movie-section-content" aria-label="TMDB user reviews">
+            {results.map((result, index) => {
+              const author = result.author?.trim() || "Anonymous viewer";
+              const rating = result.author_details?.rating;
+              const key =
+                result.id ||
+                result.url ||
+                `${author}-${result.created_at || index}`;
+
+              return (
+                <li
+                  className={`reviews__item ${
+                    index === 0 ? "reviews__item--featured" : ""
+                  }`}
+                  key={key}
+                  style={{
+                    "--review-delay": `${Math.min(index, 5) * 38}ms`,
+                  }}
+                >
+                  <article className="reviews__card">
+                    <header className="reviews__card-header">
+                      <div className="reviews__author">
+                        <span className="reviews__avatar" aria-hidden="true">
+                          {getInitials(author)}
+                        </span>
+
+                        <div>
+                          <h3>{author}</h3>
+                          {result.created_at ? (
+                            <time dateTime={result.created_at}>
+                              {formatReviewDate(result.created_at)}
+                            </time>
+                          ) : (
+                            <span className="reviews__date">
+                              Date unavailable
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <span
+                        className="reviews__rating"
+                        aria-label={
+                          rating == null
+                            ? "Rating unavailable"
+                            : `Rating ${rating} out of 10`
+                        }
+                      >
+                        <i className="fa-solid fa-star" aria-hidden="true"></i>
+                        {rating ?? "—"}
+                        <small>/10</small>
+                      </span>
+                    </header>
+
+                    <blockquote className="reviews__quote">
+                      <p>{result.content}</p>
+                    </blockquote>
+
+                    {result.url && (
+                      <a
+                        className="reviews__link"
+                        href={result.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label={`Read full review by ${author} on TMDB`}
+                      >
+                        <span>Read full review</span>
+                        <i
+                          className="fa-solid fa-arrow-up-right-from-square"
+                          aria-hidden="true"
+                        ></i>
+                      </a>
+                    )}
+                  </article>
+                </li>
+              );
+            })}
+          </ol>
+        ) : (
+          <div
+            className="reviews__empty movie-section-content"
+            role="status"
+          >
+            <span className="reviews__empty-mark" aria-hidden="true">
+              “
+            </span>
+            <div>
+              <h3>The audience is still quiet</h3>
+              <p>No reviews yet...</p>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

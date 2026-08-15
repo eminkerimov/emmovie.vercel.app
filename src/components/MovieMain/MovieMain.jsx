@@ -1,12 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Default from "../../images/Default.jpg";
-import { IMG_API } from "../../helpers/baseURL.js";
+import {
+  IMG_API,
+  POSTER_API,
+  PROFILE_API,
+} from "../../helpers/baseURL.js";
 import { Link, useNavigate } from "react-router-dom";
 
 const MovieMain = ({ data, details, videos, watchlist, toggleWatchlist }) => {
   const navigate = useNavigate();
 
   const [trailerOpen, setTrailerOpen] = useState(false);
+  const trailerButtonRef = useRef(null);
+  const trailerDialogRef = useRef(null);
 
   const year = data?.release_date ? data.release_date.slice(0, 4) : "";
   const rating = data?.vote_average ? data.vote_average.toFixed(1) : "—";
@@ -17,20 +23,46 @@ const MovieMain = ({ data, details, videos, watchlist, toggleWatchlist }) => {
   useEffect(() => {
     if (!trailerOpen) return;
 
-    const handleEsc = (e) => {
+    const handleModalKeyDown = (e) => {
       if (e.key === "Escape") {
         setTrailerOpen(false);
+        window.requestAnimationFrame(() => trailerButtonRef.current?.focus());
+        return;
+      }
+
+      if (e.key !== "Tab") return;
+
+      const focusableElements = trailerDialogRef.current?.querySelectorAll(
+        'button:not([disabled]), iframe, [href], [tabindex]:not([tabindex="-1"])'
+      );
+
+      if (!focusableElements?.length) return;
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+
+      if (e.shiftKey && document.activeElement === firstElement) {
+        e.preventDefault();
+        lastElement.focus();
+      } else if (!e.shiftKey && document.activeElement === lastElement) {
+        e.preventDefault();
+        firstElement.focus();
       }
     };
 
     document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", handleEsc);
+    window.addEventListener("keydown", handleModalKeyDown);
 
     return () => {
       document.body.style.overflow = "";
-      window.removeEventListener("keydown", handleEsc);
+      window.removeEventListener("keydown", handleModalKeyDown);
     };
   }, [trailerOpen]);
+
+  const closeTrailer = () => {
+    setTrailerOpen(false);
+    window.requestAnimationFrame(() => trailerButtonRef.current?.focus());
+  };
 
   return (
     <>
@@ -42,17 +74,22 @@ const MovieMain = ({ data, details, videos, watchlist, toggleWatchlist }) => {
           })`,
         }}
       >
-        <div className="container">
-          <button className="movie__main__back" onClick={() => navigate(-1)}>
-            <i className="fa-solid fa-arrow-left"></i>
+        <div className="page-container">
+          <button
+            className="movie__main__back"
+            type="button"
+            onClick={() => navigate(-1)}
+          >
+            <i className="fa-solid fa-arrow-left" aria-hidden="true"></i>
             <span>Back</span>
           </button>
 
           <div className="movie__main__content">
             <img
               className="movie__main__poster"
-              src={data?.poster_path ? IMG_API + data.poster_path : Default}
+              src={data?.poster_path ? POSTER_API + data.poster_path : Default}
               alt={data?.title}
+              decoding="async"
             />
 
             <div className="movie__main__details">
@@ -69,11 +106,14 @@ const MovieMain = ({ data, details, videos, watchlist, toggleWatchlist }) => {
                 </span>
               </div>
 
-              {data?.overview && <p>{data.overview}</p>}
+              {data?.tagline && (
+                <p className="movie__main__tagline">“{data.tagline}”</p>
+              )}
 
               <div className="movie__main__actions">
                 {trailerKey && (
                   <button
+                    ref={trailerButtonRef}
                     className="movie__main__trailer"
                     type="button"
                     onClick={() => setTrailerOpen(true)}
@@ -97,11 +137,13 @@ const MovieMain = ({ data, details, videos, watchlist, toggleWatchlist }) => {
                   }`}
                   type="button"
                   onClick={toggleWatchlist}
+                  aria-pressed={isFavorite}
                 >
                   <i
                     className={`${
                       isFavorite ? "fa-solid" : "fa-regular"
                     } fa-heart`}
+                    aria-hidden="true"
                   ></i>
                   {isFavorite ? "In Watchlist" : "Add to Watchlist"}
                 </button>
@@ -120,10 +162,15 @@ const MovieMain = ({ data, details, videos, watchlist, toggleWatchlist }) => {
                   to={`/person/${actor.id}`}
                 >
                   {actor.profile_path ? (
-                    <img src={IMG_API + actor.profile_path} alt={actor.name} />
+                    <img
+                      src={PROFILE_API + actor.profile_path}
+                      alt={`${actor.name} portrait`}
+                      loading="lazy"
+                      decoding="async"
+                    />
                   ) : (
                     <div className="movie__main__cast-placeholder">
-                      <i className="fa-solid fa-user"></i>
+                      <i className="fa-solid fa-user" aria-hidden="true"></i>
                     </div>
                   )}
 
@@ -139,18 +186,24 @@ const MovieMain = ({ data, details, videos, watchlist, toggleWatchlist }) => {
       {trailerOpen && (
         <div
           className="movie-trailer-modal"
-          onClick={() => setTrailerOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${data?.title || "Movie"} trailer`}
+          onClick={closeTrailer}
         >
           <div
+            ref={trailerDialogRef}
             className="movie-trailer-modal__content"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               className="movie-trailer-modal__close"
               type="button"
-              onClick={() => setTrailerOpen(false)}
+              onClick={closeTrailer}
+              aria-label="Close trailer"
+              autoFocus
             >
-              <i className="fa-solid fa-xmark"></i>
+              <i className="fa-solid fa-xmark" aria-hidden="true"></i>
             </button>
 
             <iframe

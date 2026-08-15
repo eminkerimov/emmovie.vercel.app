@@ -1,80 +1,105 @@
 import React, { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import Loading from "../../components/Loading/Loading";
 import MovieCard from "../../components/MovieCard/MovieCard";
 import useFetchMovies from "../../hooks/useFetchMovies";
+import "./Movies.scss";
 
-const mainRoutes = [
-  {path : "/", title: "Popular"},
-  {path : "/top-rated", title: "Top Rated"},
-  {path : "/upcoming", title: "Upcoming"},
-  {path : "/now-playing", title: "Now Playing"}
-]
+const CATEGORIES = [
+  { id: "popular", title: "Popular", endpoint: "/movie/popular" },
+  { id: "top-rated", title: "Top Rated", endpoint: "/movie/top_rated" },
+  { id: "upcoming", title: "Upcoming", endpoint: "/movie/upcoming" },
+  { id: "now-playing", title: "Now Playing", endpoint: "/movie/now_playing" },
+];
 
 const Movies = () => {
-  const [movies, setMovies] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const { data, loading, fetchData } = useFetchMovies();
-  let {pathname} = useLocation();
-  
-  useEffect(() => {
-    const method = "GET";
-    const url = "/movie/popular?language=en-US&page=1";
-    const params = null;
-    fetchData(method, url, params);
-  }, []);
+  const [activeCategory, setActiveCategory] = useState(CATEGORIES[0]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const { data, loading, error, fetchData } = useFetchMovies();
+  const movies = data?.data?.results || [];
 
   useEffect(() => {
-    if(data){
-      setMovies(data.data.results)
-    }
-  }, [data])  
+    fetchData("GET", activeCategory.endpoint, {
+      language: "en-US",
+      page: 1,
+    });
+  }, [activeCategory, fetchData]);
 
-  const handleOnSubmit = (e) => {
-    e.preventDefault();
-    if (searchTerm) {
-      const method = "GET";
-      const url = "/search/movie";
-      const params = {
-        query: searchTerm
-      };
-      fetchData(method, url, params);
-      setSearchTerm('');
-    }
-  }
+  const handleSubmit = (event) => {
+    event.preventDefault();
 
-  const handleOnChange = (e) => {
-    setSearchTerm(e.target.value);
+    const query = searchTerm.trim();
+    if (!query) return;
+
+    fetchData("GET", "/search/movie", {
+      query,
+      language: "en-US",
+      page: 1,
+    });
   };
 
   return (
-    <div>
-      <header>
-        <form onSubmit={handleOnSubmit}>
-          <div className="logo">
-          <i className="fa-solid fa-film"></i>
-          M-movie
+    <main className="movies-page">
+      <div className="page-container">
+        <section className="movies-page__header" aria-labelledby="movies-title">
+          <div>
+            <span>Catalogue</span>
+            <h1 id="movies-title">Movies</h1>
           </div>
-          <div className="title">
-            {mainRoutes.map((route, index) => (
-              <Link to={route.path} key={index} className={pathname == route.path && "active"}>{route.title}</Link>
+
+          <form className="movies-page__form" role="search" onSubmit={handleSubmit}>
+            <label className="sr-only" htmlFor="catalogue-search">
+              Search the movie catalogue
+            </label>
+            <input
+              id="catalogue-search"
+              className="movies-page__search"
+              type="search"
+              placeholder="Search movies..."
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+            />
+            <button type="submit" aria-label="Search movies">
+              <i className="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            </button>
+          </form>
+        </section>
+
+        <div className="movies-page__tabs" aria-label="Movie categories">
+          {CATEGORIES.map((category) => (
+            <button
+              key={category.id}
+              className={activeCategory.id === category.id ? "is-active" : ""}
+              type="button"
+              aria-pressed={activeCategory.id === category.id}
+              onClick={() => setActiveCategory(category)}
+            >
+              {category.title}
+            </button>
+          ))}
+        </div>
+
+        {loading && <Loading />}
+
+        {!loading && error && (
+          <div className="movies-page__state" role="alert">
+            Movies could not be loaded. Try again.
+          </div>
+        )}
+
+        {!loading && !error && movies.length > 0 && (
+          <section className="movies-page__grid" aria-live="polite">
+            {movies.map((movie) => (
+              <MovieCard key={movie.id} {...movie} />
             ))}
-          </div>
-          <input
-            className="search"
-            type="search"
-            placeholder="Search..."
-            value={searchTerm}
-            onChange={handleOnChange}
-          />
-        </form>
-      </header>
-      <div className="movie-container">
-        {movies?.length && movies.map(movie => (
-          <MovieCard key={movie.id} {...movie} />
-        ))}
+          </section>
+        )}
+
+        {!loading && !error && movies.length === 0 && (
+          <div className="movies-page__state">No movies found.</div>
+        )}
       </div>
-    </div>
+    </main>
   );
-}
+};
 
 export default Movies;

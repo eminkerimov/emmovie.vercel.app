@@ -1,195 +1,257 @@
 @import "../../styles/variables";
 
 .movieCard {
-  width: 271px;
-  margin: 1rem;
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid rgba(245, 247, 250, 0.09);
+  border-radius: $radius-md;
+  background: linear-gradient(160deg, $color-surface-elevated, $color-surface 72%);
+  color: $color-text-primary;
+  box-shadow: $shadow-card;
+  transition:
+    transform $motion-base $motion-ease,
+    border-color $motion-base $motion-ease,
+    box-shadow $motion-base $motion-ease;
+}
+
+.movieCard-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+
+  &:focus-visible {
+    outline-offset: -3px;
+  }
+}
+
+.movieCard-favorite {
+  position: absolute;
+  top: $space-3;
+  right: $space-3;
+  z-index: 5;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(245, 247, 250, 0.14);
+  border-radius: 50%;
+  background: rgba(7, 16, 23, 0.82);
+  color: $color-text-primary;
+  cursor: pointer;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  transition:
+    transform $motion-fast $motion-ease,
+    border-color $motion-fast $motion-ease,
+    background-color $motion-fast $motion-ease,
+    color $motion-fast $motion-ease;
+
+  i {
+    font-size: 17px;
+    line-height: 1;
+  }
+
+  &:hover,
+  &:focus-visible {
+    border-color: rgba(242, 198, 109, 0.42);
+    background: rgba(14, 28, 37, 0.96);
+    color: $color-primary;
+    transform: scale(1.06);
+  }
+
+  &.is-active {
+    border-color: $color-danger;
+    background: $color-danger;
+    color: $color-text-primary;
+  }
+}
+
+.movieCard-poster {
   position: relative;
   overflow: hidden;
-  border-radius: $radius-md;
-  background: $color-card-bg;
-  color: $color-text-light;
-  text-decoration: none;
-  box-shadow: $shadow-card;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2 / 3;
+  background: $color-surface-elevated;
 
-  &-favorite {
+  &::after {
+    content: "";
     position: absolute;
-    top: 14px;
-    right: 14px;
-    z-index: 5;
+    inset: auto 0 0;
+    z-index: 1;
+    height: 38%;
+    background: linear-gradient(transparent, rgba(7, 16, 23, 0.78));
+    pointer-events: none;
+  }
 
-    width: 42px;
-    height: 42px;
-    border: 0;
-    border-radius: 50%;
+  img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    transition:
+      transform $motion-slow $motion-ease,
+      filter $motion-slow $motion-ease;
+  }
+}
 
-    display: flex;
+.movieCard-over {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: $space-6;
+  background: linear-gradient(
+    180deg,
+    rgba(7, 16, 23, 0.08) 0%,
+    rgba(7, 16, 23, 0.74) 44%,
+    rgba(7, 16, 23, 0.98) 100%
+  );
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px);
+  transition:
+    opacity $motion-base $motion-ease,
+    transform $motion-base $motion-ease;
+
+  &__label {
+    margin-bottom: $space-3;
+    color: $color-primary;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-extra-bold;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  p {
+    margin: 0;
+    display: -webkit-box;
+    overflow: hidden;
+    color: rgba(245, 247, 250, 0.9);
+    font-size: 13px;
+    font-weight: $font-weight-medium;
+    line-height: 1.6;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 5;
+  }
+
+  &__action {
+    min-height: 44px;
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-
-    background: rgba(8, 18, 25, 0.76);
-    color: $color-text-light;
-    cursor: pointer;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+    gap: $space-2;
+    margin-top: $space-4;
+    color: $color-link;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-extra-bold;
 
     i {
-      font-size: 18px;
-      position: relative;
-      top: 2px;
-    }
-
-    &:hover {
-      transform: scale(1.08);
-      background: rgba(8, 18, 25, 0.92);
-      color: $color-accent;
-    }
-
-    &.is-active {
-      background: $color-accent;
-      color: $color-header-bg;
+      font-size: 11px;
     }
   }
+}
 
-  &-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+.movieCard-info {
+  min-height: 94px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+  padding: $space-4;
+  border-top: 1px solid rgba(245, 247, 250, 0.07);
+  background: linear-gradient(145deg, $color-surface-elevated, $color-surface);
+
+  > div {
+    min-width: 0;
+    flex: 1;
   }
 
-  &-poster {
-    position: relative;
-    height: 410px;
+  h3 {
+    height: 2.7em;
+    margin: 0;
+    display: -webkit-box;
     overflow: hidden;
-    background: $color-card-bg;
-
-    img {
-      width: 100%;
-      height: 100%;
-      display: block;
-      object-fit: cover;
-      transition: transform 0.35s ease;
-    }
+    color: $color-text-primary;
+    font-size: $font-size-base;
+    font-weight: $font-weight-extra-bold;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
   }
+}
 
-  &-info {
-    min-height: 82px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 16px;
-    background: $color-card-bg;
+.movieCard-year {
+  display: block;
+  margin-top: 6px;
+  color: $color-text-secondary;
+  font-size: 13px;
+  font-weight: $font-weight-bold;
+}
 
-    > div {
-      min-width: 0;
-      flex: 1;
-    }
+.movieCard-info .tag {
+  min-width: 44px;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 9px;
+  border: 1px solid rgba(245, 247, 250, 0.08);
+  border-radius: $radius-pill;
+  background: rgba(7, 16, 23, 0.5);
+  font-size: $font-size-sm;
+  font-weight: $font-weight-extra-bold;
+}
 
-    h3 {
-      height: 2.7em;
-      margin: 0;
-      display: -webkit-box;
-      overflow: hidden;
-      color: $color-text-light;
-      font-size: 16px;
-      line-height: 1.35;
-      font-weight: 800;
-      line-clamp: 2;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-    }
+.movieCard-info .rating-high {
+  border-color: rgba(242, 198, 109, 0.2);
+  color: $color-primary;
+}
 
-    .movieCard-year {
-      display: block;
-      margin-top: 6px;
-      color: rgba(255, 255, 255, 0.45);
-      font-size: 13px;
-      font-weight: 600;
-    }
+.movieCard-info .rating-medium {
+  border-color: rgba(120, 215, 244, 0.18);
+  color: $color-link;
+}
 
-    .tag {
-      min-width: 44px;
-      padding: 7px 9px;
-      border-radius: 999px;
-      background: $color-card-bg-light;
-      font-size: 14px;
-      font-weight: 800;
-      text-align: center;
-    }
+.movieCard-info .rating-low {
+  color: $color-text-secondary;
+}
 
-    .green {
-      color: #22c55e;
-    }
-
-    .orange {
-      color: #f59e0b;
-    }
-
-    .red {
-      color: #ef4444;
-    }
-  }
-
-  &-over {
-    position: absolute;
-    inset: 0;
-    padding: 22px;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    background: linear-gradient(
-      180deg,
-      rgba(13, 37, 42, 0.08) 0%,
-      rgba(13, 37, 42, 0.68) 45%,
-      rgba(13, 37, 42, 0.98) 100%
-    );
-    transform: translateY(100%);
-    transition: transform 0.3s ease;
-
-    h2 {
-      margin: 0 0 12px;
-      color: $color-accent;
-      font-size: 20px;
-      font-weight: 900;
-    }
-
-    p {
-      margin: 0;
-      color: rgba(255, 255, 255, 0.9);
-      font-size: 13px;
-      line-height: 1.5;
-      display: -webkit-box;
-      line-clamp: 5;
-      -webkit-line-clamp: 5;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-  }
-
-  &:hover {
-    transform: translateY(-8px);
+@media (hover: hover) {
+  .movieCard:hover,
+  .movieCard:focus-within {
+    border-color: rgba(242, 198, 109, 0.25);
     box-shadow: $shadow-card-hover;
+    transform: translateY(-6px);
 
     .movieCard-poster img {
-      transform: scale(1.06);
+      filter: saturate(0.92) brightness(0.76);
+      transform: scale(1.045);
     }
 
     .movieCard-over {
+      opacity: 1;
       transform: translateY(0);
     }
   }
 }
 
-@media (max-width: 600px) {
-  .movieCard {
-    width: 100%;
-    max-width: 320px;
-    margin: 0.75rem;
+@media (hover: none) {
+  .movieCard-over {
+    display: none;
+  }
+}
 
-    &-poster {
-      height: 440px;
-    }
+@media (max-width: $breakpoint-mobile-small) {
+  .movieCard-info {
+    min-height: 88px;
+    padding: $space-3 $space-4;
   }
 }

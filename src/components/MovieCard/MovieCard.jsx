@@ -1,13 +1,13 @@
 import React from "react";
 import Default from "../../images/Default.jpg";
 import { Link } from "react-router-dom";
-import { IMG_API } from "../../helpers/baseURL";
+import { POSTER_API } from "../../helpers/baseURL";
 import "./MovieCard.scss";
 
 const setVoteClass = (vote) => {
-  if (vote >= 8) return "green";
-  if (vote >= 6) return "orange";
-  return "red";
+  if (vote >= 8) return "rating-high";
+  if (vote >= 6) return "rating-medium";
+  return "rating-low";
 };
 
 const MovieCard = ({
@@ -22,10 +22,7 @@ const MovieCard = ({
 }) => {
   const year = release_date ? release_date.slice(0, 4) : "N/A";
 
-  const handleFavoriteClick = (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-
+  const handleFavoriteClick = () => {
     if (onToggleFavorite) {
       onToggleFavorite({
         id,
@@ -39,40 +36,62 @@ const MovieCard = ({
   };
 
   return (
-    <Link className="movieCard" to={`/movie/${id}`}>
+    <article className="movieCard">
       {onToggleFavorite && (
         <button
           className={`movieCard-favorite ${isFavorite ? "is-active" : ""}`}
           type="button"
           onClick={handleFavoriteClick}
           aria-label={isFavorite ? "Remove from watchlist" : "Add to watchlist"}
+          aria-pressed={isFavorite}
         >
-          <i className={`${isFavorite ? "fa-solid" : "fa-regular"} fa-heart`}></i>
+          <i
+            className={`${isFavorite ? "fa-solid" : "fa-regular"} fa-heart`}
+            aria-hidden="true"
+          ></i>
         </button>
       )}
 
-      <div className="movieCard-poster">
-        <img src={poster_path ? IMG_API + poster_path : Default} alt={title} />
+      <Link
+        className="movieCard-link"
+        to={`/movie/${id}`}
+        aria-label={`Open ${title} movie details`}
+      >
+        <div className="movieCard-poster">
+          <img
+            src={poster_path ? POSTER_API + poster_path : Default}
+            alt={`${title} poster`}
+            loading="lazy"
+            decoding="async"
+          />
 
-        <div className="movieCard-over">
-          <h2>Overview</h2>
-          <p>{overview}</p>
+          <div className="movieCard-over" aria-hidden="true">
+            <span className="movieCard-over__label">Quick look</span>
+            <p>{overview || "No synopsis available."}</p>
+            <span className="movieCard-over__action">
+              View details
+              <i className="fa-solid fa-arrow-right"></i>
+            </span>
+          </div>
         </div>
-      </div>
 
-      <div className="movieCard-info">
-        <div>
-          <h3>{title}</h3>
-          <span className="movieCard-year">{year}</span>
+        <div className="movieCard-info">
+          <div>
+            <h3>{title}</h3>
+            <span className="movieCard-year">{year}</span>
+          </div>
+
+          {vote_average > 0 && (
+            <span
+              className={`tag ${setVoteClass(vote_average)}`}
+              aria-label={`Rating ${vote_average.toFixed(1)} out of 10`}
+            >
+              {vote_average.toFixed(1)}
+            </span>
+          )}
         </div>
-
-        {vote_average > 0 && (
-          <span className={`tag ${setVoteClass(vote_average)}`}>
-            {vote_average.toFixed(1)}
-          </span>
-        )}
-      </div>
-    </Link>
+      </Link>
+    </article>
   );
 };
 

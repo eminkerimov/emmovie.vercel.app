@@ -1,0 +1,130 @@
+@import "../../styles/variables";
+
+.movies-page {
+  min-height: 70vh;
+  padding-block: $space-12 $space-20;
+  background: $color-canvas;
+
+  &__header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: $space-8;
+    margin-bottom: $space-8;
+
+    span {
+      color: $color-link;
+      font-size: $font-size-xs;
+      font-weight: $font-weight-bold;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: $space-2 0 0;
+      color: $color-text-primary;
+      font-size: clamp(2.25rem, 5vw, 3.75rem);
+      line-height: 1.05;
+    }
+  }
+
+  &__form {
+    min-width: min(100%, 360px);
+    display: flex;
+
+    input {
+      min-width: 0;
+      flex: 1;
+      min-height: 44px;
+      border: 1px solid $color-border;
+      border-radius: $radius-md 0 0 $radius-md;
+      padding: 0 $space-4;
+      background: $color-surface;
+      color: $color-text-primary;
+    }
+
+    button {
+      width: 48px;
+      min-height: 44px;
+      border: 0;
+      border-radius: 0 $radius-md $radius-md 0;
+      background: $color-primary;
+      color: $color-canvas;
+      cursor: pointer;
+    }
+  }
+
+  &__tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+    margin-bottom: $space-10;
+
+    button {
+      min-height: 44px;
+      border: 1px solid $color-border;
+      border-radius: $radius-pill;
+      padding: 0 $space-5;
+      background: $color-surface;
+      color: $color-text-secondary;
+      cursor: pointer;
+      transition: color $motion-fast $motion-ease,
+        border-color $motion-fast $motion-ease,
+        background-color $motion-fast $motion-ease;
+
+      &:hover,
+      &.is-active {
+        border-color: $color-primary;
+        background: $color-surface-elevated;
+        color: $color-primary;
+      }
+    }
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: $space-8 $space-6;
+
+    .movieCard {
+      width: 100%;
+      margin: 0;
+    }
+  }
+
+  &__state {
+    min-height: 240px;
+    display: grid;
+    place-items: center;
+    color: $color-text-secondary;
+  }
+}
+
+@media (max-width: $breakpoint-lg) {
+  .movies-page__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: $breakpoint-md) {
+  .movies-page {
+    &__header {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    &__form {
+      width: 100%;
+    }
+
+    &__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+}
+
+@media (max-width: $breakpoint-sm) {
+  .movies-page__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

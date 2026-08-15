@@ -1,0 +1,108 @@
+@import "../../styles/variables";
+
+.app-footer {
+  border-top: 1px solid $color-border;
+  background: $color-surface;
+  color: $color-text-primary;
+
+  &__inner {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) auto minmax(280px, 1fr);
+    align-items: start;
+    gap: $space-10;
+    padding-top: $space-10;
+    padding-bottom: $space-10;
+  }
+
+  &__brand {
+    > a {
+      display: inline-flex;
+      align-items: center;
+      gap: $space-3;
+      min-height: 44px;
+      color: $color-text-primary;
+      font-size: $font-size-xl;
+      font-weight: $font-weight-extra-bold;
+      text-decoration: none;
+
+      i {
+        color: $color-primary;
+      }
+    }
+
+    p {
+      max-width: 360px;
+      margin: $space-3 0 0;
+      color: $color-text-secondary;
+      font-size: $font-size-sm;
+      line-height: $line-height-body;
+    }
+  }
+
+  &__nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+
+    a {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: 0 $space-3;
+      color: $color-link;
+      font-size: $font-size-sm;
+      font-weight: $font-weight-bold;
+      text-decoration: none;
+      transition:
+        color $motion-fast $motion-ease,
+        transform $motion-fast $motion-ease;
+
+      &:hover,
+      &:focus-visible {
+        color: $color-primary;
+        transform: translateY(-2px);
+      }
+    }
+  }
+
+  &__meta {
+    justify-self: end;
+    max-width: 420px;
+
+    p,
+    small {
+      display: block;
+      margin: 0;
+      color: $color-text-secondary;
+      font-size: $font-size-xs;
+      line-height: $line-height-body;
+    }
+
+    small {
+      margin-top: $space-2;
+    }
+  }
+}
+
+@media (max-width: $breakpoint-tablet) {
+  .app-footer__inner {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .app-footer__meta {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
+@media (max-width: $breakpoint-mobile) {
+  .app-footer__inner {
+    grid-template-columns: 1fr;
+    gap: $space-6;
+  }
+
+  .app-footer__meta {
+    grid-column: auto;
+  }
+}

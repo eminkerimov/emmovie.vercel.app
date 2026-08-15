@@ -11,9 +11,9 @@
     ),
     linear-gradient(
       135deg,
-      #061018 0%,
-      #081720 52%,
-      #061119 100%
+      $color-canvas 0%,
+      $color-surface 52%,
+      $color-canvas 100%
     );
 
   color: $color-text-light;
@@ -21,11 +21,11 @@
 
 .watchlist-layout {
   width: 100%;
-  max-width: 1800px;
+  max-width: $container-max-width;
   min-height: 100vh;
 
   margin: 0 auto;
-  padding: 120px 48px 80px;
+  padding: $space-12 $container-gutter-desktop $space-20;
   box-sizing: border-box;
 }
 
@@ -124,14 +124,14 @@
   }
 
   button {
-    height: 40px;
+    min-height: 44px;
     padding: 0 16px;
 
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(216, 91, 106, 0.32);
     border-radius: 9px;
 
-    background: rgba(255, 255, 255, 0.05);
-    color: rgba(255, 255, 255, 0.72);
+    background: $color-danger-surface;
+    color: $color-text-primary;
 
     font: inherit;
     font-size: 11px;
@@ -145,9 +145,9 @@
       color 0.2s ease;
 
     &:hover {
-      border-color: rgba(255, 255, 255, 0.24);
-      background: rgba(255, 255, 255, 0.1);
-      color: #fff;
+      border-color: rgba(216, 91, 106, 0.58);
+      background: #7b263b;
+      color: $color-text-primary;
     }
   }
 }
@@ -203,11 +203,11 @@
 
     margin-bottom: 22px;
 
-    border: 1px solid rgba(125, 211, 252, 0.18);
+    border: 1px solid rgba(216, 91, 106, 0.26);
     border-radius: 50%;
 
-    background: rgba(125, 211, 252, 0.07);
-    color: $color-accent;
+    background: rgba(216, 91, 106, 0.1);
+    color: $color-danger;
 
     font-size: 28px;
   }
@@ -285,7 +285,7 @@
 
 @media (max-width: 950px) {
   .watchlist-layout {
-    padding: 110px 32px 70px;
+    padding: $space-12 $container-gutter-tablet 70px;
   }
 
   .watchlist-hero {
@@ -307,7 +307,7 @@
 
 @media (max-width: 620px) {
   .watchlist-layout {
-    padding: 110px 14px 50px;
+    padding: 40px $container-gutter-mobile 50px;
   }
 
   .watchlist-hero {
