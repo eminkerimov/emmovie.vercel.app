@@ -521,11 +521,6 @@ const Person = () => {
                           decoding="async"
                         />
 
-                        {isActivePhoto && (
-                          <span className="person-gallery__caption">
-                            {person.name}
-                          </span>
-                        )}
                       </button>
                     </li>
                   );
