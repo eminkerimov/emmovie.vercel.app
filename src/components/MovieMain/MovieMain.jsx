@@ -69,7 +69,7 @@ const MovieMain = ({ data, details, videos, watchlist, toggleWatchlist }) => {
       <section
         className="movie__main"
         style={{
-          backgroundImage: `linear-gradient(90deg, rgba(8, 18, 25, 0.96) 0%, rgba(8, 18, 25, 0.78) 45%, rgba(8, 18, 25, 0.42) 100%), url(${
+          backgroundImage: `linear-gradient(90deg, rgba(3, 9, 14, 0.96) 0%, rgba(6, 22, 30, 0.7) 48%, rgba(7, 26, 35, 0.08) 100%), linear-gradient(180deg, rgba(120, 215, 244, 0.13) 0%, transparent 40%), linear-gradient(0deg, #050b10 0%, transparent 58%), url(${
             data?.backdrop_path ? IMG_API + data.backdrop_path : Default
           })`,
         }}
@@ -85,15 +85,17 @@ const MovieMain = ({ data, details, videos, watchlist, toggleWatchlist }) => {
           </button>
 
           <div className="movie__main__content">
-            <img
-              className="movie__main__poster"
-              src={data?.poster_path ? POSTER_API + data.poster_path : Default}
-              alt={data?.title}
-              decoding="async"
-            />
+            <div className="movie__main__poster-frame">
+              <img
+                className="movie__main__poster"
+                src={data?.poster_path ? POSTER_API + data.poster_path : Default}
+                alt={data?.title}
+                decoding="async"
+              />
+            </div>
 
             <div className="movie__main__details">
-              <span className="movie__main__label">Movie Details</span>
+              <span className="movie__main__label">Feature presentation</span>
 
               <h1>{data?.title}</h1>
 
@@ -118,6 +120,7 @@ const MovieMain = ({ data, details, videos, watchlist, toggleWatchlist }) => {
                     type="button"
                     onClick={() => setTrailerOpen(true)}
                   >
+                    <i className="fa-solid fa-play" aria-hidden="true"></i>
                     Watch Trailer
                   </button>
                 )}
@@ -128,7 +131,11 @@ const MovieMain = ({ data, details, videos, watchlist, toggleWatchlist }) => {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  TMDB
+                  <span>View on TMDB</span>
+                  <i
+                    className="fa-solid fa-arrow-up-right-from-square"
+                    aria-hidden="true"
+                  ></i>
                 </a>
 
                 <button
@@ -152,7 +159,10 @@ const MovieMain = ({ data, details, videos, watchlist, toggleWatchlist }) => {
           </div>
 
           <div className="movie__main__cast">
-            <h3>Top Cast</h3>
+            <div className="movie__main__cast-header">
+              <h3>Top cast</h3>
+              <span>Featured performers</span>
+            </div>
 
             <div className="movie__main__cast-list">
               {details?.data?.cast?.slice(0, 8).map((actor) => (

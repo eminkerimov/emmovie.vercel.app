@@ -30,14 +30,12 @@ const Related = ({ data, watchlist, setWatchlist }) => {
     >
       <div className="page-container">
         <header className="movie-section-heading related__header">
-          <span className="movie-section-heading__index" aria-hidden="true">
-            04
-          </span>
-
-          <div>
+          <div className="movie-section-heading__copy">
             <span className="movie-section-heading__eyebrow">Discover</span>
             <h2 id="related-movies-title">Related Movies</h2>
           </div>
+
+          <span className="movie-section-heading__line" aria-hidden="true"></span>
         </header>
 
         <div className="related__grid movie-section-content">

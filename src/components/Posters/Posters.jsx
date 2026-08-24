@@ -9,6 +9,7 @@ const PrevArrow = ({ onClick }) => (
   <button
     className="movie__images__arrow movie__images__arrow--prev"
     onClick={onClick}
+    disabled={!onClick}
     type="button"
     aria-label="Previous posters"
   >
@@ -20,6 +21,7 @@ const NextArrow = ({ onClick }) => (
   <button
     className="movie__images__arrow movie__images__arrow--next"
     onClick={onClick}
+    disabled={!onClick}
     type="button"
     aria-label="Next posters"
   >
@@ -58,16 +60,17 @@ const Posters = (images) => {
         >
           <div className="page-container">
             <header className="movie-section-heading movie__images__header">
-              <span className="movie-section-heading__index" aria-hidden="true">
-                02
-              </span>
-
-              <div>
+              <div className="movie-section-heading__copy">
                 <span className="movie-section-heading__eyebrow">
                   Visual archive
                 </span>
                 <h2 id="movie-posters-title">Posters</h2>
               </div>
+
+              <span
+                className="movie-section-heading__line"
+                aria-hidden="true"
+              ></span>
             </header>
 
             <div className="movie__images__box movie-section-content">

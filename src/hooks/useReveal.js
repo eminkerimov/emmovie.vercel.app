@@ -18,12 +18,30 @@ const useReveal = () => {
 
     if (!element || isVisible) return undefined;
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return;
+    let hasRevealed = false;
+    let observer;
 
-        setIsVisible(true);
-        observer.disconnect();
+    const reveal = () => {
+      if (hasRevealed) return;
+
+      hasRevealed = true;
+      setIsVisible(true);
+      observer?.disconnect();
+    };
+
+    const revealIfReached = () => {
+      const viewportHeight =
+        window.innerHeight || document.documentElement.clientHeight;
+      const { top } = element.getBoundingClientRect();
+
+      // A large scroll step can move a section from below to above the
+      // viewport without crossing an IntersectionObserver threshold.
+      if (top <= viewportHeight - 48) reveal();
+    };
+
+    observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) reveal();
       },
       {
         rootMargin: "0px 0px -48px",
@@ -33,7 +51,15 @@ const useReveal = () => {
 
     observer.observe(element);
 
-    return () => observer.disconnect();
+    window.addEventListener("scroll", revealIfReached, { passive: true });
+    window.addEventListener("resize", revealIfReached);
+    revealIfReached();
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("scroll", revealIfReached);
+      window.removeEventListener("resize", revealIfReached);
+    };
   }, [isVisible]);
 
   return { elementRef, isVisible };

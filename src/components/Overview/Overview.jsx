@@ -3,72 +3,56 @@ import useReveal from "../../hooks/useReveal";
 
 const Overview = ({ data, detailsData }) => {
   const { elementRef, isVisible } = useReveal();
-  const detailCount = detailsData?.length || 0;
 
   return (
     <section
       ref={elementRef}
-      className={`movie__overview movie-section-reveal ${
-        isVisible ? "is-visible" : ""
-      }`}
+      className={`movie__overview ${isVisible ? "is-visible" : ""}`}
       aria-labelledby="movie-overview-title"
     >
       <div className="page-container">
-        <header className="movie-section-heading movie__overview__header">
-          <span className="movie-section-heading__index" aria-hidden="true">
-            01
-          </span>
-
-          <div>
-            <span className="movie-section-heading__eyebrow">
-              Story &amp; production
-            </span>
-            <h2 id="movie-overview-title">Overview</h2>
-          </div>
-        </header>
-
-        <div className="movie__overview__layout movie-section-content">
-          <article className="movie__overview__story">
-            <div className="movie__overview__story-label">
-              <span>Synopsis</span>
-              <span aria-hidden="true">01 / 02</span>
+        <div className="movie__overview__editorial">
+          <header className="movie__overview__masthead">
+            <div>
+              <span className="movie__overview__eyebrow">Film dossier</span>
+              <h2 id="movie-overview-title">Overview</h2>
             </div>
 
-            <p className="movie__overview__text">
-              {data?.overview || "No overview is available for this movie."}
-            </p>
-          </article>
+            <p>Story and production notes</p>
+          </header>
 
-          <div className="movie__overview__dossier">
-            <div className="movie__overview__dossier-header">
-              <span>Film dossier</span>
-              <span aria-label={`${detailCount} production facts`}>
-                {String(detailCount).padStart(2, "0")}
-              </span>
-            </div>
+          <div className="movie__overview__content">
+            <article className="movie__overview__story">
+              <span className="movie__overview__story-label">Synopsis</span>
+              <p className="movie__overview__text">
+                {data?.overview || "No overview is available for this movie."}
+              </p>
+            </article>
 
-            <dl className="movie__overview__details">
-              {detailsData?.map((item, index) => (
-                <div
-                  className="movie__overview__details__box"
-                  key={item.title}
-                  style={{
-                    "--detail-delay": `${Math.min(index, 5) * 35}ms`,
-                  }}
-                >
-                  <dt className="movie__overview__details__title">
-                    <span aria-hidden="true">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-                    {item.title}
-                  </dt>
+            <aside className="movie__overview__facts" aria-label="Film details">
+              <header className="movie__overview__facts-header">
+                <span>Film profile</span>
+                <p>At a glance</p>
+              </header>
 
-                  <dd className="movie__overview__details__value">
-                    {item.value}
-                  </dd>
-                </div>
-              ))}
-            </dl>
+              <dl className="movie__overview__details">
+                {detailsData?.map((item, index) => (
+                  <div
+                    className="movie__overview__details__box"
+                    key={item.title}
+                    style={{ "--detail-delay": `${index * 24}ms` }}
+                  >
+                    <dt className="movie__overview__details__title">
+                      {item.title}
+                    </dt>
+
+                    <dd className="movie__overview__details__value">
+                      {item.value}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </aside>
           </div>
         </div>
       </div>
