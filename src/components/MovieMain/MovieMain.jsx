@@ -7,7 +7,15 @@ import {
 } from "../../helpers/baseURL.js";
 import { Link, useNavigate } from "react-router-dom";
 
-const MovieMain = ({ data, details, videos, watchlist, toggleWatchlist }) => {
+const MovieMain = ({
+  data,
+  details,
+  videos,
+  watchlist,
+  watchlistMeta,
+  toggleWatchlist,
+  toggleWatched,
+}) => {
   const navigate = useNavigate();
 
   const [trailerOpen, setTrailerOpen] = useState(false);
@@ -19,6 +27,7 @@ const MovieMain = ({ data, details, videos, watchlist, toggleWatchlist }) => {
   const popularity = data?.popularity ? data.popularity.toFixed(0) : "—";
   const trailerKey = videos?.[0]?.key;
   const isFavorite = watchlist?.some((movie) => movie.id === data?.id);
+  const cast = details?.data?.cast?.slice(0, 8) || [];
 
   useEffect(() => {
     if (!trailerOpen) return;
@@ -154,42 +163,83 @@ const MovieMain = ({ data, details, videos, watchlist, toggleWatchlist }) => {
                   ></i>
                   {isFavorite ? "In Watchlist" : "Add to Watchlist"}
                 </button>
+
+                {isFavorite && (
+                  <button
+                    className={`movie__main__watched ${
+                      watchlistMeta?.status === "watched"
+                        ? "is-active"
+                        : ""
+                    }`}
+                    type="button"
+                    onClick={toggleWatched}
+                    aria-pressed={
+                      watchlistMeta?.status === "watched"
+                    }
+                    aria-label={
+                      watchlistMeta?.status === "watched"
+                        ? `Move ${data?.title} back to Want to watch`
+                        : `Mark ${data?.title} as watched`
+                    }
+                  >
+                    <i
+                      className="fa-solid fa-check"
+                      aria-hidden="true"
+                    ></i>
+                    {watchlistMeta?.status === "watched"
+                      ? "Watched"
+                      : "Mark as watched"}
+                  </button>
+                )}
               </div>
             </div>
           </div>
 
-          <div className="movie__main__cast">
-            <div className="movie__main__cast-header">
-              <h3>Top cast</h3>
-              <span>Featured performers</span>
-            </div>
+          {(details?.loading || details?.error || cast.length > 0) && (
+            <div className="movie__main__cast">
+              <div className="movie__main__cast-header">
+                <h3>Top cast</h3>
+                <span>Featured performers</span>
+              </div>
 
-            <div className="movie__main__cast-list">
-              {details?.data?.cast?.slice(0, 8).map((actor) => (
-                <Link
-                  key={actor.id}
-                  className="movie__main__cast-card"
-                  to={`/person/${actor.id}`}
-                >
-                  {actor.profile_path ? (
-                    <img
-                      src={PROFILE_API + actor.profile_path}
-                      alt={`${actor.name} portrait`}
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  ) : (
-                    <div className="movie__main__cast-placeholder">
-                      <i className="fa-solid fa-user" aria-hidden="true"></i>
-                    </div>
-                  )}
+              {details?.loading || details?.error ? (
+                <p className="movie__main__cast-status" role="status">
+                  {details.loading
+                    ? "Loading cast…"
+                    : "Cast details are temporarily unavailable."}
+                </p>
+              ) : (
+                <div className="movie__main__cast-list">
+                  {cast.map((actor) => (
+                    <Link
+                      key={actor.id}
+                      className="movie__main__cast-card"
+                      to={`/person/${actor.id}`}
+                    >
+                      {actor.profile_path ? (
+                        <img
+                          src={PROFILE_API + actor.profile_path}
+                          alt={`${actor.name} portrait`}
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      ) : (
+                        <div className="movie__main__cast-placeholder">
+                          <i
+                            className="fa-solid fa-user"
+                            aria-hidden="true"
+                          ></i>
+                        </div>
+                      )}
 
-                  <h4>{actor.name}</h4>
-                  <span>{actor.character}</span>
-                </Link>
-              ))}
+                      <h4>{actor.name}</h4>
+                      <span>{actor.character}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
+          )}
         </div>
       </section>
 

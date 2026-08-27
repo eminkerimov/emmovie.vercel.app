@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { createPortal } from "react-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import Loading from "../../components/Loading/Loading";
 import MovieCard from "../../components/MovieCard/MovieCard";
 import useWatchlist from "../../hooks/useWatchlist";
@@ -7,12 +8,15 @@ import Default from "../../images/Default.jpg";
 import {
   API_KEY,
   BASE_URL,
+  IMG_API,
   POSTER_API,
 } from "../../helpers/baseURL";
 import "./Person.scss";
 
 const INITIAL_CREDIT_COUNT = 12;
 const CREDIT_BATCH_SIZE = 12;
+const FEATURED_CREDIT_COUNT = 6;
+const UPCOMING_CREDIT_COUNT = 4;
 const EMPTY_COLLECTION = [];
 
 const createRequestState = (id) => ({
@@ -23,6 +27,7 @@ const createRequestState = (id) => ({
   castCredits: [],
   crewCredits: [],
   photos: [],
+  externalIds: {},
 });
 
 const formatDate = (value) => {
@@ -99,6 +104,96 @@ const getCareerRange = (credits) => {
   return firstYear === lastYear ? `${firstYear}` : `${firstYear}–${lastYear}`;
 };
 
+const getReleaseTime = (credit) => {
+  if (!credit?.release_date) return 0;
+
+  return Date.parse(`${credit.release_date}T00:00:00`) || 0;
+};
+
+const isUpcomingCredit = (credit) => {
+  const releaseTime = getReleaseTime(credit);
+
+  if (!releaseTime) return false;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return releaseTime > today.getTime();
+};
+
+const getCreditSignificance = (credit) => {
+  const popularity = Number(credit?.popularity) || 0;
+  const voteAverage = Number(credit?.vote_average) || 0;
+  const voteCount = Number(credit?.vote_count) || 0;
+
+  return popularity + voteAverage * 2 + Math.log10(voteCount + 1) * 20;
+};
+
+const getUniqueCredits = (credits) => {
+  const creditsByMovie = new Map();
+
+  credits.forEach((credit) => {
+    const existingCredit = creditsByMovie.get(credit.id);
+
+    if (
+      !existingCredit ||
+      getCreditSignificance(credit) > getCreditSignificance(existingCredit)
+    ) {
+      creditsByMovie.set(credit.id, credit);
+    }
+  });
+
+  return Array.from(creditsByMovie.values());
+};
+
+const sortCredits = (credits, sortBy) => {
+  const sortedCredits = [...credits];
+
+  sortedCredits.sort((a, b) => {
+    if (sortBy === "popular") {
+      return (
+        (Number(b.popularity) || 0) - (Number(a.popularity) || 0) ||
+        (Number(b.vote_count) || 0) - (Number(a.vote_count) || 0)
+      );
+    }
+
+    if (sortBy === "rating") {
+      return (
+        (Number(b.vote_average) || 0) - (Number(a.vote_average) || 0) ||
+        (Number(b.vote_count) || 0) - (Number(a.vote_count) || 0)
+      );
+    }
+
+    return (
+      getReleaseTime(b) - getReleaseTime(a) ||
+      (Number(b.popularity) || 0) - (Number(a.popularity) || 0)
+    );
+  });
+
+  return sortedCredits;
+};
+
+const SOCIAL_PROFILES = [
+  {
+    key: "instagram_id",
+    label: "Instagram",
+    icon: "fa-brands fa-instagram",
+    getUrl: (value) => `https://www.instagram.com/${encodeURIComponent(value)}/`,
+  },
+  {
+    key: "twitter_id",
+    label: "X",
+    icon: "fa-brands fa-x-twitter",
+    getUrl: (value) => `https://x.com/${encodeURIComponent(value)}`,
+  },
+  {
+    key: "facebook_id",
+    label: "Facebook",
+    icon: "fa-brands fa-facebook-f",
+    getUrl: (value) => `https://www.facebook.com/${encodeURIComponent(value)}`,
+  },
+];
+
 const getSafeExternalUrl = (value) => {
   if (!value) return null;
 
@@ -115,6 +210,10 @@ const Person = () => {
   const navigate = useNavigate();
   const galleryTrackRef = useRef(null);
   const thumbnailRefs = useRef([]);
+  const lightboxRef = useRef(null);
+  const lightboxCloseRef = useRef(null);
+  const lightboxTriggerRef = useRef(null);
+  const lightboxTouchStartRef = useRef(null);
 
   const [requestState, setRequestState] = useState(() =>
     createRequestState(id)
@@ -122,6 +221,9 @@ const Person = () => {
   const [biographyExpanded, setBiographyExpanded] = useState(false);
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
   const [activeCreditType, setActiveCreditType] = useState("cast");
+  const [creditSort, setCreditSort] = useState("latest");
+  const [creditDecade, setCreditDecade] = useState("all");
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const [visibleCreditCount, setVisibleCreditCount] = useState(
     INITIAL_CREDIT_COUNT
   );
@@ -146,17 +248,21 @@ const Person = () => {
       setBiographyExpanded(false);
       setActivePhotoIndex(0);
       setActiveCreditType("cast");
+      setCreditSort("latest");
+      setCreditDecade("all");
+      setLightboxOpen(false);
       setVisibleCreditCount(INITIAL_CREDIT_COUNT);
       thumbnailRefs.current = [];
 
       try {
-        const [personResult, creditsResult, imagesResult] =
+        const [personResult, creditsResult, imagesResult, externalIdsResult] =
           await Promise.allSettled([
             requestJson(`${BASE_URL}/person/${id}?${API_KEY}&language=en-US`),
             requestJson(
               `${BASE_URL}/person/${id}/movie_credits?${API_KEY}&language=en-US`
             ),
             requestJson(`${BASE_URL}/person/${id}/images?${API_KEY}`),
+            requestJson(`${BASE_URL}/person/${id}/external_ids?${API_KEY}`),
           ]);
 
         if (personResult.status === "rejected") {
@@ -170,6 +276,10 @@ const Person = () => {
           creditsResult.status === "fulfilled" ? creditsResult.value : {};
         const imagesData =
           imagesResult.status === "fulfilled" ? imagesResult.value : {};
+        const externalIds =
+          externalIdsResult.status === "fulfilled"
+            ? externalIdsResult.value
+            : {};
         const castCredits = prepareCredits(creditsData.cast, "character");
         const crewCredits = prepareCredits(creditsData.crew, "job");
 
@@ -184,6 +294,7 @@ const Person = () => {
             imagesData.profiles,
             personData.profile_path
           ),
+          externalIds,
         });
         setActiveCreditType(castCredits.length > 0 ? "cast" : "crew");
       } catch (error) {
@@ -217,6 +328,7 @@ const Person = () => {
     ? requestState.crewCredits
     : EMPTY_COLLECTION;
   const photos = isCurrentRequest ? requestState.photos : EMPTY_COLLECTION;
+  const externalIds = isCurrentRequest ? requestState.externalIds : {};
 
   useEffect(() => {
     document.title = person?.name
@@ -235,21 +347,96 @@ const Person = () => {
       });
   }, [activePhotoIndex, photos]);
 
-  const allCredits = [...castCredits, ...crewCredits];
+  useEffect(() => {
+    if (!lightboxOpen) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    const lightboxTrigger = lightboxTriggerRef.current;
+    document.body.style.overflow = "hidden";
+    lightboxCloseRef.current?.focus();
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      lightboxTrigger?.focus();
+    };
+  }, [lightboxOpen]);
+
+  useEffect(() => {
+    if (
+      !lightboxOpen ||
+      typeof window.Image !== "function" ||
+      photos.length === 0
+    ) {
+      return;
+    }
+
+    [activePhotoIndex - 1, activePhotoIndex, activePhotoIndex + 1]
+      .filter((index) => index >= 0 && index < photos.length)
+      .forEach((index) => {
+        const preloadImage = new window.Image();
+        preloadImage.src = IMG_API + photos[index].file_path;
+      });
+  }, [activePhotoIndex, lightboxOpen, photos]);
+
+  const allCredits = getUniqueCredits([...castCredits, ...crewCredits]);
   const uniqueMovieCount = new Set(allCredits.map((credit) => credit.id)).size;
   const careerRange = getCareerRange(allCredits);
   const activeCredits =
     activeCreditType === "crew" ? crewCredits : castCredits;
-  const visibleCredits = activeCredits.slice(0, visibleCreditCount);
+  const availableDecades = Array.from(
+    new Set(
+      activeCredits
+        .map((credit) =>
+          Number.parseInt(credit.release_date?.slice(0, 4), 10)
+        )
+        .filter((year) => Number.isFinite(year))
+        .map((year) => Math.floor(year / 10) * 10)
+    )
+  ).sort((a, b) => b - a);
+  const filteredCredits = activeCredits.filter((credit) => {
+    if (creditDecade === "all") return true;
+
+    const releaseYear = Number.parseInt(credit.release_date?.slice(0, 4), 10);
+    return Math.floor(releaseYear / 10) * 10 === Number(creditDecade);
+  });
+  const sortedCredits = sortCredits(filteredCredits, creditSort);
+  const visibleCredits = sortedCredits.slice(0, visibleCreditCount);
+  const primaryCredits =
+    person?.known_for_department === "Acting" && castCredits.length > 0
+      ? castCredits
+      : crewCredits.length > 0
+      ? crewCredits
+      : castCredits;
+  const knownForCredits = getUniqueCredits([...primaryCredits, ...allCredits])
+    .filter((credit) => !isUpcomingCredit(credit))
+    .sort(
+      (a, b) => getCreditSignificance(b) - getCreditSignificance(a)
+    )
+    .slice(0, FEATURED_CREDIT_COUNT);
+  const upcomingCredits = allCredits
+    .filter(isUpcomingCredit)
+    .sort((a, b) => getReleaseTime(a) - getReleaseTime(b))
+    .slice(0, UPCOMING_CREDIT_COUNT);
   const activePhoto = photos[activePhotoIndex] || photos[0];
   const biography =
     person?.biography?.trim() || "No biography is available for this person.";
   const hasLongBiography = biography.length > 320;
   const aliases = person?.also_known_as?.filter(Boolean).slice(0, 2);
   const homepageUrl = getSafeExternalUrl(person?.homepage);
-  const imdbUrl = person?.imdb_id
-    ? `https://www.imdb.com/name/${encodeURIComponent(person.imdb_id)}/`
+  const imdbId = externalIds?.imdb_id || person?.imdb_id;
+  const imdbUrl = imdbId
+    ? `https://www.imdb.com/name/${encodeURIComponent(imdbId)}/`
     : null;
+  const socialProfiles = SOCIAL_PROFILES.map((profile) => {
+    const value = externalIds?.[profile.key];
+
+    if (typeof value !== "string" || !value.trim()) return null;
+
+    return {
+      ...profile,
+      url: profile.getUrl(value.trim().replace(/^@/, "")),
+    };
+  }).filter(Boolean);
 
   const selectPhoto = (index, moveFocus = false) => {
     if (photos.length === 0) return;
@@ -293,7 +480,81 @@ const Person = () => {
 
   const changeCreditType = (type) => {
     setActiveCreditType(type);
+    setCreditDecade("all");
     setVisibleCreditCount(INITIAL_CREDIT_COUNT);
+  };
+
+  const changeCreditSort = (event) => {
+    setCreditSort(event.target.value);
+    setVisibleCreditCount(INITIAL_CREDIT_COUNT);
+  };
+
+  const changeCreditDecade = (event) => {
+    setCreditDecade(event.target.value);
+    setVisibleCreditCount(INITIAL_CREDIT_COUNT);
+  };
+
+  const changeLightboxPhoto = (direction) => {
+    if (photos.length < 2) return;
+
+    setActivePhotoIndex(
+      (currentIndex) =>
+        (currentIndex + direction + photos.length) % photos.length
+    );
+  };
+
+  const closeLightbox = () => {
+    setLightboxOpen(false);
+  };
+
+  const handleLightboxKeyDown = (event) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeLightbox();
+      return;
+    }
+
+    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+      event.preventDefault();
+      changeLightboxPhoto(event.key === "ArrowLeft" ? -1 : 1);
+      return;
+    }
+
+    if (event.key !== "Tab") return;
+
+    const focusableElements = Array.from(
+      lightboxRef.current?.querySelectorAll("button:not([disabled])") || []
+    );
+
+    if (focusableElements.length === 0) return;
+
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+
+    if (event.shiftKey && document.activeElement === firstElement) {
+      event.preventDefault();
+      lastElement.focus();
+    } else if (!event.shiftKey && document.activeElement === lastElement) {
+      event.preventDefault();
+      firstElement.focus();
+    }
+  };
+
+  const handleLightboxTouchStart = (event) => {
+    lightboxTouchStartRef.current = event.changedTouches[0]?.clientX ?? null;
+  };
+
+  const handleLightboxTouchEnd = (event) => {
+    const touchStart = lightboxTouchStartRef.current;
+    const touchEnd = event.changedTouches[0]?.clientX;
+    lightboxTouchStartRef.current = null;
+
+    if (touchStart === null || typeof touchEnd !== "number") return;
+
+    const distance = touchEnd - touchStart;
+    if (Math.abs(distance) >= 48) {
+      changeLightboxPhoto(distance > 0 ? -1 : 1);
+    }
   };
 
   if (loading) {
@@ -401,7 +662,7 @@ const Person = () => {
                 )}
               </div>
 
-              {(imdbUrl || homepageUrl) && (
+              {(imdbUrl || homepageUrl || socialProfiles.length > 0) && (
                 <div className="person-hero__links" aria-label="External links">
                   {imdbUrl && (
                     <a
@@ -409,11 +670,11 @@ const Person = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      IMDb
                       <i
-                        className="fa-solid fa-arrow-up-right-from-square"
+                        className="fa-brands fa-imdb"
                         aria-hidden="true"
                       ></i>
+                      IMDb
                     </a>
                   )}
                   {homepageUrl && (
@@ -422,13 +683,24 @@ const Person = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      Official site
                       <i
-                        className="fa-solid fa-arrow-up-right-from-square"
+                        className="fa-solid fa-globe"
                         aria-hidden="true"
                       ></i>
+                      Official site
                     </a>
                   )}
+                  {socialProfiles.map((profile) => (
+                    <a
+                      href={profile.url}
+                      key={profile.key}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <i className={profile.icon} aria-hidden="true"></i>
+                      {profile.label}
+                    </a>
+                  ))}
                 </div>
               )}
             </div>
@@ -444,6 +716,75 @@ const Person = () => {
           </div>
         </div>
       </section>
+
+      {knownForCredits.length > 0 && (
+        <section className="person-featured" aria-labelledby="person-known-for-title">
+          <div className="page-container">
+            <div className="person-section-heading">
+              <span>Career highlights</span>
+              <h2 id="person-known-for-title">Known for</h2>
+              <p>The most recognised work across this film career.</p>
+            </div>
+
+            <div className="person-featured__grid">
+              {knownForCredits.map((movie) => (
+                <div className="person-featured__credit" key={movie.id}>
+                  <MovieCard
+                    {...movie}
+                    isFavorite={watchlist.some(
+                      (watchlistMovie) => watchlistMovie.id === movie.id
+                    )}
+                    onToggleFavorite={toggleWatchlist}
+                  />
+                  {movie.creditRole && (
+                    <p className="person-featured__role">{movie.creditRole}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {upcomingCredits.length > 0 && (
+        <section className="person-upcoming" aria-labelledby="person-upcoming-title">
+          <div className="page-container person-upcoming__layout">
+            <div className="person-section-heading person-upcoming__heading">
+              <span>Next on screen</span>
+              <h2 id="person-upcoming-title">Upcoming projects</h2>
+              <p>Announced movies with a future release date.</p>
+            </div>
+
+            <div className="person-upcoming__list">
+              {upcomingCredits.map((movie) => (
+                <Link
+                  className="person-upcoming__item"
+                  key={movie.id}
+                  to={`/movie/${movie.id}`}
+                >
+                  <img
+                    src={POSTER_API + movie.poster_path}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <div>
+                    <time dateTime={movie.release_date}>
+                      {formatDate(movie.release_date)}
+                    </time>
+                    <h3>{movie.title || movie.original_title}</h3>
+                    {movie.creditRole && <p>{movie.creditRole}</p>}
+                  </div>
+                  <i
+                    className="fa-solid fa-arrow-right"
+                    aria-hidden="true"
+                  ></i>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {photos.length > 0 && activePhoto && (
         <section className="person-gallery" aria-labelledby="person-gallery-title">
@@ -472,6 +813,14 @@ const Person = () => {
                   disabled={activePhotoIndex === photos.length - 1}
                 >
                   <i className="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                </button>
+                <button
+                  ref={lightboxTriggerRef}
+                  type="button"
+                  aria-label="Open portrait fullscreen"
+                  onClick={() => setLightboxOpen(true)}
+                >
+                  <i className="fa-solid fa-expand" aria-hidden="true"></i>
                 </button>
               </div>
             </div>
@@ -543,6 +892,72 @@ const Person = () => {
         </section>
       )}
 
+      {lightboxOpen && activePhoto &&
+        createPortal(
+          <div className="person-lightbox">
+            <div
+              className="person-lightbox__dialog"
+              ref={lightboxRef}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="person-lightbox-title"
+              aria-describedby="person-lightbox-status"
+              onKeyDown={handleLightboxKeyDown}
+            >
+              <h2 className="sr-only" id="person-lightbox-title">
+                Fullscreen portrait gallery
+              </h2>
+
+              <button
+                className="person-lightbox__close"
+                ref={lightboxCloseRef}
+                type="button"
+                aria-label="Close fullscreen gallery"
+                onClick={closeLightbox}
+              >
+                <i className="fa-solid fa-xmark" aria-hidden="true"></i>
+              </button>
+
+              <button
+                className="person-lightbox__arrow person-lightbox__arrow--previous"
+                type="button"
+                aria-label="Previous fullscreen portrait"
+                onClick={() => changeLightboxPhoto(-1)}
+                disabled={photos.length < 2}
+              >
+                <i className="fa-solid fa-chevron-left" aria-hidden="true"></i>
+              </button>
+
+              <div
+                className="person-lightbox__stage"
+                onTouchStart={handleLightboxTouchStart}
+                onTouchEnd={handleLightboxTouchEnd}
+              >
+                <img
+                  src={IMG_API + activePhoto.file_path}
+                  alt={`${person.name} fullscreen portrait`}
+                  decoding="async"
+                />
+              </div>
+
+              <button
+                className="person-lightbox__arrow person-lightbox__arrow--next"
+                type="button"
+                aria-label="Next fullscreen portrait"
+                onClick={() => changeLightboxPhoto(1)}
+                disabled={photos.length < 2}
+              >
+                <i className="fa-solid fa-chevron-right" aria-hidden="true"></i>
+              </button>
+
+              <span className="sr-only" id="person-lightbox-status" aria-live="polite">
+                Portrait {activePhotoIndex + 1} of {photos.length}
+              </span>
+            </div>
+          </div>,
+          document.body
+        )}
+
       <section className="person-known" aria-labelledby="person-work-title">
         <div className="page-container">
           <div className="person-known__topline">
@@ -556,27 +971,58 @@ const Person = () => {
               </p>
             </div>
 
-            {castCredits.length > 0 && crewCredits.length > 0 && (
-              <div className="person-known__switch" role="group" aria-label="Filmography category">
-                <button
-                  type="button"
-                  onClick={() => changeCreditType("cast")}
-                  aria-pressed={activeCreditType === "cast"}
-                >
-                  Acting
-                </button>
-                <button
-                  type="button"
-                  onClick={() => changeCreditType("crew")}
-                  aria-pressed={activeCreditType === "crew"}
-                >
-                  Crew
-                </button>
+            {activeCredits.length > 0 && (
+              <div className="person-known__controls">
+                {castCredits.length > 0 && crewCredits.length > 0 && (
+                  <div
+                    className="person-known__switch"
+                    role="group"
+                    aria-label="Filmography category"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => changeCreditType("cast")}
+                      aria-pressed={activeCreditType === "cast"}
+                    >
+                      Acting
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => changeCreditType("crew")}
+                      aria-pressed={activeCreditType === "crew"}
+                    >
+                      Crew
+                    </button>
+                  </div>
+                )}
+
+                <div className="person-known__filters">
+                  <label>
+                    <span>Sort</span>
+                    <select value={creditSort} onChange={changeCreditSort}>
+                      <option value="latest">Latest</option>
+                      <option value="popular">Popular</option>
+                      <option value="rating">Rating</option>
+                    </select>
+                  </label>
+
+                  <label>
+                    <span>Decade</span>
+                    <select value={creditDecade} onChange={changeCreditDecade}>
+                      <option value="all">All decades</option>
+                      {availableDecades.map((decade) => (
+                        <option value={decade} key={decade}>
+                          {decade}s
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
               </div>
             )}
           </div>
 
-          {activeCredits.length > 0 ? (
+          {sortedCredits.length > 0 ? (
             <>
               <div className="person-known__grid">
                 {visibleCredits.map((movie) => (
@@ -601,7 +1047,7 @@ const Person = () => {
                 ))}
               </div>
 
-              {visibleCreditCount < activeCredits.length && (
+              {visibleCreditCount < sortedCredits.length && (
                 <div className="person-known__more">
                   <button
                     type="button"
@@ -617,6 +1063,10 @@ const Person = () => {
                 </div>
               )}
             </>
+          ) : activeCredits.length > 0 ? (
+            <p className="person-known__empty">
+              No movie credits match this decade.
+            </p>
           ) : (
             <p className="person-known__empty">
               No movie credits are available for this person.

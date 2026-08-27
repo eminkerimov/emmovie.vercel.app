@@ -60,6 +60,7 @@
       min-height: 44px;
       display: inline-flex;
       align-items: center;
+      gap: 7px;
       padding: 0 $space-3;
       color: $color-text-secondary;
       font-size: 15px;
@@ -99,7 +100,7 @@
 
   &__search {
     input {
-      width: 270px;
+      width: 310px;
       height: 44px;
       padding: 0 $space-4;
       border: 1px solid $color-border;
@@ -114,11 +115,26 @@
         color: rgba(170, 183, 194, 0.7);
       }
 
-      &:focus {
-        border-color: $color-primary;
+      &:focus-visible {
+        border-color: transparent;
         background: rgba(245, 247, 250, 0.09);
       }
     }
+  }
+
+  &__watchlist-count {
+    min-width: 23px;
+    height: 23px;
+    display: inline-grid;
+    place-items: center;
+    padding-inline: 6px;
+    border: 1px solid rgba(242, 198, 109, 0.28);
+    border-radius: 6px;
+    background: rgba(242, 198, 109, 0.09);
+    color: $color-primary;
+    font-size: 10px;
+    font-weight: $font-weight-extra-bold;
+    line-height: 1;
   }
 
   &__burger {
@@ -168,13 +184,18 @@
   position: absolute;
   top: calc(100% + $space-3);
   left: 0;
-  width: 360px;
+  width: 390px;
   overflow: hidden;
   border: 1px solid $color-border;
   border-radius: $radius-md;
   background: $color-surface-elevated;
   box-shadow: $shadow-surface;
   animation: header-dropdown-entry $motion-fast $motion-ease;
+}
+
+.header-search__results {
+  max-height: min(510px, calc(100vh - 150px));
+  overflow-y: auto;
 }
 
 .header-search__result {
@@ -189,7 +210,9 @@
   transition: background-color $motion-fast $motion-ease;
 
   &:hover,
-  &:focus-visible {
+  &:focus-visible,
+  &.is-active,
+  &[aria-selected="true"] {
     background: rgba(245, 247, 250, 0.06);
   }
 
@@ -213,9 +236,15 @@
     text-overflow: ellipsis;
   }
 
-  span {
+  > div > span {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    overflow: hidden;
     color: $color-text-secondary;
     font-size: $font-size-xs;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   small {
@@ -223,6 +252,19 @@
     font-size: 13px;
     font-weight: $font-weight-extra-bold;
   }
+}
+
+.header-search__type {
+  flex: 0 0 auto;
+  padding: 2px 5px;
+  border: 1px solid rgba(120, 215, 244, 0.22);
+  border-radius: 5px;
+  color: $color-link !important;
+  font-size: 9px !important;
+  font-weight: $font-weight-extra-bold;
+  letter-spacing: 0.6px;
+  line-height: 1.2;
+  text-transform: uppercase;
 }
 
 .header-search__status {
@@ -317,6 +359,10 @@
           width: 42px;
         }
       }
+    }
+
+    &__watchlist-count {
+      margin-left: auto;
     }
 
     &__search input {

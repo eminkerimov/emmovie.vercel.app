@@ -7,15 +7,21 @@
 
   &__inner {
     display: grid;
-    grid-template-columns: minmax(220px, 1fr) auto minmax(280px, 1fr);
-    align-items: start;
-    gap: $space-10;
-    padding-top: $space-10;
-    padding-bottom: $space-10;
+    grid-template-columns: minmax(0, 1fr) minmax(360px, auto);
+    align-items: center;
+    gap: $space-8;
+    padding-top: $space-6;
+    padding-bottom: $space-6;
   }
 
   &__brand {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: $space-6;
+
     > a {
+      flex: 0 0 auto;
       display: inline-flex;
       align-items: center;
       gap: $space-3;
@@ -31,44 +37,20 @@
     }
 
     p {
-      max-width: 360px;
-      margin: $space-3 0 0;
+      max-width: 340px;
+      margin: 0;
+      padding-left: $space-6;
+      border-left: 1px solid $color-border;
       color: $color-text-secondary;
-      font-size: $font-size-sm;
-      line-height: $line-height-body;
-    }
-  }
-
-  &__nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: $space-2;
-
-    a {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-      min-height: 44px;
-      padding: 0 $space-3;
-      color: $color-link;
-      font-size: $font-size-sm;
-      font-weight: $font-weight-bold;
-      text-decoration: none;
-      transition:
-        color $motion-fast $motion-ease,
-        transform $motion-fast $motion-ease;
-
-      &:hover,
-      &:focus-visible {
-        color: $color-primary;
-        transform: translateY(-2px);
-      }
+      font-size: $font-size-xs;
+      line-height: 1.55;
     }
   }
 
   &__meta {
     justify-self: end;
-    max-width: 420px;
+    max-width: 460px;
+    text-align: right;
 
     p,
     small {
@@ -80,29 +62,42 @@
     }
 
     small {
-      margin-top: $space-2;
+      margin-top: $space-1;
     }
   }
 }
 
 @media (max-width: $breakpoint-tablet) {
   .app-footer__inner {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
+    gap: $space-3;
   }
 
   .app-footer__meta {
-    grid-column: 1 / -1;
     justify-self: start;
+    max-width: none;
+    text-align: left;
   }
 }
 
 @media (max-width: $breakpoint-mobile) {
-  .app-footer__inner {
-    grid-template-columns: 1fr;
-    gap: $space-6;
-  }
+  .app-footer {
+    &__inner {
+      gap: $space-4;
+      padding-top: $space-6;
+      padding-bottom: $space-6;
+    }
 
-  .app-footer__meta {
-    grid-column: auto;
+    &__brand {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: $space-2;
+
+      p {
+        max-width: none;
+        padding-left: 0;
+        border-left: 0;
+      }
+    }
   }
 }

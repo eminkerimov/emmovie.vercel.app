@@ -3,6 +3,13 @@ import useReveal from "../../hooks/useReveal";
 import "./Reviews.scss";
 
 const REVIEWS_PER_PAGE = 3;
+
+const getRatingClass = (rating) => {
+  if (rating == null) return "reviews__rating--neutral";
+  if (rating >= 8) return "reviews__rating--high";
+  if (rating >= 6) return "reviews__rating--medium";
+  return "reviews__rating--low";
+};
 const EMPTY_REVIEWS = [];
 
 const formatReviewDate = (value) => {
@@ -28,7 +35,11 @@ const getInitials = (author) =>
     .join("")
     .toUpperCase();
 
-const Reviews = ({ results = EMPTY_REVIEWS }) => {
+const Reviews = ({
+  error = false,
+  loading = false,
+  results = EMPTY_REVIEWS,
+}) => {
   const { elementRef, isVisible } = useReveal();
   const safeResults = Array.isArray(results) ? results : EMPTY_REVIEWS;
   const [currentPage, setCurrentPage] = useState(0);
@@ -82,7 +93,23 @@ const Reviews = ({ results = EMPTY_REVIEWS }) => {
             <p>Notes from the TMDB community.</p>
           </header>
 
-          {reviewCount ? (
+          {loading || error ? (
+            <div className="reviews__empty" role="status">
+              <span className="reviews__empty-line" aria-hidden="true"></span>
+              <div>
+                <h3>
+                  {loading
+                    ? "Loading audience notes"
+                    : "Reviews are temporarily unavailable"}
+                </h3>
+                <p>
+                  {loading
+                    ? "Fetching reviews from TMDB…"
+                    : "The rest of the movie page is still available."}
+                </p>
+              </div>
+            </div>
+          ) : reviewCount ? (
             <div className="reviews-section__body">
               <ol
                 id="movie-reviews-list"
@@ -145,7 +172,9 @@ const Reviews = ({ results = EMPTY_REVIEWS }) => {
 
                           <div className="reviews__meta">
                             <span
-                              className="reviews__rating"
+                              className={`reviews__rating ${getRatingClass(
+                                rating
+                              )}`}
                               aria-label={
                                 rating == null
                                   ? "Rating unavailable"

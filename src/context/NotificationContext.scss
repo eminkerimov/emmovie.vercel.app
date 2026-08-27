@@ -1,0 +1,97 @@
+@import "../styles/variables";
+
+.app-toast {
+  position: fixed;
+  right: $space-6;
+  bottom: $space-6;
+  z-index: 2500;
+  width: min(430px, calc(100vw - 40px));
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  padding: $space-2;
+  padding-left: $space-4;
+  overflow: hidden;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: $color-surface-elevated;
+  box-shadow: $shadow-surface;
+  color: $color-text-primary;
+  animation: app-toast-entry $motion-base $motion-ease;
+
+  &__marker {
+    width: 3px;
+    height: 28px;
+    flex: 0 0 3px;
+    border-radius: 2px;
+    background: $color-link;
+  }
+
+  p {
+    min-width: 0;
+    flex: 1;
+    margin: 0;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-bold;
+    line-height: 1.4;
+  }
+
+  button {
+    min-height: 44px;
+    border: 0;
+    border-radius: $radius-sm;
+    font-weight: $font-weight-extra-bold;
+    cursor: pointer;
+  }
+
+  &__action {
+    min-width: 64px;
+    padding: 0 $space-3;
+    background: rgba(242, 198, 109, 0.11);
+    color: $color-primary;
+  }
+
+  &__dismiss {
+    width: 44px;
+    flex: 0 0 44px;
+    padding: 0;
+    background: transparent;
+    color: $color-text-secondary;
+  }
+
+  &--success {
+    border-color: rgba(115, 201, 143, 0.28);
+
+    .app-toast__marker {
+      background: #73c98f;
+    }
+  }
+}
+
+@keyframes app-toast-entry {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: $breakpoint-sm) {
+  .app-toast {
+    right: $container-gutter-mobile;
+    bottom: $container-gutter-mobile;
+    left: $container-gutter-mobile;
+    width: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-toast {
+    animation: none;
+  }
+}

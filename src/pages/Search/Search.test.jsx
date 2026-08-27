@@ -7,9 +7,11 @@ import {
   useLocation,
 } from "react-router-dom";
 import useFetchMovies from "../../hooks/useFetchMovies";
+import useWatchlist from "../../hooks/useWatchlist";
 import Search from "./Search";
 
 jest.mock("../../hooks/useFetchMovies");
+jest.mock("../../hooks/useWatchlist");
 jest.mock("../../components/Loading/Loading", () => () => (
   <div role="status" aria-label="Loading movies">
     Loading movies
@@ -60,6 +62,10 @@ describe("Search", () => {
   beforeEach(() => {
     fetchData.mockReset();
     localStorage.clear();
+    useWatchlist.mockReturnValue({
+      toggleWatchlist: jest.fn(),
+      isInWatchlist: () => false,
+    });
     setRequestState();
   });
 
@@ -67,7 +73,9 @@ describe("Search", () => {
     renderSearch();
 
     expect(
-      screen.getByText(/enter a movie title to start searching/i)
+      screen.getByText(
+        /enter a movie title or person name to start searching/i
+      )
     ).toBeInTheDocument();
     expect(fetchData).not.toHaveBeenCalled();
   });
@@ -83,8 +91,9 @@ describe("Search", () => {
         "/search?q=Dune"
       );
     });
-    expect(fetchData).toHaveBeenCalledWith("GET", "/search/movie", {
+    expect(fetchData).toHaveBeenCalledWith("GET", "/search/multi", {
       query: "Dune",
+      include_adult: false,
       language: "en-US",
       page: 1,
     });
@@ -114,7 +123,7 @@ describe("Search", () => {
     renderSearch("/search?q=Unknown");
 
     expect(
-      screen.getByText(/no movies found for this title/i)
+      screen.getByText(/no supported results found on this page/i)
     ).toBeInTheDocument();
   });
 
@@ -125,6 +134,7 @@ describe("Search", () => {
           results: [
             {
               id: 438631,
+              media_type: "movie",
               title: "Dune",
               release_date: "2021-09-15",
             },
@@ -137,6 +147,78 @@ describe("Search", () => {
 
     expect(await screen.findByTestId("search-result")).toHaveTextContent(
       "Dune"
+    );
+  });
+
+  it("uses a type-specific endpoint and keeps the filter in the URL", async () => {
+    setRequestState({
+      data: {
+        data: {
+          results: [
+            {
+              id: 1892,
+              name: "Matt Damon",
+              known_for_department: "Acting",
+            },
+          ],
+          total_pages: 1,
+          total_results: 1,
+        },
+      },
+    });
+
+    renderSearch("/search?q=Matt&type=person");
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "Matt Damon",
+      })
+    ).toBeInTheDocument();
+    expect(fetchData).toHaveBeenCalledWith(
+      "GET",
+      "/search/person",
+      expect.objectContaining({
+        query: "Matt",
+        page: 1,
+      })
+    );
+    expect(screen.getByTestId("location")).toHaveTextContent(
+      "type=person"
+    );
+  });
+
+  it("writes the server page to the URL", async () => {
+    setRequestState({
+      data: {
+        data: {
+          results: [
+            {
+              id: 438631,
+              media_type: "movie",
+              title: "Dune",
+            },
+          ],
+          total_pages: 3,
+          total_results: 50,
+        },
+      },
+    });
+    window.scrollTo = jest.fn();
+
+    renderSearch("/search?q=Dune");
+    userEvent.click(
+      await screen.findByRole("button", { name: /next/i })
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId("location")).toHaveTextContent(
+        "page=2"
+      )
+    );
+    expect(fetchData).toHaveBeenLastCalledWith(
+      "GET",
+      "/search/multi",
+      expect.objectContaining({ page: 2 })
     );
   });
 });

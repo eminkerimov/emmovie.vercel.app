@@ -54,8 +54,14 @@ img {
 }
 
 :focus-visible {
-  outline: 3px solid $color-focus;
+  outline: 2px solid $color-focus;
   outline-offset: 3px;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline-offset: -2px;
 }
 
 .app-shell {

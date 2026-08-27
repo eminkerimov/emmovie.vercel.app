@@ -4,9 +4,11 @@
   min-height: calc(100vh - var(--header-height));
   display: grid;
   place-items: center;
-  background:
-    radial-gradient(circle at 50% 20%, rgba(242, 198, 109, 0.07), transparent 35%),
-    $color-canvas;
+  background: linear-gradient(
+    180deg,
+    rgba(20, 40, 50, 0.34),
+    $color-canvas 380px
+  );
   color: $color-text-primary;
   text-align: center;
 

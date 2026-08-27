@@ -9,6 +9,8 @@ import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
 import Footer from "./components/Footer/Footer";
 import Loading from "./components/Loading/Loading";
 import Navbar from "./components/Navbar/Navbar";
+import { NotificationProvider } from "./context/NotificationContext";
+import { WatchlistProvider } from "./context/WatchlistContext";
 import ScrollToTop from "./helpers/ScrollToTop";
 
 const Home = lazy(() => import("./pages/Home/Home"));
@@ -95,7 +97,11 @@ function App() {
         v7_startTransition: true,
       }}
     >
-      <AppContent />
+      <NotificationProvider>
+        <WatchlistProvider>
+          <AppContent />
+        </WatchlistProvider>
+      </NotificationProvider>
     </Router>
   );
 }

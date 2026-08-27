@@ -2,13 +2,11 @@
 
 .search-page {
   min-height: 100vh;
-  background:
-    radial-gradient(
-      circle at top right,
-      rgba(20, 40, 50, 0.52),
-      transparent 30%
-    ),
-    $color-canvas;
+  background: linear-gradient(
+    180deg,
+    rgba(20, 40, 50, 0.48),
+    $color-canvas 360px
+  );
 
   &__content {
     padding-top: $space-12;
@@ -36,7 +34,7 @@
       }
 
       &:focus-visible {
-        border-color: $color-primary;
+        border-color: transparent;
         background: $color-surface-elevated;
       }
     }
@@ -99,6 +97,43 @@
     }
   }
 
+  &__types {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+    margin: 0 0 $space-10;
+
+    button {
+      min-height: 44px;
+      padding: 0 $space-5;
+      border: 1px solid $color-border;
+      border-radius: $radius-pill;
+      background: transparent;
+      color: $color-text-secondary;
+      font: inherit;
+      font-weight: $font-weight-extra-bold;
+      cursor: pointer;
+
+      &:hover,
+      &.is-active {
+        border-color: rgba(242, 198, 109, 0.48);
+        background: rgba(242, 198, 109, 0.1);
+        color: $color-primary;
+      }
+    }
+  }
+
+  &__results {
+    display: grid;
+    gap: $space-16;
+  }
+
+  &__people {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: $space-4;
+  }
+
   &__empty {
     min-height: 240px;
     display: grid;
@@ -114,9 +149,136 @@
   }
 }
 
+.search-group__heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: $space-4;
+  margin-bottom: $space-6;
+
+  h2 {
+    margin: 0;
+    color: $color-text-primary;
+    font-size: clamp(1.5rem, 3vw, 2.25rem);
+  }
+
+  span {
+    color: $color-text-secondary;
+    font-size: $font-size-xs;
+  }
+}
+
+.person-result {
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  background: $color-surface;
+  overflow: hidden;
+
+  &__link {
+    min-height: 132px;
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr) 44px;
+    align-items: center;
+    gap: $space-4;
+    padding: $space-3;
+    color: inherit;
+    text-decoration: none;
+
+    > i {
+      color: $color-link;
+    }
+  }
+
+  &__portrait {
+    width: 92px;
+    height: 108px;
+    border-radius: $radius-md;
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+  }
+
+  &__content {
+    min-width: 0;
+
+    > span {
+      color: $color-link;
+      font-size: 10px;
+      font-weight: $font-weight-extra-bold;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    h3 {
+      margin: $space-1 0 $space-2;
+      overflow: hidden;
+      color: $color-text-primary;
+      font-size: 18px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    p {
+      display: -webkit-box;
+      margin: 0;
+      overflow: hidden;
+      color: $color-text-secondary;
+      font-size: 12px;
+      line-height: 1.45;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+    }
+  }
+}
+
+.search-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-5;
+  margin-top: $space-14;
+
+  button {
+    min-width: 118px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-2;
+    border: 1px solid $color-border;
+    border-radius: $radius-pill;
+    background: $color-surface;
+    color: $color-text-primary;
+    font: inherit;
+    font-weight: $font-weight-extra-bold;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.42;
+      cursor: not-allowed;
+    }
+  }
+
+  span {
+    color: $color-text-secondary;
+    font-size: $font-size-sm;
+  }
+}
+
 @media (max-width: $breakpoint-desktop) {
-  .search-page__grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .search-page {
+    &__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    &__people {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
 }
 
@@ -129,6 +291,24 @@
     &__grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: $space-6 $space-4;
+    }
+
+    &__people {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .search-pagination {
+    gap: $space-2;
+
+    button {
+      min-width: 44px;
+      padding-inline: $space-3;
+      font-size: 0;
+
+      i {
+        font-size: $font-size-sm;
+      }
     }
   }
 }

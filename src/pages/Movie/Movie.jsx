@@ -2,6 +2,7 @@ import React, { useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import useFetch from "../../helpers/useFetch.js";
 import useWatchlist from "../../hooks/useWatchlist.jsx";
+import useRecentlyViewed from "../../hooks/useRecentlyViewed.jsx";
 import { API_KEY } from "../../helpers/baseURL.js";
 import "./Movie.scss";
 import Loading from "../../components/Loading/Loading";
@@ -10,6 +11,13 @@ import Posters from "../../components/Posters/Posters";
 import Related from "../../components/Related/Related";
 import Overview from "../../components/Overview/Overview";
 import MovieMain from "../../components/MovieMain/MovieMain";
+import MovieAvailability from "./MovieAvailability";
+import MovieCollection from "./MovieCollection";
+import useMovieCollection from "./useMovieCollection";
+import {
+  getRelatedSelection,
+  selectFeaturedVideo,
+} from "./movieData";
 
 const formatMoney = (value) => {
   if (!value) return "—";
@@ -30,31 +38,48 @@ const Movie = () => {
   const { id } = useParams();
 
   const details = useFetch(`${id}/credits?${API_KEY}&language=en-US`);
-  const movieRequest = useFetch(`${id}?${API_KEY}`);
+  const movieRequest = useFetch(`${id}?${API_KEY}&language=en-US`);
   const videosRequest = useFetch(
     `${id}/videos?${API_KEY}&language=en-US`
   );
-  const relatedFilms = useFetch(`${id}/similar?${API_KEY}&language=en-US`);
+  const recommendationsRequest = useFetch(
+    `${id}/recommendations?${API_KEY}&language=en-US`
+  );
+  const similarRequest = useFetch(
+    `${id}/similar?${API_KEY}&language=en-US`
+  );
   const images = useFetch(`${id}/images?${API_KEY}&language=en`);
   const reviewsRequest = useFetch(
     `${id}/reviews?${API_KEY}&language=en`
   );
+  const providersRequest = useFetch(
+    `${id}/watch/providers?${API_KEY}`
+  );
+  const releaseDatesRequest = useFetch(
+    `${id}/release_dates?${API_KEY}`
+  );
 
-  const { watchlist, setWatchlist, toggleWatchlist: toggleStoredMovie } =
-    useWatchlist();
+  const {
+    watchlist,
+    toggleWatchlist: toggleStoredMovie,
+    getWatchlistMeta,
+    updateWatchlistMeta,
+  } = useWatchlist();
+  const { addRecentlyViewed } = useRecentlyViewed();
 
-  const requests = [
-    details,
-    movieRequest,
-    videosRequest,
-    relatedFilms,
-    images,
-    reviewsRequest,
-  ];
-  const loading = requests.some((request) => request.loading);
-  const requestError = requests.find((request) => request.error)?.error;
   const data = movieRequest.data;
-  const videosData = videosRequest.data;
+  const isMovieSaved = Boolean(
+    data && watchlist.some((movie) => movie.id === data.id)
+  );
+  const movieWatchlistMeta =
+    data && isMovieSaved ? getWatchlistMeta(data.id) : null;
+  const collectionRequest = useMovieCollection(
+    data?.belongs_to_collection?.id
+  );
+  const relatedSelection = getRelatedSelection(
+    recommendationsRequest,
+    similarRequest
+  );
 
   const detailsData = useMemo(() => {
     if (!data) return [];
@@ -78,25 +103,19 @@ const Movie = () => {
   }, [data]);
 
   const videos = useMemo(() => {
-    if (!videosData) return [];
+    const featuredVideo = selectFeaturedVideo(
+      videosRequest.data?.results
+    );
 
-    const trailers = videosData.results?.filter((video) => video.type === "Trailer");
-    const teasers = videosData.results?.filter((video) => video.type === "Teaser");
-
-    if (trailers?.length > 0) {
-      return trailers;
-    }
-
-    if (teasers?.length > 0) return teasers;
-
-    return videosData.results || [];
-  }, [videosData]);
+    return featuredVideo ? [featuredVideo] : [];
+  }, [videosRequest.data]);
 
   useEffect(() => {
     if (data?.title) {
       document.title = `${data.title} | M-movie`;
+      addRecentlyViewed(data);
     }
-  }, [data]);
+  }, [addRecentlyViewed, data]);
 
   const toggleWatchlist = () => {
     if (!data) return;
@@ -113,7 +132,18 @@ const Movie = () => {
     toggleStoredMovie(movie);
   };
 
-  if (loading) {
+  const toggleWatched = () => {
+    if (!data || !isMovieSaved) return;
+
+    updateWatchlistMeta(data.id, {
+      status:
+        movieWatchlistMeta?.status === "watched"
+          ? "want"
+          : "watched",
+    });
+  };
+
+  if (movieRequest.loading) {
     return (
       <main className="page-state">
         <Loading />
@@ -121,7 +151,7 @@ const Movie = () => {
     );
   }
 
-  if (requestError) {
+  if (movieRequest.error) {
     return (
       <main className="page-state" role="alert">
         <div className="page-container">
@@ -150,15 +180,32 @@ const Movie = () => {
         details={details}
         videos={videos}
         watchlist={watchlist}
+        watchlistMeta={movieWatchlistMeta}
         toggleWatchlist={toggleWatchlist}
+        toggleWatched={toggleWatched}
       />
       <Overview data={data} detailsData={detailsData} />
+      <MovieAvailability
+        providersRequest={providersRequest}
+        releaseDatesRequest={releaseDatesRequest}
+      />
       <Posters {...images} />
-      <Reviews {...reviewsRequest.data} />
-      <Related
-        {...relatedFilms}
+      <Reviews
+        error={reviewsRequest.error}
+        loading={reviewsRequest.loading}
+        results={reviewsRequest.data?.results}
+      />
+      <MovieCollection
+        collection={data.belongs_to_collection}
+        currentMovieId={id}
+        request={collectionRequest}
+        toggleWatchlist={toggleStoredMovie}
         watchlist={watchlist}
-        setWatchlist={setWatchlist}
+      />
+      <Related
+        {...relatedSelection}
+        watchlist={watchlist}
+        toggleWatchlist={toggleStoredMovie}
       />
     </main>
   );

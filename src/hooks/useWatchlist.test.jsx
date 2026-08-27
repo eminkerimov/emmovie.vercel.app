@@ -1,5 +1,10 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import {
+  WatchlistProvider,
+  WATCHLIST_META_KEY,
+} from "../context/WatchlistContext";
+import { NotificationProvider } from "../context/NotificationContext";
 import useWatchlist from "./useWatchlist";
 
 const WATCHLIST_KEY = "emmovie_watchlist";
@@ -36,6 +41,13 @@ const WatchlistHarness = () => {
   );
 };
 
+const renderWatchlist = (children = <WatchlistHarness />) =>
+  render(
+    <NotificationProvider>
+      <WatchlistProvider>{children}</WatchlistProvider>
+    </NotificationProvider>
+  );
+
 describe("useWatchlist persistence", () => {
   beforeEach(() => {
     localStorage.clear();
@@ -44,7 +56,7 @@ describe("useWatchlist persistence", () => {
   it("hydrates the existing emmovie_watchlist value without changing its format", () => {
     localStorage.setItem(WATCHLIST_KEY, JSON.stringify([movie]));
 
-    render(<WatchlistHarness />);
+    renderWatchlist();
 
     expect(screen.getByTestId("watchlist-count")).toHaveTextContent("1");
     expect(screen.getByTestId("favorite-state")).toHaveTextContent("saved");
@@ -52,13 +64,16 @@ describe("useWatchlist persistence", () => {
   });
 
   it("persists add, remove, and clear operations under emmovie_watchlist", async () => {
-    render(<WatchlistHarness />);
+    renderWatchlist();
 
     userEvent.click(screen.getByRole("button", { name: /toggle movie/i }));
 
     await waitFor(() => {
       expect(JSON.parse(localStorage.getItem(WATCHLIST_KEY))).toEqual([movie]);
     });
+    expect(
+      screen.getByText("Fight Club added to My Library.")
+    ).toBeInTheDocument();
 
     userEvent.click(screen.getByRole("button", { name: /toggle movie/i }));
 
@@ -73,5 +88,34 @@ describe("useWatchlist persistence", () => {
       expect(JSON.parse(localStorage.getItem(WATCHLIST_KEY))).toEqual([]);
     });
     expect(localStorage.getItem("watchlist")).toBeNull();
+  });
+
+  it("keeps all consumers in sync in the same tab", async () => {
+    renderWatchlist(
+      <>
+        <WatchlistHarness />
+        <WatchlistHarness />
+      </>
+    );
+
+    userEvent.click(
+      screen.getAllByRole("button", {
+        name: /toggle movie/i,
+      })[0]
+    );
+
+    await waitFor(() => {
+      screen
+        .getAllByTestId("watchlist-count")
+        .forEach((count) =>
+          expect(count).toHaveTextContent("1")
+        );
+    });
+
+    expect(
+      JSON.parse(localStorage.getItem(WATCHLIST_META_KEY))[
+        movie.id
+      ]
+    ).toMatchObject({ status: "want" });
   });
 });

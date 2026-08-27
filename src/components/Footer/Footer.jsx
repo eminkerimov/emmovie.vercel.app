@@ -14,13 +14,6 @@ const Footer = () => {
           <p>A cinematic movie discovery portfolio experience.</p>
         </div>
 
-        <nav className="app-footer__nav" aria-label="Footer navigation">
-          <Link to="/">Home</Link>
-          <Link to="/discover">Discover</Link>
-          <Link to="/movies">Movies</Link>
-          <Link to="/watchlist">Watchlist</Link>
-        </nav>
-
         <div className="app-footer__meta">
           <p>
             This product uses the TMDB API but is not endorsed or certified by

@@ -197,6 +197,8 @@
 }
 
 .movieCard-info .tag {
+  --rating-accent: #8796a2;
+
   min-width: 44px;
   min-height: 36px;
   display: inline-flex;
@@ -205,23 +207,23 @@
   padding: 0 9px;
   border: 1px solid rgba(245, 247, 250, 0.08);
   border-radius: $radius-pill;
-  background: rgba(7, 16, 23, 0.5);
+  background: rgba(7, 16, 23, 0.68);
+  box-shadow: inset 3px 0 0 var(--rating-accent);
+  color: $color-text-primary;
   font-size: $font-size-sm;
   font-weight: $font-weight-extra-bold;
 }
 
 .movieCard-info .rating-high {
-  border-color: rgba(242, 198, 109, 0.2);
-  color: $color-primary;
+  --rating-accent: #56c987;
 }
 
 .movieCard-info .rating-medium {
-  border-color: rgba(120, 215, 244, 0.18);
-  color: $color-link;
+  --rating-accent: #e5b957;
 }
 
 .movieCard-info .rating-low {
-  color: $color-text-secondary;
+  --rating-accent: #df707d;
 }
 
 @media (hover: hover) {

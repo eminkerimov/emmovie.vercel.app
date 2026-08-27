@@ -45,55 +45,63 @@ const settings = {
   ],
 };
 
-const Posters = (images) => {
+const Posters = ({ data, error = false, loading = false }) => {
   const { elementRef, isVisible } = useReveal();
 
+  if (!loading && !error && !data?.posters?.length) return null;
+
   return (
-    <>
-      {images?.data?.posters?.length > 0 && (
-        <section
-          ref={elementRef}
-          className={`movie__images movie-section-reveal ${
-            isVisible ? "is-visible" : ""
-          }`}
-          aria-labelledby="movie-posters-title"
-        >
-          <div className="page-container">
-            <header className="movie-section-heading movie__images__header">
-              <div className="movie-section-heading__copy">
-                <span className="movie-section-heading__eyebrow">
-                  Visual archive
-                </span>
-                <h2 id="movie-posters-title">Posters</h2>
-              </div>
-
-              <span
-                className="movie-section-heading__line"
-                aria-hidden="true"
-              ></span>
-            </header>
-
-            <div className="movie__images__box movie-section-content">
-              <Slider {...settings}>
-                {images.data.posters.map((poster) => (
-                  <div
-                    className="movie__images__box__container"
-                    key={poster.file_path}
-                  >
-                    <img
-                      src={POSTER_API + poster.file_path}
-                      alt="Movie poster"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  </div>
-                ))}
-              </Slider>
-            </div>
+    <section
+      ref={elementRef}
+      className={`movie__images movie-section-reveal ${
+        isVisible ? "is-visible" : ""
+      }`}
+      aria-labelledby="movie-posters-title"
+    >
+      <div className="page-container">
+        <header className="movie-section-heading movie__images__header">
+          <div className="movie-section-heading__copy">
+            <span className="movie-section-heading__eyebrow">
+              Visual archive
+            </span>
+            <h2 id="movie-posters-title">Posters</h2>
           </div>
-        </section>
-      )}
-    </>
+
+          <span
+            className="movie-section-heading__line"
+            aria-hidden="true"
+          ></span>
+        </header>
+
+        {loading ? (
+          <p className="movie-optional-status movie-section-content" role="status">
+            Loading posters…
+          </p>
+        ) : error ? (
+          <p className="movie-optional-status movie-section-content" role="status">
+            Posters are temporarily unavailable.
+          </p>
+        ) : (
+          <div className="movie__images__box movie-section-content">
+            <Slider {...settings}>
+              {data.posters.map((poster) => (
+                <div
+                  className="movie__images__box__container"
+                  key={poster.file_path}
+                >
+                  <img
+                    src={POSTER_API + poster.file_path}
+                    alt="Movie poster"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+              ))}
+            </Slider>
+          </div>
+        )}
+      </div>
+    </section>
   );
 };
 

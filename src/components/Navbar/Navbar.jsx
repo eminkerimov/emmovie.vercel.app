@@ -9,7 +9,11 @@ import {
   useNavigate,
 } from "react-router-dom";
 import useFetchMovies from "../../hooks/useFetchMovies";
-import { THUMBNAIL_API } from "../../helpers/baseURL";
+import useWatchlist from "../../hooks/useWatchlist";
+import {
+  PROFILE_API,
+  THUMBNAIL_API,
+} from "../../helpers/baseURL";
 import Default from "../../images/Default.jpg";
 import "./Navbar.scss";
 
@@ -19,6 +23,8 @@ const Navbar = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [dropdownOpen, setDropdownOpen] =
     useState(false);
+  const [activeResultIndex, setActiveResultIndex] =
+    useState(-1);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -26,12 +32,20 @@ const Navbar = () => {
   const mobilePanelRef = useRef(null);
   const searchRef = useRef(null);
   const searchInputRef = useRef(null);
+  const resultRefs = useRef([]);
 
   const { data, loading, error, fetchData } =
     useFetchMovies();
+  const { watchlist } = useWatchlist();
 
   const searchResults =
-    data?.data?.results?.slice(0, 5) || [];
+    data?.data?.results
+      ?.filter((result) =>
+        ["movie", "person"].includes(
+          result.media_type || "movie"
+        )
+      )
+      .slice(0, 6) || [];
 
   useEffect(() => {
     const handleScroll = () => {
@@ -103,11 +117,12 @@ const Navbar = () => {
 
     if (query.length < 2) {
       setDropdownOpen(false);
+      setActiveResultIndex(-1);
       return;
     }
 
     const timeoutId = setTimeout(() => {
-      fetchData("GET", "/search/movie", {
+      fetchData("GET", "/search/multi", {
         query,
         language: "en-US",
         page: 1,
@@ -120,6 +135,17 @@ const Navbar = () => {
       clearTimeout(timeoutId);
     };
   }, [fetchData, searchTerm]);
+
+  useEffect(() => {
+    setActiveResultIndex(-1);
+    resultRefs.current = [];
+  }, [data]);
+
+  useEffect(() => {
+    if (!dropdownOpen) {
+      setActiveResultIndex(-1);
+    }
+  }, [dropdownOpen]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -159,7 +185,9 @@ const Navbar = () => {
     closeNavigation();
 
     navigate(
-      `/search?q=${encodeURIComponent(query)}`
+      `/search?q=${encodeURIComponent(
+        query
+      )}&type=all&page=1`
     );
   };
 
@@ -171,6 +199,58 @@ const Navbar = () => {
   const handleNavigationClick = () => {
     setSearchTerm("");
     closeNavigation();
+  };
+
+  const getResultPath = (result) =>
+    result.media_type === "person"
+      ? `/person/${result.id}`
+      : `/movie/${result.id}`;
+
+  const handleSearchKeyDown = (event) => {
+    if (!dropdownOpen || !searchResults.length) {
+      if (
+        event.key === "ArrowDown" &&
+        searchTerm.trim().length >= 2 &&
+        searchResults.length
+      ) {
+        setDropdownOpen(true);
+        setActiveResultIndex(0);
+        event.preventDefault();
+      }
+      return;
+    }
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setActiveResultIndex((currentIndex) =>
+        currentIndex >= searchResults.length - 1
+          ? 0
+          : currentIndex + 1
+      );
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setActiveResultIndex((currentIndex) =>
+        currentIndex <= 0
+          ? searchResults.length - 1
+          : currentIndex - 1
+      );
+    }
+
+    if (
+      event.key === "Enter" &&
+      activeResultIndex >= 0
+    ) {
+      event.preventDefault();
+      const selectedResult =
+        searchResults[activeResultIndex];
+
+      if (selectedResult) {
+        handleResultClick();
+        navigate(getResultPath(selectedResult));
+      }
+    }
   };
 
   return (
@@ -221,18 +301,27 @@ const Navbar = () => {
             role="search"
           >
             <label className="sr-only" htmlFor="header-movie-search">
-              Search movies
+              Search movies and people
             </label>
             <input
               id="header-movie-search"
               ref={searchInputRef}
               type="search"
-              placeholder="Search movies..."
+              role="combobox"
+              placeholder="Search movies and people..."
               value={searchTerm}
+              aria-autocomplete="list"
+              aria-expanded={dropdownOpen}
               aria-controls="header-search-results"
+              aria-activedescendant={
+                activeResultIndex >= 0
+                  ? `header-search-result-${activeResultIndex}`
+                  : undefined
+              }
               onChange={(event) =>
                 setSearchTerm(event.target.value)
               }
+              onKeyDown={handleSearchKeyDown}
               onFocus={() => {
                 if (searchTerm.trim().length >= 2) {
                   setDropdownOpen(true);
@@ -262,45 +351,87 @@ const Navbar = () => {
               {!loading && !error &&
                 searchResults.length > 0 && (
                   <>
-                    {searchResults.map((movie) => (
-                      <Link
-                        className="header-search__result"
-                        to={`/movie/${movie.id}`}
-                        key={movie.id}
-                        onClick={handleResultClick}
-                      >
-                        <img
-                          src={
-                            movie.poster_path
-                              ? THUMBNAIL_API +
-                                movie.poster_path
-                              : Default
-                          }
-                          alt={movie.title}
-                          loading="lazy"
-                          decoding="async"
-                        />
+                    <div
+                      className="header-search__results"
+                      role="listbox"
+                      aria-label="Search suggestions"
+                    >
+                      {searchResults.map((result, index) => {
+                        const isPerson =
+                          result.media_type === "person";
+                        const title = isPerson
+                          ? result.name
+                          : result.title;
+                        const imagePath = isPerson
+                          ? result.profile_path
+                          : result.poster_path;
 
-                        <div>
-                          <strong>{movie.title}</strong>
+                        return (
+                          <Link
+                            id={`header-search-result-${index}`}
+                            ref={(element) => {
+                              resultRefs.current[index] =
+                                element;
+                            }}
+                            role="option"
+                            aria-selected={
+                              activeResultIndex === index
+                            }
+                            className={`header-search__result ${
+                              activeResultIndex === index
+                                ? "is-active"
+                                : ""
+                            }`}
+                            to={getResultPath(result)}
+                            key={`${result.media_type || "movie"}-${result.id}`}
+                            onMouseEnter={() =>
+                              setActiveResultIndex(index)
+                            }
+                            onClick={handleResultClick}
+                          >
+                            <img
+                              src={
+                                imagePath
+                                  ? (isPerson
+                                      ? PROFILE_API
+                                      : THUMBNAIL_API) +
+                                    imagePath
+                                  : Default
+                              }
+                              alt=""
+                              loading="lazy"
+                              decoding="async"
+                            />
 
-                          <span>
-                            {movie.release_date?.slice(
-                              0,
-                              4
-                            ) || "N/A"}
-                          </span>
-                        </div>
+                            <div>
+                              <strong>{title}</strong>
 
-                        {movie.vote_average > 0 && (
-                          <small>
-                            {movie.vote_average.toFixed(
-                              1
-                            )}
-                          </small>
-                        )}
-                      </Link>
-                    ))}
+                              <span>
+                                <span className="header-search__type">
+                                  {isPerson
+                                    ? "Person"
+                                    : "Movie"}
+                                </span>
+                                {isPerson
+                                  ? result.known_for_department ||
+                                    "Known talent"
+                                  : result.release_date?.slice(
+                                      0,
+                                      4
+                                    ) || "Date unknown"}
+                              </span>
+                            </div>
+
+                            {!isPerson &&
+                              result.vote_average > 0 && (
+                                <small>
+                                  {result.vote_average.toFixed(1)}
+                                </small>
+                              )}
+                          </Link>
+                        );
+                      })}
+                    </div>
 
                     <button
                       className="header-search__all"
@@ -316,7 +447,7 @@ const Navbar = () => {
                 searchTerm.trim().length >= 2 &&
                 searchResults.length === 0 && (
                   <div className="header-search__status">
-                    No movies found
+                    No movies or people found
                   </div>
                 )}
             </div>
@@ -364,7 +495,18 @@ const Navbar = () => {
               location.pathname === "/watchlist" ? "page" : undefined
             }
           >
-            Watchlist
+            <span>Watchlist</span>
+            <span
+              className="home-header__watchlist-count"
+              aria-hidden="true"
+            >
+              {watchlist.length > 99
+                ? "99+"
+                : watchlist.length}
+            </span>
+            <span className="sr-only">
+              , {watchlist.length} saved
+            </span>
           </Link>
         </nav>
       </div>

@@ -1,4 +1,10 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import useWatchlist from "../../hooks/useWatchlist";
@@ -34,6 +40,9 @@ const castCredits = Array.from({ length: 13 }, (_, index) => ({
   poster_path: `/movie-${index + 1}.jpg`,
   release_date: `${2010 + index}-01-01`,
   character: `Character ${index + 1}`,
+  popularity: 13 - index,
+  vote_average: 6 + index / 10,
+  vote_count: 100 + index,
 }));
 
 const crewCredits = [
@@ -55,6 +64,12 @@ const photosData = {
   ],
 };
 
+const externalIdsData = {
+  imdb_id: "nm0000101",
+  instagram_id: "alexmorgan",
+  twitter_id: "alex_morgan",
+};
+
 const createResponse = (data, { ok = true, status = 200 } = {}) => ({
   ok,
   status,
@@ -67,7 +82,8 @@ const mockSuccessfulRequests = () => {
     .mockResolvedValueOnce(
       createResponse({ cast: castCredits, crew: crewCredits })
     )
-    .mockResolvedValueOnce(createResponse(photosData));
+    .mockResolvedValueOnce(createResponse(photosData))
+    .mockResolvedValueOnce(createResponse(externalIdsData));
 };
 
 const renderPerson = () =>
@@ -95,7 +111,7 @@ describe("Person", () => {
     jest.restoreAllMocks();
   });
 
-  it("renders a compact biography, profile facts, gallery, and filmography controls", async () => {
+  it("renders career highlights, profile facts, gallery, and filterable filmography", async () => {
     mockSuccessfulRequests();
     renderPerson();
 
@@ -105,6 +121,13 @@ describe("Person", () => {
     expect(screen.getByText("London, England")).toBeInTheDocument();
     expect(screen.getByText("2002–2022")).toBeInTheDocument();
     expect(screen.getByText("14")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Known for" })
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /instagram/i })).toHaveAttribute(
+      "href",
+      "https://www.instagram.com/alexmorgan/"
+    );
 
     const biography = screen.getByText(longBiography);
     const biographyButton = screen.getByRole("button", {
@@ -143,13 +166,99 @@ describe("Person", () => {
     );
     expect(nextButton).toBeDisabled();
 
-    expect(screen.getAllByTestId("person-movie-card")).toHaveLength(12);
-    userEvent.click(screen.getByRole("button", { name: /show more work/i }));
-    expect(screen.getAllByTestId("person-movie-card")).toHaveLength(13);
+    const openFullscreenButton = screen.getByRole("button", {
+      name: /open portrait fullscreen/i,
+    });
+    userEvent.click(openFullscreenButton);
 
-    userEvent.click(screen.getByRole("button", { name: "Crew" }));
-    expect(screen.getByText("Directed Movie")).toBeInTheDocument();
-    expect(screen.getByText("Director")).toBeInTheDocument();
+    const lightbox = screen.getByRole("dialog", {
+      name: /fullscreen portrait gallery/i,
+    });
+    expect(document.body).toHaveStyle({ overflow: "hidden" });
+    expect(
+      within(lightbox).getByRole("img", { name: /fullscreen portrait/i })
+    ).toHaveAttribute("src", expect.stringContaining("/portrait-two.jpg"));
+
+    fireEvent.keyDown(lightbox, { key: "ArrowLeft" });
+    expect(
+      within(lightbox).getByRole("img", { name: /fullscreen portrait/i })
+    ).toHaveAttribute("src", expect.stringContaining("/portrait-one.jpg"));
+
+    fireEvent.keyDown(lightbox, { key: "Escape" });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(openFullscreenButton).toHaveFocus();
+
+    const filmography = screen.getByRole("region", { name: "Filmography" });
+
+    expect(within(filmography).getAllByTestId("person-movie-card")).toHaveLength(
+      12
+    );
+    userEvent.click(
+      within(filmography).getByRole("button", { name: /show more work/i })
+    );
+    expect(within(filmography).getAllByTestId("person-movie-card")).toHaveLength(
+      13
+    );
+
+    userEvent.selectOptions(
+      within(filmography).getByLabelText("Sort"),
+      "popular"
+    );
+    expect(
+      within(filmography).getAllByTestId("person-movie-card")[0]
+    ).toHaveTextContent("Movie 1");
+
+    userEvent.selectOptions(
+      within(filmography).getByLabelText("Decade"),
+      "2020"
+    );
+    expect(within(filmography).getAllByTestId("person-movie-card")).toHaveLength(
+      3
+    );
+
+    userEvent.click(within(filmography).getByRole("button", { name: "Crew" }));
+    expect(within(filmography).getByText("Directed Movie")).toBeInTheDocument();
+    expect(within(filmography).getByText("Director")).toBeInTheDocument();
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining("/person/101/external_ids?"),
+      expect.objectContaining({ signal: expect.any(AbortSignal) })
+    );
+  });
+
+  it("shows only future-dated credits as upcoming projects", async () => {
+    const nextYear = new Date().getFullYear() + 1;
+    const futureCredit = {
+      id: 777,
+      title: "Future Movie",
+      poster_path: "/future.jpg",
+      release_date: `${nextYear}-12-18`,
+      character: "Lead",
+      popularity: 999,
+      vote_average: 0,
+      vote_count: 0,
+    };
+
+    global.fetch
+      .mockResolvedValueOnce(createResponse(personData))
+      .mockResolvedValueOnce(
+        createResponse({ cast: [...castCredits, futureCredit], crew: crewCredits })
+      )
+      .mockResolvedValueOnce(createResponse({ profiles: [] }))
+      .mockResolvedValueOnce(createResponse({}));
+
+    renderPerson();
+
+    const upcomingSection = await screen.findByRole("region", {
+      name: "Upcoming projects",
+    });
+    expect(
+      within(upcomingSection).getByRole("link", { name: /future movie/i })
+    ).toHaveAttribute("href", "/movie/777");
+
+    const knownForSection = screen.getByRole("region", { name: "Known for" });
+    expect(
+      within(knownForSection).queryByText("Future Movie")
+    ).not.toBeInTheDocument();
   });
 
   it("keeps the profile available when optional credits and images fail", async () => {
@@ -158,7 +267,8 @@ describe("Person", () => {
       .mockRejectedValueOnce(new Error("Credits unavailable"))
       .mockResolvedValueOnce(
         createResponse({}, { ok: false, status: 503 })
-      );
+      )
+      .mockRejectedValueOnce(new Error("External ids unavailable"));
 
     renderPerson();
 
@@ -179,7 +289,8 @@ describe("Person", () => {
         createResponse({}, { ok: false, status: 500 })
       )
       .mockResolvedValueOnce(createResponse({ cast: [], crew: [] }))
-      .mockResolvedValueOnce(createResponse({ profiles: [] }));
+      .mockResolvedValueOnce(createResponse({ profiles: [] }))
+      .mockResolvedValueOnce(createResponse({}));
 
     renderPerson();
 

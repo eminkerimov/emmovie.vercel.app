@@ -67,6 +67,9 @@ describe("Reviews", () => {
     const rating = within(firstReview).getByLabelText(
       "Rating 0 out of 10"
     );
+    const highRating = screen.getByLabelText(
+      "Rating 8 out of 10"
+    );
     const reviewLink = within(firstReview).getByRole("link", {
       name: "Read full review by Ada Lovelace on TMDB",
     });
@@ -75,6 +78,8 @@ describe("Reviews", () => {
       screen.getByRole("heading", { level: 3, name: "Ada Lovelace" })
     );
     expect(rating).toHaveTextContent("0/10");
+    expect(rating).toHaveClass("reviews__rating--low");
+    expect(highRating).toHaveClass("reviews__rating--high");
     expect(reviewLink).toHaveAttribute(
       "href",
       "https://www.themoviedb.org/review/review-1"
