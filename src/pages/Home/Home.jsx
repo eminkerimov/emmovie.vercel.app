@@ -59,7 +59,9 @@ const Home = () => {
   const {
     watchlist,
     toggleWatchlist,
+    toggleWatched,
     isInWatchlist,
+    isWatched,
   } = useWatchlist();
 
   const activeTabData =
@@ -421,7 +423,9 @@ const Home = () => {
                   key={movie.id}
                   {...movie}
                   isFavorite={isInWatchlist(movie.id)}
+                  isWatched={isWatched?.(movie.id) || false}
                   onToggleFavorite={toggleWatchlist}
+                  onToggleWatched={toggleWatched}
                 />
               ))}
             </div>
@@ -450,7 +454,9 @@ const Home = () => {
                 key={movie.id}
                 {...movie}
                 isFavorite={isInWatchlist(movie.id)}
+                isWatched={isWatched?.(movie.id) || false}
                 onToggleFavorite={toggleWatchlist}
+                onToggleWatched={toggleWatched}
               />
             ))}
           </div>
@@ -501,7 +507,9 @@ const Home = () => {
                   key={movie.id}
                   {...movie}
                   isFavorite={isInWatchlist(movie.id)}
+                  isWatched={isWatched?.(movie.id) || false}
                   onToggleFavorite={toggleWatchlist}
+                  onToggleWatched={toggleWatched}
                 />
               ))}
             </div>

@@ -6,13 +6,14 @@ import {
   PROFILE_API,
 } from "../../helpers/baseURL.js";
 import { Link, useNavigate } from "react-router-dom";
+import { MovieLibraryMenu } from "../MovieCard/MovieCard";
 
 const MovieMain = ({
   data,
   details,
   videos,
   watchlist,
-  watchlistMeta,
+  isWatched,
   toggleWatchlist,
   toggleWatched,
 }) => {
@@ -147,50 +148,14 @@ const MovieMain = ({
                   ></i>
                 </a>
 
-                <button
-                  className={`movie__main__favorite ${
-                    isFavorite ? "is-active" : ""
-                  }`}
-                  type="button"
-                  onClick={toggleWatchlist}
-                  aria-pressed={isFavorite}
-                >
-                  <i
-                    className={`${
-                      isFavorite ? "fa-solid" : "fa-regular"
-                    } fa-heart`}
-                    aria-hidden="true"
-                  ></i>
-                  {isFavorite ? "In Watchlist" : "Add to Watchlist"}
-                </button>
-
-                {isFavorite && (
-                  <button
-                    className={`movie__main__watched ${
-                      watchlistMeta?.status === "watched"
-                        ? "is-active"
-                        : ""
-                    }`}
-                    type="button"
-                    onClick={toggleWatched}
-                    aria-pressed={
-                      watchlistMeta?.status === "watched"
-                    }
-                    aria-label={
-                      watchlistMeta?.status === "watched"
-                        ? `Move ${data?.title} back to Want to watch`
-                        : `Mark ${data?.title} as watched`
-                    }
-                  >
-                    <i
-                      className="fa-solid fa-check"
-                      aria-hidden="true"
-                    ></i>
-                    {watchlistMeta?.status === "watched"
-                      ? "Watched"
-                      : "Mark as watched"}
-                  </button>
-                )}
+                <MovieLibraryMenu
+                  title={data?.title || "Movie"}
+                  isFavorite={isFavorite}
+                  isWatched={isWatched}
+                  onToggleFavorite={toggleWatchlist}
+                  onToggleWatched={toggleWatched}
+                  variant="hero"
+                />
               </div>
             </div>
           </div>

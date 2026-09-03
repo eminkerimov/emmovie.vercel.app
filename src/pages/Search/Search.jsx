@@ -68,7 +68,12 @@ const Search = () => {
   const page = getPage(searchParams.get("page"));
   const [searchTerm, setSearchTerm] = useState(query);
   const { data, loading, error, fetchData } = useFetchMovies();
-  const { toggleWatchlist, isInWatchlist } = useWatchlist();
+  const {
+    toggleWatchlist,
+    toggleWatched,
+    isInWatchlist,
+    isWatched,
+  } = useWatchlist();
   const response = data?.data;
   const results = useMemo(
     () => {
@@ -245,7 +250,9 @@ const Search = () => {
                         key={movie.id}
                         {...movie}
                         isFavorite={isInWatchlist(movie.id)}
+                        isWatched={isWatched?.(movie.id) || false}
                         onToggleFavorite={toggleWatchlist}
+                        onToggleWatched={toggleWatched}
                       />
                     ))}
                   </div>

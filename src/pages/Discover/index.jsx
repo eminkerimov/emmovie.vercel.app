@@ -110,7 +110,9 @@ const Discover = () => {
 
   const {
     toggleWatchlist,
+    toggleWatched,
     isInWatchlist,
+    isWatched,
   } = useWatchlist();
 
   const discoverRequest = useFetchMovies();
@@ -633,9 +635,11 @@ const Discover = () => {
                     isFavorite={isInWatchlist(
                       movie.id
                     )}
+                    isWatched={isWatched?.(movie.id) || false}
                     onToggleFavorite={
                       toggleWatchlist
                     }
+                    onToggleWatched={toggleWatched}
                   />
                 ))}
               </div>

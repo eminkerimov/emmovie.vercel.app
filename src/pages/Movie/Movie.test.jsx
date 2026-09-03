@@ -68,7 +68,9 @@ describe("Movie", () => {
       })),
       setWatchlist: jest.fn(),
       toggleWatchlist: jest.fn(),
+      toggleWatched: jest.fn(),
       updateWatchlistMeta: jest.fn(),
+      isWatched: jest.fn(() => false),
       watchlist: [],
     });
     useMovieCollection.mockReturnValue(settledRequest(null));

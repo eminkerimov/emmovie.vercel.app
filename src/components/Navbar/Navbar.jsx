@@ -9,7 +9,6 @@ import {
   useNavigate,
 } from "react-router-dom";
 import useFetchMovies from "../../hooks/useFetchMovies";
-import useWatchlist from "../../hooks/useWatchlist";
 import {
   PROFILE_API,
   THUMBNAIL_API,
@@ -36,7 +35,6 @@ const Navbar = () => {
 
   const { data, loading, error, fetchData } =
     useFetchMovies();
-  const { watchlist } = useWatchlist();
 
   const searchResults =
     data?.data?.results
@@ -496,17 +494,6 @@ const Navbar = () => {
             }
           >
             <span>Watchlist</span>
-            <span
-              className="home-header__watchlist-count"
-              aria-hidden="true"
-            >
-              {watchlist.length > 99
-                ? "99+"
-                : watchlist.length}
-            </span>
-            <span className="sr-only">
-              , {watchlist.length} saved
-            </span>
           </Link>
         </nav>
       </div>

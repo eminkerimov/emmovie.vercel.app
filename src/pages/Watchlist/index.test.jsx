@@ -10,6 +10,7 @@ import {
   WatchlistProvider,
   WATCHLIST_KEY,
   WATCHLIST_META_KEY,
+  WATCHED_KEY,
 } from "../../context/WatchlistContext";
 import { NotificationProvider } from "../../context/NotificationContext";
 import Watchlist from "./index";
@@ -32,6 +33,7 @@ const movies = [
     release_date: "2021-09-15",
   },
 ];
+const watchedMovies = [movies[1]];
 
 const renderWatchlist = () =>
   render(
@@ -56,14 +58,25 @@ describe("Watchlist library", () => {
       WATCHLIST_KEY,
       JSON.stringify(movies)
     );
+    localStorage.setItem(
+      WATCHED_KEY,
+      JSON.stringify(watchedMovies)
+    );
   });
 
-  it("filters movies and saves personal status and rating", async () => {
+  it("defaults to Want to watch, filters that collection, and saves personal data", async () => {
     renderWatchlist();
+
+    expect(
+      screen.getByRole("tab", { name: "Want to watch" })
+    ).toHaveAttribute("aria-selected", "true");
+    expect(
+      screen.queryByRole("tab", { name: "All" })
+    ).not.toBeInTheDocument();
 
     userEvent.type(
       screen.getByRole("searchbox", {
-        name: /search saved movies/i,
+        name: /search want to watch movies/i,
       }),
       "dune"
     );
@@ -75,19 +88,10 @@ describe("Watchlist library", () => {
       screen.queryByRole("heading", { name: "Fight Club" })
     ).not.toBeInTheDocument();
 
-    userEvent.click(
-      screen.getByRole("button", {
-        name: "Mark Dune as watched",
-      })
-    );
     userEvent.selectOptions(
       screen.getByLabelText("My rating for Dune"),
       "9"
     );
-
-    expect(
-      screen.getByLabelText("Date watched for Dune")
-    ).toBeInTheDocument();
 
     await waitFor(() => {
       expect(
@@ -95,26 +99,165 @@ describe("Watchlist library", () => {
           localStorage.getItem(WATCHLIST_META_KEY)
         )[438631]
       ).toMatchObject({
-        status: "watched",
         personalRating: 9,
       });
     });
   });
 
-  it("restores a cleared library with Undo", async () => {
+  it("keeps the same movie independently in Want to watch and Watched", async () => {
+    renderWatchlist();
+
+    expect(
+      screen.getByRole("heading", { name: "Dune" })
+    ).toBeInTheDocument();
+
+    userEvent.click(
+      screen.getByRole("tab", { name: "Watched" })
+    );
+
+    expect(
+      screen.getByRole("heading", {
+        name: "Dune",
+      })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Fight Club" })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByLabelText("Date watched for Dune")
+    ).toBeInTheDocument();
+
+    userEvent.click(
+      screen.getByRole("button", {
+        name: "Manage Dune in My Library",
+      })
+    );
+    userEvent.click(
+      screen.getByRole("menuitemcheckbox", {
+        name: "Want to watch",
+      })
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Dune" })
+    ).toBeInTheDocument();
+
+    userEvent.click(
+      screen.getByRole("tab", { name: "Want to watch" })
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Fight Club" })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Dune" })
+    ).not.toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(
+        JSON.parse(localStorage.getItem(WATCHLIST_KEY))
+      ).toEqual([movies[0]]);
+    });
+    await waitFor(() => {
+      expect(
+        JSON.parse(localStorage.getItem(WATCHED_KEY))
+      ).toEqual(watchedMovies);
+    });
+  });
+
+  it("marks a favorite as watched without removing it from Want to watch", async () => {
     renderWatchlist();
 
     userEvent.click(
-      screen.getByRole("button", { name: "Clear" })
+      screen.getByRole("button", {
+        name: "Manage Fight Club in My Library",
+      })
     );
+    userEvent.click(
+      screen.getByRole("menuitemcheckbox", {
+        name: "Watched",
+      })
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Fight Club" })
+    ).toBeInTheDocument();
+
+    userEvent.click(
+      screen.getByRole("tab", { name: "Watched" })
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Fight Club" })
+    ).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(
+        JSON.parse(localStorage.getItem(WATCHLIST_KEY))
+      ).toEqual(movies);
+    });
+    await waitFor(() => {
+      expect(
+        JSON.parse(localStorage.getItem(WATCHED_KEY))
+      ).toEqual([movies[0], movies[1]]);
+    });
+  });
+
+  it("clears only the active Want to watch collection", async () => {
+    renderWatchlist();
+
+    userEvent.click(
+      screen.getByRole("button", {
+        name: "Clear Want to watch collection",
+      })
+    );
+
     expect(
       screen.getByRole("heading", {
-        name: /no saved movies yet/i,
+        name: /no movies saved to watch/i,
       })
     ).toBeInTheDocument();
 
     userEvent.click(
-      screen.getByRole("button", { name: "Undo" })
+      screen.getByRole("tab", { name: "Watched" })
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Dune" })
+    ).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(
+        JSON.parse(localStorage.getItem(WATCHLIST_KEY))
+      ).toEqual([]);
+    });
+    await waitFor(() => {
+      expect(
+        JSON.parse(localStorage.getItem(WATCHED_KEY))
+      ).toEqual(watchedMovies);
+    });
+  });
+
+  it("clears Watched without removing Want to watch movies", async () => {
+    renderWatchlist();
+
+    userEvent.click(
+      screen.getByRole("tab", { name: "Watched" })
+    );
+    userEvent.click(
+      screen.getByRole("button", {
+        name: "Clear Watched collection",
+      })
+    );
+
+    expect(
+      screen.getByRole("heading", {
+        name: /no watched movies yet/i,
+      })
+    ).toBeInTheDocument();
+
+    userEvent.click(
+      screen.getByRole("tab", { name: "Want to watch" })
     );
 
     expect(
@@ -124,6 +267,11 @@ describe("Watchlist library", () => {
       screen.getByRole("heading", { name: "Dune" })
     ).toBeInTheDocument();
 
+    await waitFor(() => {
+      expect(
+        JSON.parse(localStorage.getItem(WATCHED_KEY))
+      ).toEqual([]);
+    });
     await waitFor(() => {
       expect(
         JSON.parse(localStorage.getItem(WATCHLIST_KEY))

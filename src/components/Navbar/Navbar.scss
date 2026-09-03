@@ -122,21 +122,6 @@
     }
   }
 
-  &__watchlist-count {
-    min-width: 23px;
-    height: 23px;
-    display: inline-grid;
-    place-items: center;
-    padding-inline: 6px;
-    border: 1px solid rgba(242, 198, 109, 0.28);
-    border-radius: 6px;
-    background: rgba(242, 198, 109, 0.09);
-    color: $color-primary;
-    font-size: 10px;
-    font-weight: $font-weight-extra-bold;
-    line-height: 1;
-  }
-
   &__burger {
     position: relative;
     z-index: 102;
@@ -359,10 +344,6 @@
           width: 42px;
         }
       }
-    }
-
-    &__watchlist-count {
-      margin-left: auto;
     }
 
     &__search input {

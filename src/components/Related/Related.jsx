@@ -9,6 +9,8 @@ const Related = ({
   mode = "recommendations",
   watchlist,
   toggleWatchlist,
+  toggleWatched,
+  isWatched,
 }) => {
   const { elementRef, isVisible } = useReveal();
   const movies = data?.results?.slice(0, 5) || [];
@@ -54,7 +56,9 @@ const Related = ({
                 key={movie.id}
                 {...movie}
                 isFavorite={isInWatchlist(movie.id)}
+                isWatched={isWatched?.(movie.id) || false}
                 onToggleFavorite={toggleWatchlist}
+                onToggleWatched={toggleWatched}
               />
             ))}
           </div>

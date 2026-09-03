@@ -62,17 +62,13 @@ const Movie = () => {
   const {
     watchlist,
     toggleWatchlist: toggleStoredMovie,
-    getWatchlistMeta,
-    updateWatchlistMeta,
+    toggleWatched: toggleStoredWatched,
+    isWatched,
   } = useWatchlist();
   const { addRecentlyViewed } = useRecentlyViewed();
 
   const data = movieRequest.data;
-  const isMovieSaved = Boolean(
-    data && watchlist.some((movie) => movie.id === data.id)
-  );
-  const movieWatchlistMeta =
-    data && isMovieSaved ? getWatchlistMeta(data.id) : null;
+  const movieIsWatched = data ? isWatched(data.id) : false;
   const collectionRequest = useMovieCollection(
     data?.belongs_to_collection?.id
   );
@@ -133,13 +129,15 @@ const Movie = () => {
   };
 
   const toggleWatched = () => {
-    if (!data || !isMovieSaved) return;
+    if (!data) return;
 
-    updateWatchlistMeta(data.id, {
-      status:
-        movieWatchlistMeta?.status === "watched"
-          ? "want"
-          : "watched",
+    toggleStoredWatched({
+      id: data.id,
+      title: data.title,
+      poster_path: data.poster_path,
+      overview: data.overview,
+      vote_average: data.vote_average,
+      release_date: data.release_date,
     });
   };
 
@@ -180,7 +178,7 @@ const Movie = () => {
         details={details}
         videos={videos}
         watchlist={watchlist}
-        watchlistMeta={movieWatchlistMeta}
+        isWatched={movieIsWatched}
         toggleWatchlist={toggleWatchlist}
         toggleWatched={toggleWatched}
       />
@@ -200,12 +198,16 @@ const Movie = () => {
         currentMovieId={id}
         request={collectionRequest}
         toggleWatchlist={toggleStoredMovie}
+        toggleWatched={toggleStoredWatched}
         watchlist={watchlist}
+        isWatched={isWatched}
       />
       <Related
         {...relatedSelection}
         watchlist={watchlist}
         toggleWatchlist={toggleStoredMovie}
+        toggleWatched={toggleStoredWatched}
+        isWatched={isWatched}
       />
     </main>
   );

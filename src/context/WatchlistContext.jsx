@@ -8,6 +8,7 @@ import React, {
 import { useNotifications } from "./NotificationContext";
 
 export const WATCHLIST_KEY = "emmovie_watchlist";
+export const WATCHED_KEY = "emmovie_watched";
 export const WATCHLIST_META_KEY = "emmovie_watchlist_meta";
 
 const WatchlistContext = createContext(null);
@@ -49,12 +50,17 @@ const readStorage = (key, parser) => {
 };
 
 const createDefaultMetadata = () => ({
-  status: "want",
   personalRating: null,
   note: "",
   watchedAt: "",
   addedAt: new Date().toISOString(),
 });
+
+const withoutLegacyStatus = (metadata) => {
+  const nextMetadata = { ...metadata };
+  delete nextMetadata.status;
+  return nextMetadata;
+};
 
 const getTodayDateValue = () => {
   const today = new Date();
@@ -65,10 +71,34 @@ const getTodayDateValue = () => {
   return `${year}-${month}-${day}`;
 };
 
+const readInitialWatchedMovies = () => {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const storedWatchedMovies = window.localStorage.getItem(WATCHED_KEY);
+
+    if (storedWatchedMovies !== null) {
+      return parseWatchlist(storedWatchedMovies);
+    }
+  } catch {
+    return [];
+  }
+
+  const legacyWatchlist = readStorage(WATCHLIST_KEY, parseWatchlist);
+  const legacyMetadata = readStorage(WATCHLIST_META_KEY, parseMetadata);
+
+  return legacyWatchlist.filter(
+    (movie) => legacyMetadata[movie.id]?.status === "watched"
+  );
+};
+
 export const WatchlistProvider = ({ children }) => {
   const { notify } = useNotifications();
   const [watchlist, setWatchlist] = useState(() =>
     readStorage(WATCHLIST_KEY, parseWatchlist)
+  );
+  const [watchedMovies, setWatchedMovies] = useState(
+    readInitialWatchedMovies
   );
   const [watchlistMetadata, setWatchlistMetadata] = useState(() =>
     readStorage(WATCHLIST_META_KEY, parseMetadata)
@@ -88,6 +118,17 @@ export const WatchlistProvider = ({ children }) => {
   useEffect(() => {
     try {
       window.localStorage.setItem(
+        WATCHED_KEY,
+        JSON.stringify(watchedMovies)
+      );
+    } catch {
+      // Watched movies remain usable in memory when storage is unavailable.
+    }
+  }, [watchedMovies]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
         WATCHLIST_META_KEY,
         JSON.stringify(watchlistMetadata)
       );
@@ -100,12 +141,17 @@ export const WatchlistProvider = ({ children }) => {
     const handleStorage = (event) => {
       if (event.key === null) {
         setWatchlist([]);
+        setWatchedMovies([]);
         setWatchlistMetadata({});
         return;
       }
 
       if (event.key === WATCHLIST_KEY) {
         setWatchlist(parseWatchlist(event.newValue));
+      }
+
+      if (event.key === WATCHED_KEY) {
+        setWatchedMovies(parseWatchlist(event.newValue));
       }
 
       if (event.key === WATCHLIST_META_KEY) {
@@ -129,20 +175,12 @@ export const WatchlistProvider = ({ children }) => {
     const movieTitle = movie.title || "Movie";
 
     if (movieIndex >= 0) {
-      const removedMetadata =
-        watchlistMetadata[movie.id] || createDefaultMetadata();
-
       setWatchlist((currentWatchlist) =>
         currentWatchlist.filter((item) => item.id !== movie.id)
       );
-      setWatchlistMetadata((currentMetadata) => {
-        const nextMetadata = { ...currentMetadata };
-        delete nextMetadata[movie.id];
-        return nextMetadata;
-      });
 
       notify({
-        message: `${movieTitle} removed from My Library.`,
+        message: `${movieTitle} removed from Want to watch.`,
         actionLabel: "Undo",
         onAction: () => {
           setWatchlist((currentWatchlist) => {
@@ -160,10 +198,6 @@ export const WatchlistProvider = ({ children }) => {
             );
             return nextWatchlist;
           });
-          setWatchlistMetadata((currentMetadata) => ({
-            ...currentMetadata,
-            [movie.id]: removedMetadata,
-          }));
         },
       });
       return;
@@ -176,28 +210,24 @@ export const WatchlistProvider = ({ children }) => {
         currentMetadata[movie.id] || createDefaultMetadata(),
     }));
     notify({
-      message: `${movieTitle} added to My Library.`,
+      message: `${movieTitle} added to Want to watch.`,
       tone: "success",
     });
-  }, [notify, watchlist, watchlistMetadata]);
+  }, [notify, watchlist]);
 
   const clearWatchlist = useCallback(() => {
     if (!watchlist.length) return;
 
     const previousWatchlist = watchlist;
-    const previousMetadata = watchlistMetadata;
-
     setWatchlist([]);
-    setWatchlistMetadata({});
     notify({
-      message: "My Library was cleared.",
+      message: "Want to watch was cleared.",
       actionLabel: "Undo",
       onAction: () => {
         setWatchlist(previousWatchlist);
-        setWatchlistMetadata(previousMetadata);
       },
     });
-  }, [notify, watchlist, watchlistMetadata]);
+  }, [notify, watchlist]);
 
   const restoreWatchlist = useCallback((movies, metadata = {}) => {
     setWatchlist(Array.isArray(movies) ? movies : []);
@@ -209,19 +239,45 @@ export const WatchlistProvider = ({ children }) => {
   const updateWatchlistMeta = useCallback((movieId, patch) => {
     if (!movieId || !patch || typeof patch !== "object") return;
 
+    const requestedStatus =
+      patch.status === "watched" || patch.status === "want"
+        ? patch.status
+        : null;
+    const metadataPatch = { ...patch };
+    delete metadataPatch.status;
+    const movie =
+      watchlist.find((item) => item.id === movieId) ||
+      watchedMovies.find((item) => item.id === movieId);
+
+    if (requestedStatus && movie) {
+      setWatchedMovies((currentMovies) => {
+        const alreadyWatched = currentMovies.some(
+          (item) => item.id === movieId
+        );
+
+        if (requestedStatus === "watched") {
+          return alreadyWatched ? currentMovies : [movie, ...currentMovies];
+        }
+
+        return alreadyWatched
+          ? currentMovies.filter((item) => item.id !== movieId)
+          : currentMovies;
+      });
+    }
+
     setWatchlistMetadata((currentMetadata) => {
-      const currentMovieMetadata = {
+      const currentMovieMetadata = withoutLegacyStatus({
         ...createDefaultMetadata(),
         ...currentMetadata[movieId],
-      };
+      });
       const statusPatch =
-        patch.status === "watched"
+        requestedStatus === "watched"
           ? {
               watchedAt:
                 currentMovieMetadata.watchedAt ||
                 getTodayDateValue(),
             }
-          : patch.status === "want"
+          : requestedStatus === "want"
             ? { watchedAt: "" }
             : {};
 
@@ -230,21 +286,19 @@ export const WatchlistProvider = ({ children }) => {
         [movieId]: {
           ...currentMovieMetadata,
           ...statusPatch,
-          ...patch,
+          ...metadataPatch,
         },
       };
     });
 
-    const movieTitle =
-      watchlist.find((movie) => movie.id === movieId)?.title ||
-      "Movie";
+    const movieTitle = movie?.title || "Movie";
 
-    if (Object.prototype.hasOwnProperty.call(patch, "status")) {
+    if (requestedStatus) {
       notify({
         message:
-          patch.status === "watched"
+          requestedStatus === "watched"
             ? `${movieTitle} marked as watched.`
-            : `${movieTitle} moved to Want to watch.`,
+            : `${movieTitle} removed from Watched.`,
         tone: "success",
       });
     } else if (
@@ -260,18 +314,110 @@ export const WatchlistProvider = ({ children }) => {
         tone: "success",
       });
     }
-  }, [notify, watchlist]);
+  }, [notify, watchedMovies, watchlist]);
+
+  const toggleWatched = useCallback((movie) => {
+    if (!movie?.id) return;
+
+    const isCurrentlyWatched =
+      watchedMovies.some((item) => item.id === movie.id);
+    const nextStatus = isCurrentlyWatched ? "want" : "watched";
+
+    setWatchedMovies((currentMovies) =>
+      isCurrentlyWatched
+        ? currentMovies.filter((item) => item.id !== movie.id)
+        : [movie, ...currentMovies]
+    );
+
+    setWatchlistMetadata((currentMetadata) => {
+      const currentMovieMetadata = withoutLegacyStatus({
+        ...createDefaultMetadata(),
+        ...currentMetadata[movie.id],
+      });
+
+      return {
+        ...currentMetadata,
+        [movie.id]: {
+          ...currentMovieMetadata,
+          watchedAt:
+            nextStatus === "watched"
+              ? currentMovieMetadata.watchedAt || getTodayDateValue()
+              : "",
+        },
+      };
+    });
+
+    notify({
+      message:
+        nextStatus === "watched"
+          ? `${movie.title || "Movie"} marked as watched.`
+          : `${movie.title || "Movie"} removed from Watched.`,
+      tone: "success",
+    });
+  }, [notify, watchedMovies]);
+
+  const clearWatched = useCallback(() => {
+    if (!watchedMovies.length) return;
+
+    const previousWatchedMovies = watchedMovies;
+    const watchedIds = new Set(
+      watchedMovies.map((movie) => String(movie.id))
+    );
+    const previousWatchedAt = Object.fromEntries(
+      watchedMovies.map((movie) => [
+        String(movie.id),
+        watchlistMetadata[movie.id]?.watchedAt || "",
+      ])
+    );
+
+    setWatchedMovies([]);
+    setWatchlistMetadata((currentMetadata) =>
+      Object.fromEntries(
+        Object.entries(currentMetadata).map(([movieId, metadata]) => [
+          movieId,
+          watchedIds.has(movieId)
+            ? {
+                ...withoutLegacyStatus(metadata),
+                watchedAt: "",
+              }
+            : withoutLegacyStatus(metadata),
+        ])
+      )
+    );
+    notify({
+      message: "Watched was cleared.",
+      actionLabel: "Undo",
+      onAction: () => {
+        setWatchedMovies(previousWatchedMovies);
+        setWatchlistMetadata((currentMetadata) => {
+          const nextMetadata = { ...currentMetadata };
+
+          previousWatchedMovies.forEach((movie) => {
+            nextMetadata[movie.id] = {
+              ...createDefaultMetadata(),
+              ...withoutLegacyStatus(currentMetadata[movie.id]),
+              watchedAt: previousWatchedAt[String(movie.id)],
+            };
+          });
+
+          return nextMetadata;
+        });
+      },
+    });
+  }, [notify, watchedMovies, watchlistMetadata]);
 
   const getWatchlistMeta = useCallback(
     (movieId) => ({
-      status: "want",
       personalRating: null,
       note: "",
       watchedAt: "",
       addedAt: "",
       ...watchlistMetadata[movieId],
+      status: watchedMovies.some((movie) => movie.id === movieId)
+        ? "watched"
+        : "want",
     }),
-    [watchlistMetadata]
+    [watchedMovies, watchlistMetadata]
   );
 
   const isInWatchlist = useCallback(
@@ -280,27 +426,41 @@ export const WatchlistProvider = ({ children }) => {
     [watchlist]
   );
 
+  const isWatched = useCallback(
+    (movieId) =>
+      watchedMovies.some((movie) => movie.id === movieId),
+    [watchedMovies]
+  );
+
   const value = useMemo(
     () => ({
       watchlist,
+      watchedMovies,
       setWatchlist,
       watchlistMetadata,
       toggleWatchlist,
       clearWatchlist,
+      clearWatched,
       restoreWatchlist,
       updateWatchlistMeta,
+      toggleWatched,
       getWatchlistMeta,
       isInWatchlist,
+      isWatched,
     }),
     [
       clearWatchlist,
+      clearWatched,
       getWatchlistMeta,
       isInWatchlist,
+      isWatched,
       restoreWatchlist,
       toggleWatchlist,
+      toggleWatched,
       updateWatchlistMeta,
       watchlist,
       watchlistMetadata,
+      watchedMovies,
     ]
   );
 

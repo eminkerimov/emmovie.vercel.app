@@ -177,18 +177,21 @@ const SOCIAL_PROFILES = [
   {
     key: "instagram_id",
     label: "Instagram",
+    brand: "instagram",
     icon: "fa-brands fa-instagram",
     getUrl: (value) => `https://www.instagram.com/${encodeURIComponent(value)}/`,
   },
   {
     key: "twitter_id",
     label: "X",
+    brand: "x",
     icon: "fa-brands fa-x-twitter",
     getUrl: (value) => `https://x.com/${encodeURIComponent(value)}`,
   },
   {
     key: "facebook_id",
     label: "Facebook",
+    brand: "facebook",
     icon: "fa-brands fa-facebook-f",
     getUrl: (value) => `https://www.facebook.com/${encodeURIComponent(value)}`,
   },
@@ -227,7 +230,12 @@ const Person = () => {
   const [visibleCreditCount, setVisibleCreditCount] = useState(
     INITIAL_CREDIT_COUNT
   );
-  const { watchlist, toggleWatchlist } = useWatchlist();
+  const {
+    watchlist,
+    toggleWatchlist,
+    toggleWatched,
+    isWatched,
+  } = useWatchlist();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -666,39 +674,44 @@ const Person = () => {
                 <div className="person-hero__links" aria-label="External links">
                   {imdbUrl && (
                     <a
+                      className="person-hero__external-link person-hero__external-link--imdb"
                       href={imdbUrl}
                       target="_blank"
                       rel="noopener noreferrer"
+                      aria-label="Open IMDb profile"
                     >
-                      <i
-                        className="fa-brands fa-imdb"
-                        aria-hidden="true"
-                      ></i>
-                      IMDb
+                      <i className="fa-brands fa-imdb" aria-hidden="true"></i>
+                      <span>IMDb</span>
                     </a>
                   )}
                   {homepageUrl && (
                     <a
+                      className="person-hero__external-link person-hero__external-link--website"
                       href={homepageUrl}
                       target="_blank"
                       rel="noopener noreferrer"
+                      aria-label="Open official website"
                     >
-                      <i
-                        className="fa-solid fa-globe"
-                        aria-hidden="true"
-                      ></i>
-                      Official site
+                      <i className="fa-solid fa-globe" aria-hidden="true"></i>
+                      <span>Official site</span>
                     </a>
                   )}
                   {socialProfiles.map((profile) => (
                     <a
+                      className={`person-hero__external-link person-hero__external-link--${profile.brand}${
+                        profile.brand === "x"
+                          ? " person-hero__external-link--icon-only"
+                          : ""
+                      }`}
                       href={profile.url}
                       key={profile.key}
                       target="_blank"
                       rel="noopener noreferrer"
+                      aria-label={`Open ${profile.label} profile`}
+                      title={profile.brand === "x" ? "X" : undefined}
                     >
                       <i className={profile.icon} aria-hidden="true"></i>
-                      {profile.label}
+                      {profile.brand !== "x" && <span>{profile.label}</span>}
                     </a>
                   ))}
                 </div>
@@ -734,7 +747,9 @@ const Person = () => {
                     isFavorite={watchlist.some(
                       (watchlistMovie) => watchlistMovie.id === movie.id
                     )}
+                    isWatched={isWatched?.(movie.id) || false}
                     onToggleFavorite={toggleWatchlist}
+                    onToggleWatched={toggleWatched}
                   />
                   {movie.creditRole && (
                     <p className="person-featured__role">{movie.creditRole}</p>
@@ -1035,7 +1050,9 @@ const Person = () => {
                       isFavorite={watchlist.some(
                         (watchlistMovie) => watchlistMovie.id === movie.id
                       )}
+                      isWatched={isWatched?.(movie.id) || false}
                       onToggleFavorite={toggleWatchlist}
+                      onToggleWatched={toggleWatched}
                     />
                     <p className="person-known__credit-role">
                       {movie.creditRole ||

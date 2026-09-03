@@ -4,6 +4,8 @@ import MovieCard from "../../components/MovieCard/MovieCard";
 import useWatchlist from "../../hooks/useWatchlist";
 import "./index.scss";
 
+const TAB_VALUES = ["want", "watched"];
+
 const sortMovies = (movies, sortBy, getWatchlistMeta) => {
   const sortedMovies = [...movies];
 
@@ -39,29 +41,32 @@ const sortMovies = (movies, sortBy, getWatchlistMeta) => {
 const Watchlist = () => {
   const {
     watchlist,
+    watchedMovies,
     toggleWatchlist,
+    toggleWatched,
     clearWatchlist,
+    clearWatched,
     updateWatchlistMeta,
     getWatchlistMeta,
     isInWatchlist,
+    isWatched,
   } = useWatchlist();
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [activeTab, setActiveTab] = useState("want");
   const [sortBy, setSortBy] = useState("added");
+  const activeMovies =
+    activeTab === "watched" ? watchedMovies : watchlist;
+  const activeTabLabel =
+    activeTab === "watched" ? "Watched" : "Want to watch";
 
   const visibleMovies = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
-    const filteredMovies = watchlist.filter((movie) => {
-      const matchesQuery =
+    const filteredMovies = activeMovies.filter(
+      (movie) =>
         !normalizedQuery ||
-        movie.title?.toLowerCase().includes(normalizedQuery);
-      const matchesStatus =
-        statusFilter === "all" ||
-        getWatchlistMeta(movie.id).status === statusFilter;
-
-      return matchesQuery && matchesStatus;
-    });
+        movie.title?.toLowerCase().includes(normalizedQuery)
+    );
 
     return sortMovies(
       filteredMovies,
@@ -69,23 +74,47 @@ const Watchlist = () => {
       getWatchlistMeta
     );
   }, [
+    activeMovies,
     getWatchlistMeta,
     query,
     sortBy,
-    statusFilter,
-    watchlist,
   ]);
 
-  const watchedCount = watchlist.filter(
-    (movie) => getWatchlistMeta(movie.id).status === "watched"
-  ).length;
+  const handleClear = () => {
+    if (activeTab === "watched") {
+      clearWatched();
+      return;
+    }
 
-  const handleRemove = (movie) => {
-    toggleWatchlist(movie);
+    clearWatchlist();
   };
 
-  const handleClear = () => {
-    clearWatchlist();
+  const activateTab = (nextTab) => {
+    setActiveTab(nextTab);
+    setQuery("");
+  };
+
+  const handleTabKeyDown = (event) => {
+    const currentIndex = TAB_VALUES.indexOf(activeTab);
+    let nextTab = null;
+
+    if (event.key === "ArrowRight") {
+      nextTab = TAB_VALUES[(currentIndex + 1) % TAB_VALUES.length];
+    } else if (event.key === "ArrowLeft") {
+      nextTab = TAB_VALUES[
+        (currentIndex - 1 + TAB_VALUES.length) % TAB_VALUES.length
+      ];
+    } else if (event.key === "Home") {
+      nextTab = TAB_VALUES[0];
+    } else if (event.key === "End") {
+      nextTab = TAB_VALUES[TAB_VALUES.length - 1];
+    }
+
+    if (!nextTab) return;
+
+    event.preventDefault();
+    activateTab(nextTab);
+    document.getElementById(`watchlist-tab-${nextTab}`)?.focus();
   };
 
   const handleRandomPick = () => {
@@ -112,112 +141,116 @@ const Watchlist = () => {
             </p>
           </div>
 
-          {watchlist.length > 0 && (
-            <div className="watchlist-hero__summary">
-              <div>
-                <strong>{watchlist.length}</strong>
-                <span>saved</span>
-              </div>
-
-              <div>
-                <strong>{watchedCount}</strong>
-                <span>watched</span>
-              </div>
+          <div className="watchlist-hero__summary">
+            <div>
+              <strong>{watchlist.length}</strong>
+              <span>Want to watch</span>
             </div>
-          )}
+
+            <div>
+              <strong>{watchedMovies.length}</strong>
+              <span>Watched</span>
+            </div>
+          </div>
         </section>
 
-        {watchlist.length > 0 ? (
-          <section
-            className="watchlist-content"
-            aria-labelledby="watchlist-library-title"
-          >
-            <h2 id="watchlist-library-title" className="sr-only">
-              Saved movies
-            </h2>
+        <section
+          className="watchlist-content"
+          aria-labelledby="watchlist-library-title"
+        >
+          <h2 id="watchlist-library-title" className="sr-only">
+            My movie library
+          </h2>
 
-            <div className="watchlist-toolbar">
-              <label className="watchlist-toolbar__search">
-                <span className="sr-only">
-                  Search saved movies
-                </span>
-                <i
-                  className="fa-solid fa-magnifying-glass"
-                  aria-hidden="true"
-                ></i>
-                <input
-                  type="search"
-                  placeholder="Search your library"
-                  value={query}
-                  onChange={(event) =>
-                    setQuery(event.target.value)
-                  }
-                />
-              </label>
-
-              <div
-                className="watchlist-status-filter"
-                role="group"
-                aria-label="Filter library by status"
-              >
-                {[
-                  ["all", "All"],
-                  ["want", "Want to watch"],
-                  ["watched", "Watched"],
-                ].map(([value, label]) => (
-                  <button
-                    key={value}
-                    type="button"
-                    className={
-                      statusFilter === value ? "is-active" : ""
-                    }
-                    aria-pressed={statusFilter === value}
-                    onClick={() => setStatusFilter(value)}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-
-              <label className="watchlist-toolbar__sort">
-                <span>Sort</span>
-                <select
-                  value={sortBy}
-                  onChange={(event) =>
-                    setSortBy(event.target.value)
-                  }
+          <div className="watchlist-toolbar">
+            <div
+              className="watchlist-tabs"
+              role="tablist"
+              aria-label="Choose a movie collection"
+            >
+              {[
+                ["want", "Want to watch", watchlist.length],
+                ["watched", "Watched", watchedMovies.length],
+              ].map(([value, label, count]) => (
+                <button
+                  id={`watchlist-tab-${value}`}
+                  key={value}
+                  type="button"
+                  role="tab"
+                  className={activeTab === value ? "is-active" : ""}
+                  aria-selected={activeTab === value}
+                  aria-controls="watchlist-tab-panel"
+                  tabIndex={activeTab === value ? 0 : -1}
+                  onClick={() => activateTab(value)}
+                  onKeyDown={handleTabKeyDown}
                 >
-                  <option value="added">Recently added</option>
-                  <option value="title">Title</option>
-                  <option value="year">Release year</option>
-                  <option value="rating">TMDB rating</option>
-                </select>
-              </label>
-
-              <button
-                className="watchlist-toolbar__random"
-                type="button"
-                onClick={handleRandomPick}
-                disabled={!visibleMovies.length}
-              >
-                <i
-                  className="fa-solid fa-shuffle"
-                  aria-hidden="true"
-                ></i>
-                Pick for me
-              </button>
-
-              <button
-                className="watchlist-toolbar__clear"
-                type="button"
-                onClick={handleClear}
-              >
-                Clear
-              </button>
+                  {label}
+                  <span aria-hidden="true">{count}</span>
+                </button>
+              ))}
             </div>
 
+            <label className="watchlist-toolbar__search">
+              <span className="sr-only">
+                Search {activeTabLabel} movies
+              </span>
+              <i
+                className="fa-solid fa-magnifying-glass"
+                aria-hidden="true"
+              ></i>
+              <input
+                type="search"
+                placeholder={`Search ${activeTabLabel.toLowerCase()}`}
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+              />
+            </label>
+
+            <label className="watchlist-toolbar__sort">
+              <span>Sort</span>
+              <select
+                value={sortBy}
+                onChange={(event) => setSortBy(event.target.value)}
+              >
+                <option value="added">Recently added</option>
+                <option value="title">Title</option>
+                <option value="year">Release year</option>
+                <option value="rating">TMDB rating</option>
+              </select>
+            </label>
+
+            <button
+              className="watchlist-toolbar__random"
+              type="button"
+              onClick={handleRandomPick}
+              disabled={!visibleMovies.length}
+            >
+              <i
+                className="fa-solid fa-shuffle"
+                aria-hidden="true"
+              ></i>
+              Pick for me
+            </button>
+
+            <button
+              className="watchlist-toolbar__clear"
+              type="button"
+              onClick={handleClear}
+              disabled={!activeMovies.length}
+              aria-label={`Clear ${activeTabLabel} collection`}
+            >
+              Clear
+            </button>
+          </div>
+
+          <div
+            id="watchlist-tab-panel"
+            role="tabpanel"
+            aria-labelledby={`watchlist-tab-${activeTab}`}
+          >
             <p className="watchlist-results-count" aria-live="polite">
-              {visibleMovies.length} of {watchlist.length} movies
+              {visibleMovies.length} of {activeMovies.length} movies in {" "}
+              {activeTabLabel}
             </p>
 
             {visibleMovies.length > 0 ? (
@@ -230,59 +263,13 @@ const Watchlist = () => {
                       <MovieCard
                         {...movie}
                         isFavorite={isInWatchlist(movie.id)}
-                        onToggleFavorite={handleRemove}
+                        isWatched={isWatched(movie.id)}
+                        onToggleFavorite={toggleWatchlist}
+                        onToggleWatched={toggleWatched}
                       />
 
                       <div className="watchlist-item__details">
-                        <div className="watchlist-item__status">
-                          <span>Status</span>
-                          <div
-                            className="watchlist-item__status-options"
-                            role="group"
-                            aria-label={`Watch status for ${movie.title}`}
-                          >
-                            <button
-                              type="button"
-                              className={
-                                metadata.status === "want"
-                                  ? "is-active"
-                                  : ""
-                              }
-                              aria-pressed={metadata.status === "want"}
-                              aria-label={`Mark ${movie.title} as want to watch`}
-                              onClick={() =>
-                                updateWatchlistMeta(movie.id, {
-                                  status: "want",
-                                })
-                              }
-                            >
-                              Want to watch
-                            </button>
-                            <button
-                              type="button"
-                              className={
-                                metadata.status === "watched"
-                                  ? "is-active"
-                                  : ""
-                              }
-                              aria-pressed={metadata.status === "watched"}
-                              aria-label={`Mark ${movie.title} as watched`}
-                              onClick={() =>
-                                updateWatchlistMeta(movie.id, {
-                                  status: "watched",
-                                })
-                              }
-                            >
-                              <i
-                                className="fa-solid fa-check"
-                                aria-hidden="true"
-                              ></i>
-                              Watched
-                            </button>
-                          </div>
-                        </div>
-
-                        <label>
+                        <label className="watchlist-item__rating">
                           <span>My rating</span>
                           <select
                             aria-label={`My rating for ${movie.title}`}
@@ -307,7 +294,7 @@ const Watchlist = () => {
                           </select>
                         </label>
 
-                        {metadata.status === "watched" && (
+                        {activeTab === "watched" && (
                           <label className="watchlist-item__date">
                             <span>Date watched</span>
                             <input
@@ -344,50 +331,55 @@ const Watchlist = () => {
                 })}
               </div>
             ) : (
-              <div className="watchlist-filter-empty">
-                <i
-                  className="fa-solid fa-filter-circle-xmark"
-                  aria-hidden="true"
-                ></i>
-                <h3>No matching movies</h3>
-                <p>Change the search or status filter.</p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setQuery("");
-                    setStatusFilter("all");
-                  }}
-                >
-                  Reset filters
-                </button>
-              </div>
+              query.trim() ? (
+                <div className="watchlist-filter-empty">
+                  <i
+                    className="fa-solid fa-filter-circle-xmark"
+                    aria-hidden="true"
+                  ></i>
+                  <h3>No matching movies</h3>
+                  <p>Try another title in this collection.</p>
+                  <button type="button" onClick={() => setQuery("")}>
+                    Clear search
+                  </button>
+                </div>
+              ) : (
+                <div className="watchlist-empty">
+                  <div className="watchlist-empty__icon">
+                    <i
+                      className={
+                        activeTab === "watched"
+                          ? "fa-regular fa-eye"
+                          : "fa-regular fa-heart"
+                      }
+                      aria-hidden="true"
+                    ></i>
+                  </div>
+
+                  <span>{activeTabLabel}</span>
+                  <h3>
+                    {activeTab === "watched"
+                      ? "No watched movies yet"
+                      : "No movies saved to watch"}
+                  </h3>
+                  <p>
+                    {activeTab === "watched"
+                      ? "Use the eye button on any movie card to build your watched collection."
+                      : "Explore the catalogue and use the heart button to plan what to watch next."}
+                  </p>
+
+                  <Link to="/discover">
+                    Discover movies
+                    <i
+                      className="fa-solid fa-arrow-right"
+                      aria-hidden="true"
+                    ></i>
+                  </Link>
+                </div>
+              )
             )}
-          </section>
-        ) : (
-          <section className="watchlist-empty">
-            <div className="watchlist-empty__icon">
-              <i
-                className="fa-regular fa-heart"
-                aria-hidden="true"
-              ></i>
-            </div>
-
-            <span>Your collection is empty</span>
-            <h2>No saved movies yet</h2>
-            <p>
-              Explore the catalogue and use the heart button to
-              build your personal movie library.
-            </p>
-
-            <Link to="/discover">
-              Discover movies
-              <i
-                className="fa-solid fa-arrow-right"
-                aria-hidden="true"
-              ></i>
-            </Link>
-          </section>
-        )}
+          </div>
+        </section>
       </main>
 
     </div>

@@ -11,7 +11,7 @@ const movie = {
   popularity: 100,
 };
 
-const setupMovieMain = (watchlistMeta = { status: "want" }) => {
+const setupMovieMain = (isWatched = false, watchlist = [movie]) => {
   const toggleWatched = jest.fn();
 
   render(
@@ -25,8 +25,8 @@ const setupMovieMain = (watchlistMeta = { status: "want" }) => {
         data={movie}
         details={{ data: { cast: [] }, error: false, loading: false }}
         videos={[]}
-        watchlist={[movie]}
-        watchlistMeta={watchlistMeta}
+        watchlist={watchlist}
+        isWatched={isWatched}
         toggleWatchlist={jest.fn()}
         toggleWatched={toggleWatched}
       />
@@ -42,20 +42,44 @@ describe("MovieMain watched state", () => {
 
     userEvent.click(
       screen.getByRole("button", {
-        name: "Mark The Movie as watched",
+        name: "Manage The Movie in My Library",
       })
+    );
+    expect(
+      screen.getByRole("menuitemcheckbox", { name: "Want to watch" })
+    ).toHaveAttribute("aria-checked", "true");
+    userEvent.click(
+      screen.getByRole("menuitemcheckbox", { name: "Watched" })
     );
 
     expect(toggleWatched).toHaveBeenCalledTimes(1);
   });
 
   it("shows the persisted watched state", () => {
-    setupMovieMain({ status: "watched" });
+    setupMovieMain(true);
 
-    expect(
+    userEvent.click(
       screen.getByRole("button", {
-        name: "Move The Movie back to Want to watch",
+        name: "Manage The Movie in My Library",
       })
-    ).toHaveAttribute("aria-pressed", "true");
+    );
+    expect(
+      screen.getByRole("menuitemcheckbox", { name: "Watched" })
+    ).toHaveAttribute("aria-checked", "true");
+  });
+
+  it("keeps the watched action available before the movie is saved", () => {
+    const toggleWatched = setupMovieMain(false, []);
+
+    userEvent.click(
+      screen.getByRole("button", {
+        name: "Manage The Movie in My Library",
+      })
+    );
+    userEvent.click(
+      screen.getByRole("menuitemcheckbox", { name: "Watched" })
+    );
+
+    expect(toggleWatched).toHaveBeenCalledTimes(1);
   });
 });

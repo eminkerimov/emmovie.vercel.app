@@ -225,7 +225,7 @@
   }
 }
 
-.watchlist-status-filter {
+.watchlist-tabs {
   min-height: 44px;
   display: flex;
   align-items: center;
@@ -236,7 +236,10 @@
   background: $color-canvas;
 
   button {
-    min-height: 36px;
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+    gap: $space-2;
     padding: 0 $space-3;
     border: 0;
     background: transparent;
@@ -245,6 +248,18 @@
     &.is-active {
       background: $color-surface-elevated;
       color: $color-primary;
+    }
+
+    span {
+      min-width: 22px;
+      display: inline-grid;
+      place-items: center;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: rgba(245, 247, 250, 0.07);
+      color: inherit;
+      font-size: 10px;
+      line-height: 1.4;
     }
 
     &:hover:not(:disabled) {
@@ -300,7 +315,7 @@
 
   &__details {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     gap: $space-3;
     padding: $space-4;
     border-top: 1px solid $color-border;
@@ -348,60 +363,6 @@
     }
   }
 
-  &__date,
-  &__note {
-    grid-column: 1 / -1;
-  }
-
-  &__status {
-    grid-column: 1 / -1;
-
-    > span {
-      display: block;
-      margin-bottom: 6px;
-      color: $color-text-secondary;
-      font-size: 10px;
-      font-weight: $font-weight-extra-bold;
-      letter-spacing: 0.8px;
-      text-transform: uppercase;
-    }
-  }
-
-  &__status-options {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 4px;
-    padding: 4px;
-    border: 1px solid $color-border;
-    border-radius: 10px;
-    background: $color-canvas;
-
-    button {
-      min-width: 0;
-      min-height: 40px;
-      padding: 0 $space-2;
-      border: 0;
-      border-radius: 7px;
-      background: transparent;
-      color: $color-text-secondary;
-      font-size: 11px;
-      font-weight: $font-weight-bold;
-      cursor: pointer;
-      transition:
-        background-color $motion-fast $motion-ease,
-        color $motion-fast $motion-ease;
-
-      i {
-        margin-right: 5px;
-        font-size: 10px;
-      }
-
-      &.is-active {
-        background: rgba(242, 198, 109, 0.13);
-        color: $color-primary;
-      }
-    }
-  }
 }
 
 .watchlist-filter-empty {
@@ -478,7 +439,8 @@
     text-transform: uppercase;
   }
 
-  h2 {
+  h2,
+  h3 {
     margin: 0 0 $space-3;
     font-size: 30px;
   }
@@ -582,7 +544,7 @@
     }
   }
 
-  .watchlist-status-filter {
+  .watchlist-tabs {
     width: 100%;
 
     button {

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Loading from "../../components/Loading/Loading";
 import MovieCard from "../../components/MovieCard/MovieCard";
 import useFetchMovies from "../../hooks/useFetchMovies";
+import useWatchlist from "../../hooks/useWatchlist";
 import "./Movies.scss";
 
 const CATEGORIES = [
@@ -15,6 +16,12 @@ const Movies = () => {
   const [activeCategory, setActiveCategory] = useState(CATEGORIES[0]);
   const [searchTerm, setSearchTerm] = useState("");
   const { data, loading, error, fetchData } = useFetchMovies();
+  const {
+    toggleWatchlist,
+    toggleWatched,
+    isInWatchlist,
+    isWatched,
+  } = useWatchlist();
   const movies = data?.data?.results || [];
 
   useEffect(() => {
@@ -89,7 +96,14 @@ const Movies = () => {
         {!loading && !error && movies.length > 0 && (
           <section className="movies-page__grid" aria-live="polite">
             {movies.map((movie) => (
-              <MovieCard key={movie.id} {...movie} />
+              <MovieCard
+                key={movie.id}
+                {...movie}
+                isFavorite={isInWatchlist(movie.id)}
+                isWatched={isWatched(movie.id)}
+                onToggleFavorite={toggleWatchlist}
+                onToggleWatched={toggleWatched}
+              />
             ))}
           </section>
         )}

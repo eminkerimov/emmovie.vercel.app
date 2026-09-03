@@ -13,11 +13,9 @@ import {
   useLocation,
 } from "react-router-dom";
 import useFetchMovies from "../../hooks/useFetchMovies";
-import useWatchlist from "../../hooks/useWatchlist";
 import Navbar from "./Navbar";
 
 jest.mock("../../hooks/useFetchMovies");
-jest.mock("../../hooks/useWatchlist");
 
 const LocationProbe = () => {
   const location = useLocation();
@@ -51,9 +49,6 @@ describe("Navbar universal search", () => {
   beforeEach(() => {
     jest.useFakeTimers();
     fetchData.mockClear();
-    useWatchlist.mockReturnValue({
-      watchlist: [{ id: 1 }, { id: 2 }],
-    });
     useFetchMovies.mockReturnValue({
       data: {
         data: {
@@ -124,11 +119,14 @@ describe("Navbar universal search", () => {
     );
   });
 
-  it("shows the current shared library count", () => {
+  it("shows Watchlist without an ambiguous shared count", () => {
     renderNavbar();
 
-    expect(
-      screen.getByRole("link", { name: /watchlist.*2 saved/i })
-    ).toBeInTheDocument();
+    const watchlistLink = screen.getByRole("link", {
+      name: "Watchlist",
+    });
+
+    expect(watchlistLink).toBeInTheDocument();
+    expect(watchlistLink).not.toHaveTextContent("2");
   });
 });

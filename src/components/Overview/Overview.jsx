@@ -13,12 +13,7 @@ const Overview = ({ data, detailsData }) => {
       <div className="page-container">
         <div className="movie__overview__editorial">
           <header className="movie__overview__masthead">
-            <div>
-              <span className="movie__overview__eyebrow">Film dossier</span>
-              <h2 id="movie-overview-title">Overview</h2>
-            </div>
-
-            <p>Story and production notes</p>
+            <h2 id="movie-overview-title">Overview</h2>
           </header>
 
           <div className="movie__overview__content">
@@ -30,11 +25,6 @@ const Overview = ({ data, detailsData }) => {
             </article>
 
             <aside className="movie__overview__facts" aria-label="Film details">
-              <header className="movie__overview__facts-header">
-                <span>Film profile</span>
-                <p>At a glance</p>
-              </header>
-
               <dl className="movie__overview__details">
                 {detailsData?.map((item, index) => (
                   <div

@@ -8,7 +8,9 @@ const MovieCollection = ({
   currentMovieId,
   request,
   toggleWatchlist,
+  toggleWatched,
   watchlist,
+  isWatched,
 }) => {
   const { elementRef, isVisible } = useReveal();
   const collectionData = request.data;
@@ -87,7 +89,9 @@ const MovieCollection = ({
                 isFavorite={watchlist.some(
                   (savedMovie) => savedMovie.id === movie.id
                 )}
+                isWatched={isWatched?.(movie.id) || false}
                 onToggleFavorite={toggleWatchlist}
+                onToggleWatched={toggleWatched}
               />
             ))}
           </div>

@@ -68,6 +68,7 @@ const externalIdsData = {
   imdb_id: "nm0000101",
   instagram_id: "alexmorgan",
   twitter_id: "alex_morgan",
+  facebook_id: "alex.morgan",
 };
 
 const createResponse = (data, { ok = true, status = 200 } = {}) => ({
@@ -128,6 +129,21 @@ describe("Person", () => {
       "href",
       "https://www.instagram.com/alexmorgan/"
     );
+    expect(screen.getByRole("link", { name: "Open X profile" })).toHaveAttribute(
+      "href",
+      "https://x.com/alex_morgan"
+    );
+    expect(screen.getByRole("link", { name: /facebook/i })).toHaveAttribute(
+      "href",
+      "https://www.facebook.com/alex.morgan"
+    );
+    expect(screen.getByRole("link", { name: /official website/i })).toHaveAttribute(
+      "href",
+      "https://example.com/alex"
+    );
+    expect(
+      screen.getByRole("link", { name: "Open X profile" })
+    ).not.toHaveTextContent("X");
 
     const biography = screen.getByText(longBiography);
     const biographyButton = screen.getByRole("button", {
