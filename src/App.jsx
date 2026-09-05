@@ -20,16 +20,22 @@ const Person = lazy(() => import("./pages/Person/Person"));
 const Search = lazy(() => import("./pages/Search/Search"));
 const Discover = lazy(() => import("./pages/Discover"));
 const Watchlist = lazy(() => import("./pages/Watchlist"));
+const Calendar = lazy(() => import("./pages/Calendar"));
+const Collection = lazy(() => import("./pages/Collection"));
+const Company = lazy(() => import("./pages/Company"));
 const NotFound = lazy(() => import("./pages/NotFound/NotFound"));
 
 const getPageTitle = (pathname) => {
   if (pathname === "/") return "M-movie";
   if (pathname === "/discover") return "Discover | M-movie";
   if (pathname === "/watchlist") return "Watchlist | M-movie";
+  if (pathname === "/calendar") return "Release Calendar | M-movie";
   if (pathname === "/search") return "Search | M-movie";
   if (pathname === "/movies") return "Movies | M-movie";
   if (pathname.startsWith("/movie/")) return "Movie Details | M-movie";
   if (pathname.startsWith("/person/")) return "Person Details | M-movie";
+  if (pathname.startsWith("/collection/")) return "Collection | M-movie";
+  if (pathname.startsWith("/company/")) return "Production Company | M-movie";
 
   return "Page Not Found | M-movie";
 };
@@ -73,10 +79,13 @@ const AppContent = () => {
                 <Route path="/" element={<Home />} />
                 <Route path="/discover" element={<Discover />} />
                 <Route path="/watchlist" element={<Watchlist />} />
+                <Route path="/calendar" element={<Calendar />} />
                 <Route path="/search" element={<Search />} />
                 <Route path="/movies" element={<Movies />} />
                 <Route path="/movie/:id" element={<Movie />} />
                 <Route path="/person/:id" element={<Person />} />
+                <Route path="/collection/:id" element={<Collection />} />
+                <Route path="/company/:id" element={<Company />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>

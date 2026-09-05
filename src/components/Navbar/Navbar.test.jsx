@@ -27,10 +27,10 @@ const LocationProbe = () => {
   );
 };
 
-const renderNavbar = () =>
+const renderNavbar = (entry = "/") =>
   render(
     <MemoryRouter
-      initialEntries={["/"]}
+      initialEntries={[entry]}
       future={{
         v7_relativeSplatPath: true,
         v7_startTransition: true,
@@ -128,5 +128,14 @@ describe("Navbar universal search", () => {
 
     expect(watchlistLink).toBeInTheDocument();
     expect(watchlistLink).not.toHaveTextContent("2");
+  });
+
+  it("exposes the release calendar as a primary route", () => {
+    renderNavbar("/calendar");
+
+    expect(screen.getByRole("link", { name: "Calendar" })).toHaveAttribute(
+      "aria-current",
+      "page"
+    );
   });
 });

@@ -613,6 +613,21 @@
   overflow-wrap: anywhere;
 }
 
+.movie__overview__company-links a {
+  color: $color-link;
+  text-decoration-color: transparent;
+  text-underline-offset: 3px;
+  transition:
+    color $motion-fast $motion-ease,
+    text-decoration-color $motion-fast $motion-ease;
+
+  &:hover,
+  &:focus-visible {
+    color: $color-text-primary;
+    text-decoration-color: currentColor;
+  }
+}
+
 .movie-availability {
   padding: $space-20 0;
   border-bottom: 1px solid var(--movie-line);

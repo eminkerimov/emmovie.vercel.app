@@ -1,0 +1,228 @@
+@import "../../styles/variables";
+
+.movie-backdrops {
+  padding: $space-14 0 $space-16;
+  border-bottom: 1px solid rgba(245, 247, 250, 0.08);
+  background: #09151c;
+}
+
+.movie-backdrops__heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: $space-6;
+  margin-bottom: $space-6;
+
+  > div > span {
+    display: block;
+    margin-bottom: $space-2;
+    color: $color-primary;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-extra-bold;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  h2 {
+    margin: 0;
+    color: $color-text-primary;
+    font-size: clamp(1.6rem, 2.4vw, 2.1rem);
+    font-weight: $font-weight-extra-bold;
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+}
+
+.movie-backdrops__controls {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+
+  button {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid rgba(245, 247, 250, 0.14);
+    border-radius: $radius-sm;
+    background: $color-surface;
+    color: $color-text-primary;
+    cursor: pointer;
+    transition:
+      border-color $motion-fast $motion-ease,
+      background-color $motion-fast $motion-ease,
+      color $motion-fast $motion-ease;
+
+    &:hover:not(:disabled),
+    &:focus-visible {
+      border-color: rgba(245, 247, 250, 0.3);
+      background: $color-surface-elevated;
+      color: $color-text-primary;
+    }
+
+    &:disabled {
+      opacity: 0.35;
+      cursor: default;
+    }
+  }
+}
+
+.movie-backdrops__track {
+  display: grid;
+  grid-auto-columns: clamp(320px, 42vw, 600px);
+  grid-auto-flow: column;
+  gap: $space-4;
+  overflow-x: auto;
+  padding: 2px 0 $space-4;
+  overscroll-behavior-inline: contain;
+  scroll-behavior: smooth;
+  scroll-snap-type: inline mandatory;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.movie-backdrops__slide {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid rgba(245, 247, 250, 0.1);
+  border-radius: $radius-sm;
+  background: $color-surface;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.18);
+  filter: brightness(0.74) saturate(0.82);
+  opacity: 0.68;
+  scroll-snap-align: start;
+  transition:
+    opacity $motion-base $motion-ease,
+    filter $motion-base $motion-ease,
+    border-color $motion-base $motion-ease;
+
+  &::after {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 72%, rgba(3, 9, 13, 0.24));
+    content: "";
+    pointer-events: none;
+  }
+
+  &.is-active {
+    border-color: rgba(245, 247, 250, 0.22);
+    filter: none;
+    opacity: 1;
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    transition: transform $motion-slow $motion-ease;
+  }
+
+  button {
+    width: 100%;
+    height: 100%;
+    display: block;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: zoom-in;
+  }
+
+  &:hover img {
+    transform: scale(1.018);
+  }
+}
+
+.movie-backdrops__progress {
+  height: 2px;
+  overflow: hidden;
+  background: rgba(245, 247, 250, 0.09);
+
+  span {
+    width: var(--movie-backdrops-progress);
+    height: 100%;
+    display: block;
+    background: rgba(245, 247, 250, 0.62);
+    transition: width $motion-base $motion-ease;
+  }
+}
+
+.movie-backdrops__loading {
+  min-height: clamp(190px, 25vw, 340px);
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(245, 247, 250, 0.1);
+  border-radius: $radius-md;
+  background: linear-gradient(
+    100deg,
+    $color-surface 20%,
+    $color-surface-elevated 45%,
+    $color-surface 70%
+  );
+  background-size: 220% 100%;
+  color: $color-text-secondary;
+  animation: movie-backdrops-loading 1.4s linear infinite;
+}
+
+@keyframes movie-backdrops-loading {
+  to {
+    background-position: -220% 0;
+  }
+}
+
+@media (max-width: $breakpoint-tablet-small) {
+  .movie-backdrops {
+    padding-block: $space-12 $space-16;
+  }
+
+  .movie-backdrops__track {
+    grid-auto-columns: clamp(300px, 62vw, 500px);
+    gap: $space-4;
+  }
+}
+
+@media (max-width: $breakpoint-sm) {
+  .movie-backdrops__heading {
+    align-items: flex-start;
+  }
+
+  .movie-backdrops__track {
+    grid-auto-columns: 84%;
+    gap: $space-3;
+  }
+
+  .movie-backdrops__slide {
+    aspect-ratio: 16 / 10;
+    border-radius: $radius-sm;
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .movie-backdrops__track {
+    scroll-behavior: auto;
+  }
+
+  .movie-backdrops__slide {
+    transition: none;
+
+    img {
+      transition: none;
+    }
+  }
+
+  .movie-backdrops__progress span {
+    transition: none;
+  }
+
+  .movie-backdrops__loading {
+    animation: none;
+  }
+
+}

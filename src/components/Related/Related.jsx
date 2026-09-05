@@ -11,6 +11,7 @@ const Related = ({
   toggleWatchlist,
   toggleWatched,
   isWatched,
+  mediaType = "movie",
 }) => {
   const { elementRef, isVisible } = useReveal();
   const movies = data?.results?.slice(0, 5) || [];
@@ -34,6 +35,8 @@ const Related = ({
             <h2 id="related-movies-title">
               {mode === "recommendations"
                 ? "Recommendations"
+                : mediaType === "tv"
+                ? "Similar series"
                 : "Similar Movies"}
             </h2>
           </div>
@@ -55,10 +58,16 @@ const Related = ({
               <MovieCard
                 key={movie.id}
                 {...movie}
-                isFavorite={isInWatchlist(movie.id)}
-                isWatched={isWatched?.(movie.id) || false}
-                onToggleFavorite={toggleWatchlist}
-                onToggleWatched={toggleWatched}
+                isFavorite={!movie.libraryDisabled && isInWatchlist(movie.id)}
+                isWatched={
+                  !movie.libraryDisabled && (isWatched?.(movie.id) || false)
+                }
+                onToggleFavorite={
+                  movie.libraryDisabled ? undefined : toggleWatchlist
+                }
+                onToggleWatched={
+                  movie.libraryDisabled ? undefined : toggleWatched
+                }
               />
             ))}
           </div>

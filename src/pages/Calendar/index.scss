@@ -1,0 +1,512 @@
+@import "../../styles/variables";
+
+.release-calendar {
+  min-height: 70vh;
+  padding-block: $space-12 $space-20;
+  overflow: hidden;
+  background: $color-canvas;
+
+  &__hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 520px);
+    align-items: flex-end;
+    gap: $space-10;
+    padding-bottom: $space-8;
+    border-bottom: 1px solid $color-border;
+
+    h1 {
+      margin: $space-2 0 0;
+      color: $color-text-primary;
+      font-size: clamp(2.4rem, 5vw, 4rem);
+      line-height: 1;
+      letter-spacing: -0.045em;
+    }
+
+    p {
+      max-width: 52ch;
+      margin: 0;
+      color: $color-text-secondary;
+      font-size: $font-size-base;
+    }
+  }
+
+  &__eyebrow,
+  &__schedule-header > div > span {
+    color: $color-primary;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-bold;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  &__controls {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: $space-6;
+    margin-top: $space-8;
+    padding: $space-5;
+    border: 1px solid $color-border;
+    border-radius: $radius-md;
+    background: $color-surface;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+  }
+
+  &__week-controls {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+
+    > button {
+      min-width: 44px;
+      min-height: 44px;
+      border: 1px solid $color-border;
+      border-radius: $radius-sm;
+      background: $color-surface-elevated;
+      color: $color-text-primary;
+      cursor: pointer;
+      transition: border-color $motion-fast $motion-ease,
+        background-color $motion-fast $motion-ease,
+        color $motion-fast $motion-ease;
+
+      &:hover:not(:disabled) {
+        border-color: rgba(120, 215, 244, 0.42);
+        color: $color-link;
+      }
+
+      &:disabled {
+        opacity: 0.42;
+        cursor: default;
+      }
+    }
+
+    > div {
+      min-width: 250px;
+      display: flex;
+      flex-direction: column;
+      padding-inline: $space-2;
+
+      span {
+        color: $color-text-secondary;
+        font-size: $font-size-xs;
+      }
+
+      strong {
+        color: $color-text-primary;
+        font-size: $font-size-lg;
+        line-height: 1.35;
+      }
+    }
+  }
+
+  &__today {
+    width: auto;
+    padding-inline: $space-4;
+    color: $color-primary;
+  }
+
+  &__region {
+    width: min(100%, 270px);
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+
+    span {
+      color: $color-text-secondary;
+      font-size: $font-size-xs;
+      font-weight: $font-weight-bold;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    select {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid $color-border;
+      border-radius: $radius-sm;
+      padding: 0 $space-4;
+      background: $color-surface-elevated;
+      color: $color-text-primary;
+      cursor: pointer;
+    }
+
+    small {
+      color: $color-text-secondary;
+      font-size: $font-size-xs;
+      line-height: 1.35;
+    }
+  }
+
+  &__types {
+    display: flex;
+    gap: $space-8;
+    margin-top: $space-5;
+    padding-inline: $space-2;
+    border-bottom: 1px solid $color-border;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    button {
+      position: relative;
+      min-height: 48px;
+      flex: 0 0 auto;
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: $color-text-secondary;
+      font-weight: $font-weight-bold;
+      cursor: pointer;
+      transition: color $motion-fast $motion-ease;
+
+      &::after {
+        content: "";
+        position: absolute;
+        right: 0;
+        bottom: -1px;
+        left: 0;
+        height: 2px;
+        background: $color-primary;
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform $motion-base $motion-ease;
+      }
+
+      &:hover {
+        color: $color-text-primary;
+      }
+
+      &.is-active {
+        color: $color-text-primary;
+
+        &::after {
+          transform: scaleX(1);
+        }
+      }
+    }
+  }
+
+  &__filter-note {
+    margin: $space-3 $space-2 0;
+    color: $color-text-secondary;
+    font-size: $font-size-sm;
+  }
+
+  &__schedule {
+    margin-top: $space-12;
+  }
+
+  &__schedule-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: $space-6;
+    margin-bottom: $space-8;
+
+    h2 {
+      margin: $space-1 0 0;
+      color: $color-text-primary;
+      font-size: clamp(1.6rem, 3vw, 2.25rem);
+      line-height: 1.1;
+      letter-spacing: -0.025em;
+    }
+
+    > p {
+      margin: 0;
+      color: $color-text-secondary;
+
+      strong {
+        color: $color-link;
+      }
+    }
+  }
+
+  &__days {
+    display: grid;
+    gap: $space-14;
+  }
+
+  &__day {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 126px minmax(0, 1fr);
+    gap: $space-8;
+  }
+
+  &__date {
+    align-self: start;
+
+    time {
+      width: 96px;
+      min-height: 112px;
+      display: grid;
+      align-content: center;
+      justify-items: center;
+      border-top: 3px solid $color-primary;
+      border-radius: 0 0 $radius-sm $radius-sm;
+      background: $color-surface;
+      color: $color-text-secondary;
+      line-height: 1;
+
+      span {
+        font-size: $font-size-xs;
+        font-weight: $font-weight-bold;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      strong {
+        margin-block: $space-2;
+        color: $color-text-primary;
+        font-size: 2rem;
+      }
+    }
+
+    > div {
+      margin-top: $space-3;
+    }
+
+    h3 {
+      margin: 0;
+      color: $color-text-primary;
+      font-size: $font-size-sm;
+      line-height: 1.35;
+    }
+
+    p {
+      margin: $space-1 0 0;
+      color: $color-text-secondary;
+      font-size: $font-size-xs;
+    }
+  }
+
+  &__grid {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: $space-8 $space-5;
+
+    .movieCard {
+      width: 100%;
+      margin: 0;
+    }
+  }
+
+  &__state {
+    min-height: 300px;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    padding: $space-10;
+    border: 1px dashed $color-border;
+    border-radius: $radius-md;
+    color: $color-text-secondary;
+    text-align: center;
+
+    > i {
+      margin-bottom: $space-4;
+      color: $color-link;
+      font-size: 1.65rem;
+    }
+
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h3 {
+      color: $color-text-primary;
+      font-size: $font-size-xl;
+    }
+
+    p {
+      margin-top: $space-2;
+    }
+
+    > button {
+      min-height: 44px;
+      margin-top: $space-5;
+      border: 1px solid rgba(242, 198, 109, 0.4);
+      border-radius: $radius-sm;
+      padding-inline: $space-5;
+      background: rgba(242, 198, 109, 0.1);
+      color: $color-primary;
+      font-weight: $font-weight-bold;
+      cursor: pointer;
+    }
+  }
+
+  &__pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-5;
+    margin-top: $space-14;
+
+    button {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      gap: $space-2;
+      border: 1px solid $color-border;
+      border-radius: $radius-sm;
+      padding-inline: $space-4;
+      background: $color-surface;
+      color: $color-text-primary;
+      cursor: pointer;
+
+      &:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+    }
+
+    span {
+      color: $color-text-secondary;
+      font-size: $font-size-sm;
+    }
+  }
+}
+
+@media (max-width: $breakpoint-desktop) {
+  .release-calendar__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: $breakpoint-tablet) {
+  .release-calendar {
+    &__controls {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    &__region {
+      width: 100%;
+    }
+
+    &__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+}
+
+@media (max-width: $breakpoint-tablet-small) {
+  .release-calendar {
+    padding-block: $space-10 $space-16;
+
+    &__hero {
+      grid-template-columns: minmax(0, 1fr);
+      gap: $space-4;
+    }
+
+    &__day {
+      grid-template-columns: minmax(0, 1fr);
+      gap: $space-5;
+    }
+
+    &__date {
+      display: flex;
+      align-items: center;
+      gap: $space-4;
+
+      time {
+        width: 76px;
+        min-height: 82px;
+        flex: 0 0 76px;
+
+        strong {
+          margin-block: $space-1;
+          font-size: 1.5rem;
+        }
+      }
+
+      > div {
+        margin: 0;
+      }
+    }
+  }
+}
+
+@media (max-width: $breakpoint-sm) {
+  .release-calendar {
+    &__hero h1 {
+      font-size: 2.35rem;
+    }
+
+    &__controls {
+      margin-top: $space-6;
+      padding: $space-4;
+    }
+
+    &__week-controls {
+      display: grid;
+      grid-template-columns: 44px minmax(0, 1fr) 44px;
+
+      > div {
+        min-width: 0;
+        padding: 0;
+        text-align: center;
+
+        strong {
+          font-size: $font-size-sm;
+        }
+      }
+    }
+
+    &__today {
+      width: 100%;
+      grid-column: 1 / -1;
+    }
+
+    &__types {
+      gap: $space-6;
+    }
+
+    &__schedule {
+      margin-top: $space-10;
+    }
+
+    &__schedule-header {
+      align-items: start;
+      flex-direction: column;
+      gap: $space-2;
+    }
+
+    &__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    &__state {
+      min-height: 240px;
+      padding: $space-6;
+    }
+
+    &__pagination {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+
+      button {
+        justify-content: center;
+      }
+
+      span {
+        grid-column: 1 / -1;
+        grid-row: 1;
+        text-align: center;
+      }
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .release-calendar__types button::after {
+    transition: none;
+  }
+}

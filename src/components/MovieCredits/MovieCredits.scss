@@ -1,0 +1,472 @@
+@import "../../styles/variables";
+
+.movie-credits {
+  padding: $space-20 0;
+  border-top: 1px solid rgba(245, 247, 250, 0.08);
+  border-bottom: 1px solid rgba(245, 247, 250, 0.08);
+  background:
+    linear-gradient(120deg, rgba(120, 215, 244, 0.035), transparent 38%),
+    #09151c;
+}
+
+.movie-credits__heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: $space-6;
+  margin-bottom: $space-8;
+
+  > div > span {
+    display: block;
+    margin-bottom: $space-2;
+    color: $color-primary;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-extra-bold;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  h2 {
+    margin: 0;
+    color: $color-text-primary;
+    font-size: clamp(1.6rem, 2.4vw, 2.1rem);
+    font-weight: $font-weight-extra-bold;
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+
+  p {
+    margin: 0 0 3px;
+    color: $color-text-secondary;
+    font-size: $font-size-sm;
+  }
+}
+
+.movie-credits__status {
+  min-height: 160px;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  border: 1px solid rgba(245, 247, 250, 0.1);
+  border-radius: $radius-md;
+  background: $color-surface;
+  color: $color-text-secondary;
+}
+
+.movie-credits__creatives {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  overflow: hidden;
+  margin-bottom: $space-8;
+  border: 1px solid rgba(245, 247, 250, 0.1);
+  border-radius: $radius-md;
+  background: rgba(14, 28, 37, 0.7);
+}
+
+.movie-credits__creative {
+  min-width: 0;
+  padding: $space-5 $space-6;
+  border-right: 1px solid rgba(245, 247, 250, 0.1);
+
+  &:last-child {
+    border-right: 0;
+  }
+
+  > span {
+    display: block;
+    margin-bottom: $space-3;
+    color: $color-text-secondary;
+    font-size: 10px;
+    font-weight: $font-weight-extra-bold;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2 $space-3;
+  }
+
+  a {
+    color: $color-text-primary;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-bold;
+    text-decoration: none;
+    transition: color $motion-fast $motion-ease;
+
+    &:hover,
+    &:focus-visible {
+      color: $color-link;
+    }
+  }
+
+  div > span {
+    color: $color-text-secondary;
+    font-size: $font-size-xs;
+  }
+}
+
+.movie-credits__tabs {
+  display: flex;
+  gap: $space-1;
+  margin-bottom: $space-7;
+  border-bottom: 1px solid rgba(245, 247, 250, 0.12);
+
+  button {
+    position: relative;
+    min-width: 120px;
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-3;
+    padding: 0 $space-5;
+    border: 0;
+    background: transparent;
+    color: $color-text-secondary;
+    font: inherit;
+    font-weight: $font-weight-bold;
+    cursor: pointer;
+    transition:
+      color $motion-fast $motion-ease,
+      background-color $motion-fast $motion-ease;
+
+    &::after {
+      position: absolute;
+      right: 0;
+      bottom: -1px;
+      left: 0;
+      height: 2px;
+      background: $color-primary;
+      content: "";
+      opacity: 0;
+      transform: scaleX(0.35);
+      transition:
+        opacity $motion-fast $motion-ease,
+        transform $motion-fast $motion-ease;
+    }
+
+    &:hover {
+      background: rgba(245, 247, 250, 0.035);
+      color: $color-text-primary;
+    }
+
+    &[aria-selected="true"] {
+      color: $color-text-primary;
+
+      &::after {
+        opacity: 1;
+        transform: scaleX(1);
+      }
+    }
+
+    span {
+      min-width: 28px;
+      height: 24px;
+      display: inline-grid;
+      place-items: center;
+      padding-inline: 7px;
+      border-radius: $radius-pill;
+      background: rgba(170, 183, 194, 0.1);
+      color: $color-text-secondary;
+      font-size: 11px;
+    }
+  }
+}
+
+.movie-credits__panel {
+  animation: movie-credits-panel $motion-base $motion-ease both;
+}
+
+.movie-credits__cast-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: $space-5;
+}
+
+.movie-credits__cast-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(245, 247, 250, 0.1);
+  border-radius: $radius-sm;
+  background: $color-surface;
+  color: $color-text-primary;
+  text-decoration: none;
+  transition:
+    transform $motion-base $motion-ease,
+    border-color $motion-base $motion-ease,
+    background-color $motion-base $motion-ease;
+
+  > img,
+  > .movie-credits__placeholder {
+    width: 100%;
+    display: block;
+    aspect-ratio: 4 / 5;
+  }
+
+  > img {
+    object-fit: cover;
+    object-position: center 20%;
+  }
+
+  &:hover,
+  &:focus-visible {
+    border-color: rgba(120, 215, 244, 0.32);
+    background: $color-surface-elevated;
+    transform: translateY(-3px);
+
+    strong {
+      color: $color-link;
+    }
+  }
+}
+
+.movie-credits__placeholder {
+  display: grid !important;
+  place-items: center;
+  background:
+    linear-gradient(145deg, rgba(120, 215, 244, 0.08), transparent),
+    $color-surface-elevated;
+  color: rgba(245, 247, 250, 0.44);
+  font-size: 1.35rem;
+  font-weight: $font-weight-extra-bold;
+  letter-spacing: 0.06em;
+}
+
+.movie-credits__cast-copy {
+  min-width: 0;
+  display: block;
+  padding: $space-4;
+
+  strong,
+  > span {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  strong {
+    margin-bottom: 4px;
+    color: $color-text-primary;
+    font-size: $font-size-sm;
+    transition: color $motion-fast $motion-ease;
+    white-space: nowrap;
+  }
+
+  > span {
+    display: -webkit-box;
+    min-height: 34px;
+    color: $color-text-secondary;
+    font-size: $font-size-xs;
+    line-height: 1.4;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+}
+
+.movie-credits__expand {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-3;
+  margin: $space-7 auto 0;
+  padding: 0 $space-5;
+  border: 1px solid rgba(245, 247, 250, 0.14);
+  border-radius: $radius-sm;
+  background: transparent;
+  color: $color-text-primary;
+  font: inherit;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  cursor: pointer;
+  transition:
+    border-color $motion-fast $motion-ease,
+    background-color $motion-fast $motion-ease;
+
+  &:hover,
+  &:focus-visible {
+    border-color: rgba(120, 215, 244, 0.34);
+    background: rgba(120, 215, 244, 0.06);
+  }
+}
+
+.movie-credits__crew {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: $space-5;
+}
+
+.movie-credits__department {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(245, 247, 250, 0.1);
+  border-radius: $radius-sm;
+  background: rgba(14, 28, 37, 0.72);
+
+  > header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-4;
+    min-height: 60px;
+    padding: 0 $space-5;
+    border-left: 3px solid $color-primary;
+    border-bottom: 1px solid rgba(245, 247, 250, 0.1);
+    background: rgba(242, 198, 109, 0.045);
+
+    h3 {
+      margin: 0;
+      color: $color-primary;
+      font-size: 12px;
+      font-weight: $font-weight-extra-bold;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    span {
+      color: $color-text-secondary;
+      font-size: 10px;
+      font-weight: $font-weight-bold;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    min-height: 58px;
+    display: grid;
+    grid-template-columns: minmax(120px, 0.8fr) minmax(0, 1.2fr);
+    align-items: center;
+    gap: $space-4;
+    padding: $space-3 $space-5;
+    border-bottom: 1px solid rgba(245, 247, 250, 0.07);
+
+    &:last-child {
+      border-bottom: 0;
+    }
+
+    a {
+      min-width: 0;
+      overflow: hidden;
+      color: $color-text-primary;
+      font-size: 15px;
+      font-weight: $font-weight-bold;
+      text-decoration: none;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      &:hover,
+      &:focus-visible {
+        color: $color-link;
+      }
+    }
+
+    span {
+      color: $color-text-secondary;
+      font-size: 12px;
+      line-height: 1.45;
+      text-align: right;
+    }
+  }
+}
+
+@keyframes movie-credits-panel {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@media (max-width: $breakpoint-desktop) {
+  .movie-credits__cast-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: $breakpoint-tablet) {
+  .movie-credits__cast-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: $breakpoint-tablet-small) {
+  .movie-credits {
+    padding-block: $space-16;
+  }
+
+  .movie-credits__creatives {
+    grid-template-columns: 1fr;
+  }
+
+  .movie-credits__creative {
+    border-right: 0;
+    border-bottom: 1px solid rgba(245, 247, 250, 0.1);
+
+    &:last-child {
+      border-bottom: 0;
+    }
+  }
+
+  .movie-credits__cast-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .movie-credits__crew {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: $breakpoint-sm) {
+  .movie-credits__heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: $space-3;
+  }
+
+  .movie-credits__tabs button {
+    min-width: 0;
+    flex: 1;
+    padding-inline: $space-3;
+  }
+
+  .movie-credits__cast-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: $space-3;
+  }
+}
+
+@media (max-width: $breakpoint-mobile-small) {
+  .movie-credits__creative,
+  .movie-credits__department > header,
+  .movie-credits__department li {
+    padding-inline: $space-4;
+  }
+
+  .movie-credits__department li {
+    grid-template-columns: 1fr;
+    gap: 4px;
+
+    span {
+      text-align: left;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .movie-credits__panel {
+    animation: none;
+  }
+
+  .movie-credits__cast-card:hover,
+  .movie-credits__cast-card:focus-visible {
+    transform: none;
+  }
+}

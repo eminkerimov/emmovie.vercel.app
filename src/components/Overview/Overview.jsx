@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import useReveal from "../../hooks/useReveal";
 
 const Overview = ({ data, detailsData }) => {
@@ -37,7 +38,18 @@ const Overview = ({ data, detailsData }) => {
                     </dt>
 
                     <dd className="movie__overview__details__value">
-                      {item.value}
+                      {item.links?.length ? (
+                        <span className="movie__overview__company-links">
+                          {item.links.map((link, linkIndex) => (
+                            <React.Fragment key={link.id}>
+                              <Link to={link.to}>{link.label}</Link>
+                              {linkIndex < item.links.length - 1 ? ", " : ""}
+                            </React.Fragment>
+                          ))}
+                        </span>
+                      ) : (
+                        item.value
+                      )}
                     </dd>
                   </div>
                 ))}

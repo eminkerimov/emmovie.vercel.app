@@ -140,6 +140,7 @@ const MovieCard = ({
   vote_average,
   release_date,
   id,
+  detailsPath,
   isFavorite = false,
   isWatched = false,
   onToggleFavorite,
@@ -185,8 +186,8 @@ const MovieCard = ({
 
       <Link
         className="movieCard-link"
-        to={`/movie/${id}`}
-        aria-label={`Open ${title} movie details`}
+        to={detailsPath || `/movie/${id}`}
+        aria-label={`Open ${title} details`}
       >
         <div className="movieCard-poster">
           <img

@@ -16,6 +16,7 @@ const MovieMain = ({
   isWatched,
   toggleWatchlist,
   toggleWatched,
+  mediaType = "movie",
 }) => {
   const navigate = useNavigate();
 
@@ -105,7 +106,9 @@ const MovieMain = ({
             </div>
 
             <div className="movie__main__details">
-              <span className="movie__main__label">Feature presentation</span>
+              <span className="movie__main__label">
+                {mediaType === "tv" ? "Series presentation" : "Feature presentation"}
+              </span>
 
               <h1>{data?.title}</h1>
 
@@ -137,7 +140,7 @@ const MovieMain = ({
 
                 <a
                   className="movie__main__tmdb"
-                  href={`https://www.themoviedb.org/movie/${data?.id}`}
+                  href={`https://www.themoviedb.org/${mediaType}/${data?.id}`}
                   target="_blank"
                   rel="noreferrer"
                 >

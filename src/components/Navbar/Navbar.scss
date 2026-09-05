@@ -290,13 +290,31 @@
   }
 }
 
+@media (max-width: $breakpoint-desktop) {
+  .home-header {
+    gap: $space-4;
+
+    &__mobile-panel {
+      gap: $space-4;
+    }
+
+    &__search input {
+      width: 260px;
+    }
+
+    &__nav a {
+      padding-inline: $space-2;
+    }
+  }
+}
+
 @media (max-width: $breakpoint-tablet) {
   .home-header {
     padding-inline: $container-gutter-tablet;
   }
 }
 
-@media (max-width: $breakpoint-tablet-small) {
+@media (max-width: 900px) {
   .home-header {
     padding-inline: $container-gutter-tablet;
 

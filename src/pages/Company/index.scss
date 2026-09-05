@@ -1,0 +1,429 @@
+@import "../../styles/variables";
+
+.company-page {
+  min-height: calc(100vh - var(--header-height));
+  overflow: hidden;
+  background: $color-canvas;
+  color: $color-text-primary;
+
+  &--state {
+    min-height: calc(100vh - var(--header-height));
+    display: grid;
+    place-items: center;
+    padding-block: $space-16;
+  }
+
+  &__hero {
+    min-height: 500px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid $color-border;
+    background-color: #09151c;
+    background-position: center;
+    background-size: cover;
+
+    .page-container {
+      padding-block: $space-10 $space-16;
+    }
+  }
+
+  &__back {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    gap: $space-3;
+    margin-bottom: $space-8;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: $color-text-secondary;
+    font-weight: $font-weight-bold;
+    cursor: pointer;
+    transition: color $motion-fast $motion-ease;
+
+    &:hover,
+    &:focus-visible {
+      color: $color-primary;
+    }
+  }
+
+  &__hero-layout {
+    max-width: 980px;
+  }
+
+  &__identity {
+    display: grid;
+    grid-template-columns: 180px minmax(0, 1fr);
+    align-items: center;
+    gap: $space-10;
+  }
+
+  &__logo {
+    min-height: 180px;
+    display: grid;
+    place-items: center;
+    padding: $space-6;
+    border: 1px solid rgba(245, 247, 250, 0.14);
+    border-radius: $radius-md;
+    background: rgba(245, 247, 250, 0.93);
+    box-shadow: $shadow-card;
+
+    img {
+      max-width: 100%;
+      max-height: 126px;
+      display: block;
+      object-fit: contain;
+    }
+
+    span {
+      color: $color-canvas;
+      font-size: 2.1rem;
+      font-weight: $font-weight-extra-bold;
+      letter-spacing: -0.05em;
+      text-transform: uppercase;
+    }
+  }
+
+  &__eyebrow,
+  &__catalog-header span,
+  &__state > span {
+    color: $color-primary;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-extra-bold;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  &__hero-copy {
+    h1 {
+      max-width: 15ch;
+      margin: $space-3 0 $space-4;
+      font-size: clamp(2.7rem, 6vw, 5rem);
+      line-height: 0.98;
+      letter-spacing: -0.055em;
+    }
+
+    p {
+      max-width: 68ch;
+      margin: 0;
+      display: -webkit-box;
+      overflow: hidden;
+      color: #cad4dc;
+      line-height: 1.7;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 4;
+    }
+  }
+
+  &__facts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    margin: $space-8 0 0;
+    border-top: 1px solid rgba(245, 247, 250, 0.2);
+    border-bottom: 1px solid rgba(245, 247, 250, 0.2);
+
+    div {
+      min-width: 0;
+      padding: $space-4 $space-6 $space-4 0;
+
+      + div {
+        padding-left: $space-6;
+        border-left: 1px solid rgba(245, 247, 250, 0.14);
+      }
+    }
+
+    dt {
+      color: $color-text-secondary;
+      font-size: $font-size-xs;
+      font-weight: $font-weight-bold;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    dd {
+      margin: $space-1 0 0;
+      overflow-wrap: anywhere;
+      color: $color-text-primary;
+      font-weight: $font-weight-extra-bold;
+    }
+  }
+
+  &__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-6;
+    margin-top: $space-5;
+
+    a {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      gap: $space-3;
+      color: $color-link;
+      font-weight: $font-weight-bold;
+      text-decoration: none;
+
+      &:hover {
+        color: $color-text-primary;
+      }
+
+      i {
+        font-size: 12px;
+      }
+    }
+  }
+
+  &__parent {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+    margin: $space-3 0 0;
+    color: $color-text-secondary;
+    font-size: $font-size-sm;
+
+    a {
+      color: $color-link;
+      font-weight: $font-weight-bold;
+      text-decoration: none;
+    }
+  }
+
+  &__catalog {
+    scroll-margin-top: calc(var(--header-height) + #{$space-4});
+    padding-block: $space-14 $space-20;
+  }
+
+  &__catalog-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: $space-6;
+    margin-bottom: $space-8;
+
+    h2 {
+      margin: $space-2 0 0;
+      font-size: clamp(1.75rem, 3vw, 2.6rem);
+      line-height: 1.08;
+      letter-spacing: -0.035em;
+    }
+
+    p {
+      margin: 0;
+      color: $color-text-secondary;
+      font-size: $font-size-sm;
+
+      strong {
+        color: $color-text-primary;
+      }
+    }
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: $space-8 $space-5;
+
+    .movieCard {
+      width: 100%;
+      margin: 0;
+    }
+  }
+
+  &__catalog-state,
+  &__state {
+    text-align: center;
+
+    h1,
+    h3 {
+      margin: $space-3 0 0;
+    }
+
+    p {
+      margin: $space-3 auto 0;
+      color: $color-text-secondary;
+    }
+  }
+
+  &__catalog-state {
+    min-height: 280px;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    padding: $space-8;
+    border: 1px dashed rgba(170, 183, 194, 0.22);
+    border-radius: $radius-md;
+
+    > i {
+      color: $color-link;
+      font-size: 26px;
+    }
+  }
+
+  &__state button {
+    min-height: 44px;
+    margin-top: $space-6;
+    padding: 0 $space-5;
+    border: 1px solid rgba(242, 198, 109, 0.42);
+    border-radius: $radius-sm;
+    background: $color-surface;
+    color: $color-primary;
+    font-weight: $font-weight-bold;
+    cursor: pointer;
+  }
+
+  &__pagination {
+    display: grid;
+    grid-template-columns: minmax(120px, 1fr) auto minmax(120px, 1fr);
+    align-items: center;
+    gap: $space-5;
+    margin-top: $space-12;
+    padding-top: $space-6;
+    border-top: 1px solid $color-border;
+
+    button {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: $space-3;
+      padding: 0 $space-5;
+      border: 1px solid $color-border;
+      border-radius: $radius-sm;
+      background: $color-surface;
+      color: $color-text-primary;
+      font-weight: $font-weight-bold;
+      cursor: pointer;
+      transition:
+        border-color $motion-fast $motion-ease,
+        color $motion-fast $motion-ease,
+        background-color $motion-fast $motion-ease;
+
+      &:first-child {
+        justify-self: start;
+      }
+
+      &:last-child {
+        justify-self: end;
+      }
+
+      &:hover:not(:disabled) {
+        border-color: rgba(242, 198, 109, 0.46);
+        background: $color-surface-elevated;
+        color: $color-primary;
+      }
+
+      &:disabled {
+        opacity: 0.42;
+        cursor: not-allowed;
+      }
+    }
+
+    span {
+      color: $color-text-secondary;
+      font-size: $font-size-sm;
+      font-weight: $font-weight-bold;
+    }
+  }
+}
+
+@media (max-width: $breakpoint-desktop) {
+  .company-page__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: $breakpoint-tablet) {
+  .company-page__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: $breakpoint-tablet-small) {
+  .company-page {
+    &__hero {
+      min-height: auto;
+    }
+
+    &__identity {
+      grid-template-columns: 150px minmax(0, 1fr);
+      gap: $space-6;
+    }
+
+    &__logo {
+      min-height: 150px;
+    }
+
+    &__facts {
+      grid-template-columns: minmax(0, 1fr);
+
+      div {
+        padding: $space-3 0;
+
+        + div {
+          padding-left: 0;
+          border-top: 1px solid rgba(245, 247, 250, 0.14);
+          border-left: 0;
+        }
+      }
+    }
+
+    &__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+}
+
+@media (max-width: $breakpoint-sm) {
+  .company-page {
+    &__hero .page-container {
+      padding-block: $space-6 $space-12;
+    }
+
+    &__back {
+      margin-bottom: $space-5;
+    }
+
+    &__identity {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    &__logo {
+      width: min(68vw, 210px);
+      min-height: 132px;
+    }
+
+    &__hero-copy h1 {
+      font-size: clamp(2.5rem, 13vw, 4rem);
+    }
+
+    &__catalog {
+      padding-block: $space-10 $space-14;
+    }
+
+    &__catalog-header {
+      align-items: flex-start;
+      flex-direction: column;
+      margin-bottom: $space-6;
+    }
+
+    &__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    &__pagination {
+      grid-template-columns: 1fr 1fr;
+
+      span {
+        grid-column: 1 / -1;
+        grid-row: 1;
+        justify-self: center;
+      }
+
+      button {
+        width: 100%;
+        padding-inline: $space-3;
+      }
+    }
+  }
+}

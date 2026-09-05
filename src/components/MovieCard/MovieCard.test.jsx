@@ -135,4 +135,25 @@ describe("MovieCard", () => {
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
     expect(libraryButton).toHaveFocus();
   });
+
+  it("supports a custom internal details destination without exposing library actions", () => {
+    renderMovieCard({
+      detailsPath: "/movie/550?media=tv",
+    });
+
+    const detailsLink = screen.getByRole("link", {
+      name: "Open Fight Club details",
+    });
+
+    expect(detailsLink).toHaveAttribute(
+      "href",
+      "/movie/550?media=tv"
+    );
+    expect(detailsLink).not.toHaveAttribute("target");
+    expect(
+      screen.queryByRole("button", {
+        name: "Manage Fight Club in My Library",
+      })
+    ).not.toBeInTheDocument();
+  });
 });

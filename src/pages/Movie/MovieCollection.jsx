@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { Link } from "react-router-dom";
 import MovieCard from "../../components/MovieCard/MovieCard";
 import { IMG_API } from "../../helpers/baseURL";
 import useReveal from "../../hooks/useReveal";
@@ -58,17 +59,10 @@ const MovieCollection = ({
             <span>Franchise</span>
             <h2 id="movie-collection-title">Part of {title}</h2>
             {collectionData?.overview && <p>{collectionData.overview}</p>}
-            <a
-              href={`https://www.themoviedb.org/collection/${collection.id}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Explore collection on TMDB
-              <i
-                className="fa-solid fa-arrow-up-right-from-square"
-                aria-hidden="true"
-              ></i>
-            </a>
+            <Link to={`/collection/${collection.id}`}>
+              View full collection
+              <i className="fa-solid fa-arrow-right" aria-hidden="true"></i>
+            </Link>
           </div>
         </div>
 

@@ -109,4 +109,21 @@ describe("useFetch", () => {
       await pendingRequest.promise;
     });
   });
+
+  it("supports an alternate TMDB resource without changing existing callers", async () => {
+    axios.get.mockResolvedValueOnce({
+      data: { id: 42, name: "Series" },
+      status: 200,
+    });
+
+    const { result } = renderHook(() => useFetch("42?language=en-US", "tv"));
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(axios.get).toHaveBeenCalledWith(
+      expect.stringContaining("/tv/42?language=en-US"),
+      expect.objectContaining({ signal: expect.any(AbortSignal) })
+    );
+    expect(result.current.data).toEqual({ id: 42, name: "Series" });
+  });
 });

@@ -1,0 +1,334 @@
+@import "../../styles/variables";
+
+.collection-page {
+  min-height: calc(100vh - var(--header-height));
+  overflow: hidden;
+  background: $color-canvas;
+  color: $color-text-primary;
+
+  &--state {
+    min-height: calc(100vh - var(--header-height));
+    display: grid;
+    place-items: center;
+    padding-block: $space-16;
+  }
+
+  &__hero {
+    position: relative;
+    min-height: 540px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid $color-border;
+    background-color: #09151c;
+    background-position: center;
+    background-size: cover;
+
+    &::after {
+      position: absolute;
+      inset: auto 0 0;
+      height: 32%;
+      background: linear-gradient(transparent, $color-canvas);
+      pointer-events: none;
+      content: "";
+    }
+
+    .page-container {
+      z-index: 1;
+      padding-block: $space-10 $space-16;
+    }
+  }
+
+  &__back {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    gap: $space-3;
+    margin-bottom: $space-8;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: $color-text-secondary;
+    font-weight: $font-weight-bold;
+    cursor: pointer;
+    transition: color $motion-fast $motion-ease;
+
+    &:hover,
+    &:focus-visible {
+      color: $color-primary;
+    }
+  }
+
+  &__hero-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 292px);
+    align-items: center;
+    gap: clamp($space-10, 7vw, $space-24);
+  }
+
+  &__hero-copy {
+    max-width: 760px;
+
+    h1 {
+      max-width: 13ch;
+      margin: $space-3 0 $space-5;
+      font-size: clamp(2.6rem, 6vw, 5.3rem);
+      line-height: 0.98;
+      letter-spacing: -0.055em;
+    }
+
+    > p {
+      max-width: 66ch;
+      margin: 0;
+      color: #cad4dc;
+      font-size: clamp(1rem, 1.5vw, 1.17rem);
+      line-height: 1.75;
+    }
+  }
+
+  &__eyebrow,
+  &__catalog-header span,
+  &__state > span {
+    color: $color-primary;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-extra-bold;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  &__facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-8;
+    margin: $space-8 0 0;
+
+    div {
+      min-width: 148px;
+      padding-top: $space-3;
+      border-top: 1px solid rgba(245, 247, 250, 0.2);
+    }
+
+    dt {
+      color: $color-text-secondary;
+      font-size: $font-size-xs;
+      font-weight: $font-weight-bold;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    dd {
+      margin: $space-1 0 0;
+      color: $color-text-primary;
+      font-weight: $font-weight-extra-bold;
+    }
+  }
+
+  &__tmdb-link {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    gap: $space-3;
+    margin-top: $space-6;
+    color: $color-link;
+    font-weight: $font-weight-bold;
+    text-decoration: none;
+
+    &:hover {
+      color: $color-text-primary;
+    }
+
+    i {
+      font-size: 12px;
+    }
+  }
+
+  &__poster {
+    position: relative;
+    margin: 0;
+    overflow: hidden;
+    border: 1px solid rgba(245, 247, 250, 0.16);
+    border-radius: $radius-md;
+    background: $color-surface;
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5);
+
+    &::after {
+      position: absolute;
+      inset: 0;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: inherit;
+      pointer-events: none;
+      content: "";
+    }
+
+    img {
+      width: 100%;
+      aspect-ratio: 2 / 3;
+      display: block;
+      object-fit: cover;
+    }
+  }
+
+  &__catalog {
+    padding-block: $space-14 $space-20;
+  }
+
+  &__catalog-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: $space-6;
+    margin-bottom: $space-8;
+
+    h2 {
+      margin: $space-2 0 0;
+      font-size: clamp(1.75rem, 3vw, 2.6rem);
+      line-height: 1.08;
+      letter-spacing: -0.035em;
+    }
+
+    p {
+      margin: 0;
+      color: $color-text-secondary;
+      font-size: $font-size-sm;
+      font-weight: $font-weight-bold;
+    }
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: $space-8 $space-5;
+
+    .movieCard {
+      width: 100%;
+      margin: 0;
+    }
+  }
+
+  &__empty,
+  &__state {
+    text-align: center;
+
+    h1,
+    h3 {
+      margin: $space-3 0 0;
+    }
+
+    p {
+      margin: $space-3 auto 0;
+      color: $color-text-secondary;
+    }
+  }
+
+  &__empty {
+    min-height: 280px;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    padding: $space-8;
+    border: 1px dashed rgba(170, 183, 194, 0.22);
+    border-radius: $radius-md;
+
+    i {
+      color: $color-link;
+      font-size: 26px;
+    }
+  }
+
+  &__state {
+    button {
+      min-height: 44px;
+      margin-top: $space-6;
+      padding: 0 $space-5;
+      border: 1px solid rgba(242, 198, 109, 0.42);
+      border-radius: $radius-sm;
+      background: $color-surface;
+      color: $color-primary;
+      font-weight: $font-weight-bold;
+      cursor: pointer;
+    }
+  }
+}
+
+@media (max-width: $breakpoint-desktop) {
+  .collection-page__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: $breakpoint-tablet) {
+  .collection-page {
+    &__hero-layout {
+      grid-template-columns: minmax(0, 1fr) 230px;
+      gap: $space-10;
+    }
+
+    &__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+}
+
+@media (max-width: $breakpoint-tablet-small) {
+  .collection-page {
+    &__hero {
+      min-height: auto;
+      background-position: 64% center;
+    }
+
+    &__hero-layout {
+      grid-template-columns: minmax(0, 1fr) 190px;
+      gap: $space-8;
+    }
+
+    &__hero-copy h1 {
+      font-size: clamp(2.5rem, 9vw, 4rem);
+    }
+
+    &__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+}
+
+@media (max-width: $breakpoint-sm) {
+  .collection-page {
+    &__hero .page-container {
+      padding-block: $space-6 $space-12;
+    }
+
+    &__back {
+      margin-bottom: $space-5;
+    }
+
+    &__hero-layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    &__poster {
+      width: min(68vw, 240px);
+      grid-row: 1;
+    }
+
+    &__facts {
+      gap: $space-5;
+
+      div {
+        min-width: 120px;
+      }
+    }
+
+    &__catalog {
+      padding-block: $space-10 $space-14;
+    }
+
+    &__catalog-header {
+      align-items: flex-start;
+      flex-direction: column;
+      margin-bottom: $space-6;
+    }
+
+    &__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+}

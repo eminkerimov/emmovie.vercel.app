@@ -14,25 +14,33 @@ jest.mock("../../components/Loading/Loading", () => () => (
   <div>Movie loading</div>
 ));
 jest.mock("../../components/MovieMain/MovieMain", () => (props) => (
-  <div data-testid="movie-main">{props.data.title}</div>
+  <div data-testid="movie-main" data-media-type={props.mediaType}>
+    {props.data.title}
+  </div>
 ));
 jest.mock("../../components/Overview/Overview", () => () => (
   <div>Overview section</div>
+));
+jest.mock("../../components/MovieCredits/MovieCredits", () => ({ request }) => (
+  <div>{request.error ? "credits failed" : "credits ready"}</div>
+));
+jest.mock("../../components/MovieBackdrops/MovieBackdrops", () => ({ imagesRequest }) => (
+  <div>{imagesRequest.error ? "backdrops failed" : "backdrops ready"}</div>
 ));
 jest.mock("./MovieAvailability", () => ({ providersRequest }) => (
   <div data-testid="availability-state">
     {providersRequest.error ? "providers failed" : "providers ready"}
   </div>
 ));
-jest.mock("../../components/Posters/Posters", () => ({ error }) => (
-  <div>{error ? "posters failed" : "posters ready"}</div>
+jest.mock("../../components/MovieMedia/MovieMedia", () => ({ imagesRequest }) => (
+  <div>{imagesRequest.error ? "media failed" : "media ready"}</div>
 ));
 jest.mock("../../components/Reviews/Reviews", () => ({ error }) => (
   <div>{error ? "reviews failed" : "reviews ready"}</div>
 ));
 jest.mock("./MovieCollection", () => () => <div>Collection section</div>);
-jest.mock("../../components/Related/Related", () => ({ mode }) => (
-  <div>Related mode: {mode}</div>
+jest.mock("../../components/Related/Related", () => ({ mode, mediaType }) => (
+  <div data-testid="related" data-media-type={mediaType}>Related mode: {mode}</div>
 ));
 
 const settledRequest = (data = {}) => ({
@@ -41,10 +49,10 @@ const settledRequest = (data = {}) => ({
   loading: false,
 });
 
-const renderMovie = () =>
+const renderMovie = (entry = "/movie/42") =>
   render(
     <MemoryRouter
-      initialEntries={["/movie/42"]}
+      initialEntries={[entry]}
       future={{
         v7_relativeSplatPath: true,
         v7_startTransition: true,
@@ -113,7 +121,9 @@ describe("Movie", () => {
       screen.queryByRole("heading", { name: /movie could not be loaded/i })
     ).not.toBeInTheDocument();
     expect(screen.getByText("providers failed")).toBeInTheDocument();
-    expect(screen.getByText("posters failed")).toBeInTheDocument();
+    expect(screen.getByText("credits failed")).toBeInTheDocument();
+    expect(screen.getByText("backdrops failed")).toBeInTheDocument();
+    expect(screen.getByText("media failed")).toBeInTheDocument();
     expect(screen.getByText("reviews failed")).toBeInTheDocument();
   });
 
@@ -130,5 +140,39 @@ describe("Movie", () => {
       screen.getByRole("heading", { name: "Movie could not be loaded" })
     ).toBeInTheDocument();
     expect(screen.queryByTestId("movie-main")).not.toBeInTheDocument();
+  });
+
+  it("loads TV cards through the internal movie details route", () => {
+    useFetch.mockImplementation((url) => {
+      if (/^42\?/.test(url)) {
+        return settledRequest({
+          id: 42,
+          name: "Core Series",
+          first_air_date: "2024-01-10",
+          episode_run_time: [48],
+          genres: [],
+          production_companies: [],
+          production_countries: [],
+        });
+      }
+
+      return settledRequest();
+    });
+
+    renderMovie("/movie/42?media=tv");
+
+    expect(screen.getByTestId("movie-main")).toHaveTextContent("Core Series");
+    expect(screen.getByTestId("movie-main")).toHaveAttribute(
+      "data-media-type",
+      "tv"
+    );
+    expect(screen.getByTestId("related")).toHaveAttribute(
+      "data-media-type",
+      "tv"
+    );
+    expect(useFetch).toHaveBeenCalledWith(
+      expect.stringMatching(/^42\?/),
+      "tv"
+    );
   });
 });

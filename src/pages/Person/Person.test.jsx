@@ -14,8 +14,13 @@ jest.mock("../../hooks/useWatchlist");
 jest.mock("../../components/Loading/Loading", () => () => (
   <div role="status">Loading person</div>
 ));
-jest.mock("../../components/MovieCard/MovieCard", () => ({ title }) => (
-  <article data-testid="person-movie-card">{title}</article>
+jest.mock("../../components/MovieCard/MovieCard", () => ({ title, detailsPath }) => (
+  <article
+    data-testid={detailsPath ? "person-tv-card" : "person-movie-card"}
+    data-details-path={detailsPath || ""}
+  >
+    {title}
+  </article>
 ));
 
 const longBiography = "A detailed career story. ".repeat(24).trim();
@@ -168,7 +173,7 @@ describe("Person", () => {
     );
 
     const nextPortraitImage = within(
-      screen.getByRole("button", { name: "Show portrait 2" })
+      screen.getByRole("button", { name: "Open portrait 2 fullscreen" })
     ).getByAltText("");
     const nextPortraitSource = nextPortraitImage.getAttribute("src");
 
@@ -182,10 +187,10 @@ describe("Person", () => {
     );
     expect(nextButton).toBeDisabled();
 
-    const openFullscreenButton = screen.getByRole("button", {
-      name: /open portrait fullscreen/i,
+    const selectedPortraitButton = screen.getByRole("button", {
+      name: "Open portrait 2 fullscreen",
     });
-    userEvent.click(openFullscreenButton);
+    userEvent.click(selectedPortraitButton);
 
     const lightbox = screen.getByRole("dialog", {
       name: /fullscreen portrait gallery/i,
@@ -202,7 +207,7 @@ describe("Person", () => {
 
     fireEvent.keyDown(lightbox, { key: "Escape" });
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(openFullscreenButton).toHaveFocus();
+    expect(selectedPortraitButton).toHaveFocus();
 
     const filmography = screen.getByRole("region", { name: "Filmography" });
 
@@ -233,12 +238,88 @@ describe("Person", () => {
     );
 
     userEvent.click(within(filmography).getByRole("button", { name: "Crew" }));
+    expect(within(filmography).getByLabelText("Media")).toHaveValue("all");
+    expect(within(filmography).getByLabelText("Decade")).toHaveValue("all");
+    expect(
+      within(within(filmography).getByLabelText("Media")).getByRole("option", {
+        name: "TV",
+      })
+    ).toBeDisabled();
     expect(within(filmography).getByText("Directed Movie")).toBeInTheDocument();
     expect(within(filmography).getByText("Director")).toBeInTheDocument();
+
+    userEvent.click(
+      within(filmography).getByRole("button", { name: "Acting" })
+    );
+    expect(within(filmography).getAllByTestId("person-movie-card")).toHaveLength(
+      12
+    );
     expect(global.fetch).toHaveBeenCalledWith(
       expect.stringContaining("/person/101/external_ids?"),
       expect.objectContaining({ signal: expect.any(AbortSignal) })
     );
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining("/person/101/combined_credits?"),
+      expect.objectContaining({ signal: expect.any(AbortSignal) })
+    );
+  });
+
+  it("normalizes television credits and filters the complete career by media type", async () => {
+    const televisionCredit = {
+      id: 501,
+      credit_id: "tv-501",
+      media_type: "tv",
+      name: "Series One",
+      poster_path: "/series-one.jpg",
+      first_air_date: "2024-03-10",
+      character: "Lead",
+      popularity: 70,
+      vote_average: 8.1,
+      vote_count: 500,
+    };
+    const creditWithoutPoster = {
+      id: 502,
+      credit_id: "tv-502",
+      media_type: "tv",
+      name: "Archive Series",
+      first_air_date: "2008-01-12",
+      character: "Guest",
+      popularity: 4,
+    };
+
+    global.fetch
+      .mockResolvedValueOnce(createResponse(personData))
+      .mockResolvedValueOnce(
+        createResponse({
+          cast: [...castCredits, televisionCredit, creditWithoutPoster],
+          crew: crewCredits,
+        })
+      )
+      .mockResolvedValueOnce(createResponse({ profiles: [] }))
+      .mockResolvedValueOnce(createResponse({}));
+
+    renderPerson();
+
+    await screen.findByRole("heading", { name: "Alex Morgan" });
+    const filmography = screen.getByRole("region", { name: "Filmography" });
+
+    expect(
+      within(filmography).queryByRole("group", { name: "Media type" })
+    ).not.toBeInTheDocument();
+    userEvent.selectOptions(within(filmography).getByLabelText("Media"), "tv");
+
+    const televisionCards = within(filmography).getAllByTestId(
+      "person-tv-card"
+    );
+
+    expect(televisionCards).toHaveLength(2);
+    expect(televisionCards[0]).toHaveTextContent("Series One");
+    expect(televisionCards[0]).toHaveAttribute(
+      "data-details-path",
+      "/movie/501?media=tv"
+    );
+    expect(within(filmography).getByText("Archive Series")).toBeInTheDocument();
+    expect(within(filmography).queryByText("Movie 1")).not.toBeInTheDocument();
   });
 
   it("shows only future-dated credits as upcoming projects", async () => {
@@ -292,7 +373,7 @@ describe("Person", () => {
       await screen.findByRole("heading", { name: "Alex Morgan" })
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/no movie credits are available/i)
+      screen.getByText(/no credits are available/i)
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("heading", { name: "Gallery" })

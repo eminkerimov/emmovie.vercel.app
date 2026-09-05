@@ -483,6 +483,21 @@ const Navbar = () => {
 
           <Link
             className={
+              location.pathname === "/calendar"
+                ? "is-active"
+                : ""
+            }
+            to="/calendar"
+            onClick={handleNavigationClick}
+            aria-current={
+              location.pathname === "/calendar" ? "page" : undefined
+            }
+          >
+            Calendar
+          </Link>
+
+          <Link
+            className={
               location.pathname === "/watchlist"
                 ? "is-active"
                 : ""

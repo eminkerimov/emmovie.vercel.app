@@ -2,16 +2,17 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { BASE_URL } from "./baseURL";
 
-const createRequestState = (url) => ({
-  url,
+const createRequestState = (requestKey) => ({
+  requestKey,
   data: null,
   loading: true,
   error: false,
 });
 
-const useFetch = (url) => {
+const useFetch = (url, resource = "movie") => {
+  const requestKey = `${resource}/${url}`;
   const [requestState, setRequestState] = useState(() =>
-    createRequestState(url)
+    createRequestState(requestKey)
   );
 
   useEffect(() => {
@@ -19,17 +20,17 @@ const useFetch = (url) => {
     let isActive = true;
 
     const fetchData = async () => {
-      setRequestState(createRequestState(url));
+      setRequestState(createRequestState(requestKey));
 
       try {
-        const response = await axios.get(BASE_URL + "/movie/" + url, {
+        const response = await axios.get(`${BASE_URL}/${resource}/${url}`, {
           signal: controller.signal,
         });
 
         if (!isActive || controller.signal.aborted) return;
 
         setRequestState({
-          url,
+          requestKey,
           data: response.data,
           loading: false,
           error: false,
@@ -44,7 +45,7 @@ const useFetch = (url) => {
         }
 
         setRequestState({
-          url,
+          requestKey,
           data: null,
           loading: false,
           error,
@@ -58,9 +59,9 @@ const useFetch = (url) => {
       isActive = false;
       controller.abort();
     };
-  }, [url]);
+  }, [requestKey, resource, url]);
 
-  const isCurrentRequest = requestState.url === url;
+  const isCurrentRequest = requestState.requestKey === requestKey;
 
   return {
     data: isCurrentRequest ? requestState.data : null,

@@ -45,13 +45,21 @@ const formatDate = (value) => {
 };
 
 const prepareCredits = (credits = [], roleField) => {
-  const creditsByMovie = new Map();
+  const creditsByTitle = new Map();
 
   credits.forEach((credit) => {
-    if (!credit?.id || !credit.poster_path) return;
+    if (!credit?.id) return;
 
+    const mediaType = credit.media_type === "tv" ? "tv" : "movie";
+    const title =
+      credit.title ||
+      credit.name ||
+      credit.original_title ||
+      credit.original_name;
+    const releaseDate = credit.release_date || credit.first_air_date || "";
+    const creditKey = `${mediaType}-${credit.id}`;
     const role = (credit[roleField] || credit.department || "").trim();
-    const existingCredit = creditsByMovie.get(credit.id);
+    const existingCredit = creditsByTitle.get(creditKey);
 
     if (existingCredit) {
       if (role && !existingCredit.creditRoles.includes(role)) {
@@ -60,13 +68,16 @@ const prepareCredits = (credits = [], roleField) => {
       return;
     }
 
-    creditsByMovie.set(credit.id, {
+    creditsByTitle.set(creditKey, {
       ...credit,
+      title,
+      release_date: releaseDate,
+      media_type: mediaType,
       creditRoles: role ? [role] : [],
     });
   });
 
-  return Array.from(creditsByMovie.values())
+  return Array.from(creditsByTitle.values())
     .map(({ creditRoles, ...credit }) => ({
       ...credit,
       creditRole: creditRoles.join(" · "),
@@ -130,20 +141,21 @@ const getCreditSignificance = (credit) => {
 };
 
 const getUniqueCredits = (credits) => {
-  const creditsByMovie = new Map();
+  const creditsByTitle = new Map();
 
   credits.forEach((credit) => {
-    const existingCredit = creditsByMovie.get(credit.id);
+    const creditKey = `${credit.media_type || "movie"}-${credit.id}`;
+    const existingCredit = creditsByTitle.get(creditKey);
 
     if (
       !existingCredit ||
       getCreditSignificance(credit) > getCreditSignificance(existingCredit)
     ) {
-      creditsByMovie.set(credit.id, credit);
+      creditsByTitle.set(creditKey, credit);
     }
   });
 
-  return Array.from(creditsByMovie.values());
+  return Array.from(creditsByTitle.values());
 };
 
 const sortCredits = (credits, sortBy) => {
@@ -224,6 +236,7 @@ const Person = () => {
   const [biographyExpanded, setBiographyExpanded] = useState(false);
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
   const [activeCreditType, setActiveCreditType] = useState("cast");
+  const [creditMediaType, setCreditMediaType] = useState("all");
   const [creditSort, setCreditSort] = useState("latest");
   const [creditDecade, setCreditDecade] = useState("all");
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -256,6 +269,7 @@ const Person = () => {
       setBiographyExpanded(false);
       setActivePhotoIndex(0);
       setActiveCreditType("cast");
+      setCreditMediaType("all");
       setCreditSort("latest");
       setCreditDecade("all");
       setLightboxOpen(false);
@@ -267,7 +281,7 @@ const Person = () => {
           await Promise.allSettled([
             requestJson(`${BASE_URL}/person/${id}?${API_KEY}&language=en-US`),
             requestJson(
-              `${BASE_URL}/person/${id}/movie_credits?${API_KEY}&language=en-US`
+              `${BASE_URL}/person/${id}/combined_credits?${API_KEY}&language=en-US`
             ),
             requestJson(`${BASE_URL}/person/${id}/images?${API_KEY}`),
             requestJson(`${BASE_URL}/person/${id}/external_ids?${API_KEY}`),
@@ -387,13 +401,27 @@ const Person = () => {
   }, [activePhotoIndex, lightboxOpen, photos]);
 
   const allCredits = getUniqueCredits([...castCredits, ...crewCredits]);
-  const uniqueMovieCount = new Set(allCredits.map((credit) => credit.id)).size;
+  const uniqueCreditCount = new Set(
+    allCredits.map(
+      (credit) => `${credit.media_type || "movie"}-${credit.id}`
+    )
+  ).size;
   const careerRange = getCareerRange(allCredits);
   const activeCredits =
     activeCreditType === "crew" ? crewCredits : castCredits;
+  const hasMovieCredits = activeCredits.some(
+    (credit) => credit.media_type === "movie"
+  );
+  const hasTvCredits = activeCredits.some(
+    (credit) => credit.media_type === "tv"
+  );
+  const mediaCredits = activeCredits.filter(
+    (credit) =>
+      creditMediaType === "all" || credit.media_type === creditMediaType
+  );
   const availableDecades = Array.from(
     new Set(
-      activeCredits
+      mediaCredits
         .map((credit) =>
           Number.parseInt(credit.release_date?.slice(0, 4), 10)
         )
@@ -401,7 +429,7 @@ const Person = () => {
         .map((year) => Math.floor(year / 10) * 10)
     )
   ).sort((a, b) => b - a);
-  const filteredCredits = activeCredits.filter((credit) => {
+  const filteredCredits = mediaCredits.filter((credit) => {
     if (creditDecade === "all") return true;
 
     const releaseYear = Number.parseInt(credit.release_date?.slice(0, 4), 10);
@@ -488,6 +516,13 @@ const Person = () => {
 
   const changeCreditType = (type) => {
     setActiveCreditType(type);
+    setCreditMediaType("all");
+    setCreditDecade("all");
+    setVisibleCreditCount(INITIAL_CREDIT_COUNT);
+  };
+
+  const changeCreditMediaType = (event) => {
+    setCreditMediaType(event.target.value);
     setCreditDecade("all");
     setVisibleCreditCount(INITIAL_CREDIT_COUNT);
   };
@@ -509,6 +544,12 @@ const Person = () => {
       (currentIndex) =>
         (currentIndex + direction + photos.length) % photos.length
     );
+  };
+
+  const openLightbox = (index, trigger) => {
+    selectPhoto(index);
+    lightboxTriggerRef.current = trigger;
+    setLightboxOpen(true);
   };
 
   const closeLightbox = () => {
@@ -603,8 +644,8 @@ const Person = () => {
     { label: "From", value: person.place_of_birth || "Not available" },
     { label: "Career", value: careerRange },
     {
-      label: "Movie credits",
-      value: uniqueMovieCount > 0 ? `${uniqueMovieCount}` : "Not available",
+      label: "Credits",
+      value: uniqueCreditCount > 0 ? `${uniqueCreditCount}` : "Not available",
     },
   ].filter(Boolean);
 
@@ -736,26 +777,45 @@ const Person = () => {
             <div className="person-section-heading">
               <span>Career highlights</span>
               <h2 id="person-known-for-title">Known for</h2>
-              <p>The most recognised work across this film career.</p>
+              <p>The most recognised work across film and television.</p>
             </div>
 
             <div className="person-featured__grid">
-              {knownForCredits.map((movie) => (
-                <div className="person-featured__credit" key={movie.id}>
-                  <MovieCard
-                    {...movie}
-                    isFavorite={watchlist.some(
-                      (watchlistMovie) => watchlistMovie.id === movie.id
+              {knownForCredits.map((movie) => {
+                const isMovie = movie.media_type !== "tv";
+
+                return (
+                  <div
+                    className="person-featured__credit"
+                    key={`${movie.media_type}-${movie.id}`}
+                  >
+                    <MovieCard
+                      {...movie}
+                      detailsPath={
+                        isMovie
+                          ? undefined
+                          : `/movie/${movie.id}?media=tv`
+                      }
+                      isFavorite={
+                        isMovie &&
+                        watchlist.some(
+                          (watchlistMovie) => watchlistMovie.id === movie.id
+                        )
+                      }
+                      isWatched={
+                        isMovie && (isWatched?.(movie.id) || false)
+                      }
+                      onToggleFavorite={isMovie ? toggleWatchlist : undefined}
+                      onToggleWatched={isMovie ? toggleWatched : undefined}
+                    />
+                    {movie.creditRole && (
+                      <p className="person-featured__role">
+                        {movie.creditRole}
+                      </p>
                     )}
-                    isWatched={isWatched?.(movie.id) || false}
-                    onToggleFavorite={toggleWatchlist}
-                    onToggleWatched={toggleWatched}
-                  />
-                  {movie.creditRole && (
-                    <p className="person-featured__role">{movie.creditRole}</p>
-                  )}
-                </div>
-              ))}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -767,35 +827,46 @@ const Person = () => {
             <div className="person-section-heading person-upcoming__heading">
               <span>Next on screen</span>
               <h2 id="person-upcoming-title">Upcoming projects</h2>
-              <p>Announced movies with a future release date.</p>
+              <p>Announced film and television work with a future release date.</p>
             </div>
 
             <div className="person-upcoming__list">
-              {upcomingCredits.map((movie) => (
-                <Link
-                  className="person-upcoming__item"
-                  key={movie.id}
-                  to={`/movie/${movie.id}`}
-                >
-                  <img
-                    src={POSTER_API + movie.poster_path}
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                  />
-                  <div>
-                    <time dateTime={movie.release_date}>
-                      {formatDate(movie.release_date)}
-                    </time>
-                    <h3>{movie.title || movie.original_title}</h3>
-                    {movie.creditRole && <p>{movie.creditRole}</p>}
-                  </div>
-                  <i
-                    className="fa-solid fa-arrow-right"
-                    aria-hidden="true"
-                  ></i>
-                </Link>
-              ))}
+              {upcomingCredits.map((movie) => {
+                const detailsPath =
+                  movie.media_type === "tv"
+                    ? `/movie/${movie.id}?media=tv`
+                    : `/movie/${movie.id}`;
+
+                return (
+                  <Link
+                    className="person-upcoming__item"
+                    key={`${movie.media_type}-${movie.id}`}
+                    to={detailsPath}
+                  >
+                    <img
+                      src={
+                        movie.poster_path
+                          ? POSTER_API + movie.poster_path
+                          : Default
+                      }
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <div>
+                      <time dateTime={movie.release_date}>
+                        {formatDate(movie.release_date)}
+                      </time>
+                      <h3>{movie.title || movie.original_title}</h3>
+                      {movie.creditRole && <p>{movie.creditRole}</p>}
+                    </div>
+                    <i
+                      className="fa-solid fa-arrow-right"
+                      aria-hidden="true"
+                    ></i>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -830,10 +901,11 @@ const Person = () => {
                   <i className="fa-solid fa-chevron-right" aria-hidden="true"></i>
                 </button>
                 <button
-                  ref={lightboxTriggerRef}
                   type="button"
                   aria-label="Open portrait fullscreen"
-                  onClick={() => setLightboxOpen(true)}
+                  onClick={(event) =>
+                    openLightbox(activePhotoIndex, event.currentTarget)
+                  }
                 >
                   <i className="fa-solid fa-expand" aria-hidden="true"></i>
                 </button>
@@ -864,9 +936,10 @@ const Person = () => {
                           thumbnailRefs.current[index] = element;
                         }}
                         type="button"
-                        onClick={() => selectPhoto(index)}
-                        aria-label={`Show portrait ${index + 1}`}
-                        aria-pressed={isActivePhoto}
+                        onClick={(event) =>
+                          openLightbox(index, event.currentTarget)
+                        }
+                        aria-label={`Open portrait ${index + 1} fullscreen`}
                         tabIndex={isActivePhoto ? 0 : -1}
                       >
                         <img
@@ -981,8 +1054,8 @@ const Person = () => {
               <h2 id="person-work-title">Filmography</h2>
               <p>
                 {careerRange === "Not available"
-                  ? "Movie credits from TMDB"
-                  : `Movie work · ${careerRange}`}
+                  ? "Film and television credits from TMDB"
+                  : `Screen work · ${careerRange}`}
               </p>
             </div>
 
@@ -1012,9 +1085,30 @@ const Person = () => {
                 )}
 
                 <div className="person-known__filters">
+                  <label className="person-known__filter--media">
+                    <span>Media</span>
+                    <select
+                      aria-label="Media"
+                      value={creditMediaType}
+                      onChange={changeCreditMediaType}
+                    >
+                      <option value="all">All types</option>
+                      <option value="movie" disabled={!hasMovieCredits}>
+                        Movies
+                      </option>
+                      <option value="tv" disabled={!hasTvCredits}>
+                        TV
+                      </option>
+                    </select>
+                  </label>
+
                   <label>
                     <span>Sort</span>
-                    <select value={creditSort} onChange={changeCreditSort}>
+                    <select
+                      aria-label="Sort"
+                      value={creditSort}
+                      onChange={changeCreditSort}
+                    >
                       <option value="latest">Latest</option>
                       <option value="popular">Popular</option>
                       <option value="rating">Rating</option>
@@ -1023,7 +1117,11 @@ const Person = () => {
 
                   <label>
                     <span>Decade</span>
-                    <select value={creditDecade} onChange={changeCreditDecade}>
+                    <select
+                      aria-label="Decade"
+                      value={creditDecade}
+                      onChange={changeCreditDecade}
+                    >
                       <option value="all">All decades</option>
                       {availableDecades.map((decade) => (
                         <option value={decade} key={decade}>
@@ -1040,28 +1138,46 @@ const Person = () => {
           {sortedCredits.length > 0 ? (
             <>
               <div className="person-known__grid">
-                {visibleCredits.map((movie) => (
-                  <div
-                    className="person-known__credit"
-                    key={`${activeCreditType}-${movie.id}`}
-                  >
-                    <MovieCard
-                      {...movie}
-                      isFavorite={watchlist.some(
-                        (watchlistMovie) => watchlistMovie.id === movie.id
-                      )}
-                      isWatched={isWatched?.(movie.id) || false}
-                      onToggleFavorite={toggleWatchlist}
-                      onToggleWatched={toggleWatched}
-                    />
-                    <p className="person-known__credit-role">
-                      {movie.creditRole ||
-                        (activeCreditType === "cast"
-                          ? "Cast credit"
-                          : "Crew credit")}
-                    </p>
-                  </div>
-                ))}
+                {visibleCredits.map((movie) => {
+                  const isMovie = movie.media_type !== "tv";
+
+                  return (
+                    <div
+                      className="person-known__credit"
+                      key={`${activeCreditType}-${movie.media_type}-${movie.id}`}
+                    >
+                      <MovieCard
+                        {...movie}
+                        detailsPath={
+                          isMovie
+                            ? undefined
+                            : `/movie/${movie.id}?media=tv`
+                        }
+                        isFavorite={
+                          isMovie &&
+                          watchlist.some(
+                            (watchlistMovie) => watchlistMovie.id === movie.id
+                          )
+                        }
+                        isWatched={
+                          isMovie && (isWatched?.(movie.id) || false)
+                        }
+                        onToggleFavorite={
+                          isMovie ? toggleWatchlist : undefined
+                        }
+                        onToggleWatched={
+                          isMovie ? toggleWatched : undefined
+                        }
+                      />
+                      <p className="person-known__credit-role">
+                        {movie.creditRole ||
+                          (activeCreditType === "cast"
+                            ? "Cast credit"
+                            : "Crew credit")}
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
 
               {visibleCreditCount < sortedCredits.length && (
@@ -1080,13 +1196,13 @@ const Person = () => {
                 </div>
               )}
             </>
-          ) : activeCredits.length > 0 ? (
+          ) : mediaCredits.length > 0 ? (
             <p className="person-known__empty">
-              No movie credits match this decade.
+              No credits match this decade.
             </p>
           ) : (
             <p className="person-known__empty">
-              No movie credits are available for this person.
+              No credits are available for this person.
             </p>
           )}
         </div>

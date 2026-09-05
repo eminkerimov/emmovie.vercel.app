@@ -729,18 +729,18 @@
     min-width: 0;
     display: flex;
     align-items: flex-end;
-    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: flex-end;
     gap: $space-3;
   }
 
   &__filters {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(128px, 1fr));
     gap: $space-3;
 
     label {
-      min-width: 132px;
+      min-width: 0;
       display: grid;
       gap: $space-1;
     }
@@ -754,7 +754,8 @@
     }
 
     select {
-      min-width: 132px;
+      width: 100%;
+      min-width: 0;
       min-height: 44px;
       padding: 0 $space-4;
       border: 1px solid $color-border;
@@ -1017,10 +1018,12 @@
 
     &__controls {
       width: 100%;
-      align-items: flex-start;
+      align-items: flex-end;
+      justify-content: flex-start;
     }
 
     &__filters {
+      flex: 1 1 430px;
       justify-content: flex-start;
     }
 
@@ -1147,15 +1150,10 @@
 
     &__filters {
       width: 100%;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
 
-      label,
-      select {
-        min-width: 0;
-        flex: 1;
-      }
-
-      label {
-        flex-basis: 130px;
+      .person-known__filter--media {
+        grid-column: 1 / -1;
       }
     }
   }

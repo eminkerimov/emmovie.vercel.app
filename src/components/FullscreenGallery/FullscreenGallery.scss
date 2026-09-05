@@ -1,0 +1,132 @@
+@import "../../styles/variables";
+
+.fullscreen-gallery {
+  position: fixed;
+  z-index: 2200;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  overflow: hidden;
+  background: rgba(2, 6, 9, 0.97);
+  animation: fullscreen-gallery-enter $motion-base $motion-ease both;
+}
+
+.fullscreen-gallery__dialog {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.fullscreen-gallery__stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 72px 112px;
+}
+
+.fullscreen-gallery__image {
+  width: auto;
+  height: auto;
+  max-width: min(1680px, calc(100vw - 224px));
+  max-height: min(900px, calc(100dvh - 144px));
+  display: block;
+  flex: 0 0 auto;
+  border-radius: $radius-sm;
+  object-fit: contain;
+  object-position: center;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.58);
+}
+
+.fullscreen-gallery__close,
+.fullscreen-gallery__arrow {
+  position: absolute;
+  z-index: 2;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(245, 247, 250, 0.2);
+  border-radius: $radius-sm;
+  background: #0e1c25;
+  color: $color-text-primary;
+  cursor: pointer;
+  transition:
+    border-color $motion-fast $motion-ease,
+    background-color $motion-fast $motion-ease;
+
+  &:hover,
+  &:focus-visible {
+    border-color: rgba(245, 247, 250, 0.42);
+    background: $color-surface-elevated;
+  }
+}
+
+.fullscreen-gallery__close {
+  top: 24px;
+  right: 24px;
+}
+
+.fullscreen-gallery__arrow {
+  top: 50%;
+  transform: translateY(-50%);
+
+  &--previous {
+    left: 24px;
+  }
+
+  &--next {
+    right: 24px;
+  }
+}
+
+@keyframes fullscreen-gallery-enter {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (max-width: $breakpoint-sm) {
+  .fullscreen-gallery__stage {
+    padding: 64px $space-4 84px;
+  }
+
+  .fullscreen-gallery__image {
+    max-width: calc(100vw - 32px);
+    max-height: calc(100dvh - 148px);
+  }
+
+  .fullscreen-gallery__close {
+    top: $space-4;
+    right: $space-4;
+  }
+
+  .fullscreen-gallery__arrow {
+    top: auto;
+    bottom: $space-4;
+    transform: none;
+
+    &--previous {
+      left: $space-4;
+    }
+
+    &--next {
+      right: $space-4;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fullscreen-gallery {
+    animation: none;
+  }
+
+  .fullscreen-gallery__close,
+  .fullscreen-gallery__arrow {
+    transition: none;
+  }
+}
