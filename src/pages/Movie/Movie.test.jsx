@@ -15,8 +15,17 @@ jest.mock("../../components/MovieMain/MovieMain", () => (props) => (
     {props.data.title}
   </div>
 ));
-jest.mock("../../components/Overview/Overview", () => () => (
-  <div>Overview section</div>
+jest.mock("../../components/Overview/Overview", () => ({ detailsData }) => (
+  <div data-testid="overview">
+    {detailsData.map((detail) => (
+      <span key={detail.title} data-links={JSON.stringify(detail.links || [])}>
+        {detail.title}
+      </span>
+    ))}
+  </div>
+));
+jest.mock("../../components/TvSeasons/TvSeasons", () => ({ data }) => (
+  <div data-testid="tv-seasons">{data.seasons?.length || 0} seasons</div>
 ));
 jest.mock("../../components/MovieCredits/MovieCredits", () => ({ request }) => (
   <div>{request.error ? "credits failed" : "credits ready"}</div>
@@ -126,6 +135,7 @@ describe("Movie", () => {
     expect(screen.getByText("backdrops failed")).toBeInTheDocument();
     expect(screen.getByText("media failed")).toBeInTheDocument();
     expect(screen.getByText("reviews failed")).toBeInTheDocument();
+    expect(screen.queryByTestId("tv-seasons")).not.toBeInTheDocument();
   });
 
   it("treats a core request failure as fatal", () => {
@@ -151,6 +161,9 @@ describe("Movie", () => {
           name: "Core Series",
           first_air_date: "2024-01-10",
           episode_run_time: [48],
+          number_of_seasons: 1,
+          seasons: [{ id: 100, season_number: 1, episode_count: 8 }],
+          networks: [{ id: 49, name: "HBO" }],
           genres: [],
           production_companies: [],
           production_countries: [],
@@ -170,6 +183,11 @@ describe("Movie", () => {
     expect(screen.getByTestId("related")).toHaveAttribute(
       "data-media-type",
       "tv"
+    );
+    expect(screen.getByTestId("tv-seasons")).toHaveTextContent("1 seasons");
+    expect(screen.getByText("Networks")).toHaveAttribute(
+      "data-links",
+      JSON.stringify([{ id: 49, label: "HBO", to: "/network/49" }])
     );
     expect(useFetch).toHaveBeenCalledWith(
       expect.stringMatching(/^42\?/),

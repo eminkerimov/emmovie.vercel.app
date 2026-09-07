@@ -20,9 +20,10 @@ jest.mock("../../components/MovieCard/MovieCard", () => (props) => (
   <article
     data-testid="calendar-movie-card"
     data-favorite={String(props.isFavorite)}
+    data-media-type={props.media_type}
     data-watched={String(props.isWatched)}
   >
-    {props.title}
+    {props.title || props.name}
   </article>
 ));
 
@@ -43,6 +44,21 @@ const movies = [
     title: "Wednesday Premiere",
     release_date: "2026-09-09",
     poster_path: "/wednesday.jpg",
+  },
+];
+
+const series = [
+  {
+    id: 101,
+    name: "Monday Series",
+    first_air_date: "2026-09-07",
+    poster_path: "/monday-series.jpg",
+  },
+  {
+    id: 102,
+    name: "Friday Series",
+    first_air_date: "2026-09-11",
+    poster_path: "/friday-series.jpg",
   },
 ];
 
@@ -192,6 +208,58 @@ describe("Release Calendar", () => {
     ).toBeInTheDocument();
   });
 
+  it("loads and groups TV premieres by first-air date", () => {
+    setFetchHookResults({
+      data: {
+        data: {
+          results: series,
+          total_results: 2,
+          total_pages: 1,
+        },
+      },
+    });
+
+    renderCalendar(
+      "/calendar?media=tv&week=2026-09-07&region=GB&type=theatrical&page=2"
+    );
+
+    expect(fetchData).toHaveBeenCalledWith("GET", "/discover/tv", {
+      language: "en-US",
+      page: 2,
+      include_adult: false,
+      sort_by: "first_air_date.asc",
+      "first_air_date.gte": "2026-09-07",
+      "first_air_date.lte": "2026-09-13",
+    });
+    expect(
+      screen.getByRole("button", { name: "TV series" })
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(
+      screen.queryByRole("group", { name: "Release format" })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("combobox", { name: "Release region" })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/tv series use global first-air dates/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "TV premieres" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Monday, September 7, 2026" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Friday, September 11, 2026" })
+    ).toBeInTheDocument();
+    expect(screen.getByText("Monday Series")).toHaveAttribute(
+      "data-media-type",
+      "tv"
+    );
+    expect(fetchCountries).not.toHaveBeenCalled();
+    expect(document.title).toBe("TV Premiere Calendar | M-movie");
+  });
+
   it("keeps valid URL and saved region codes while countries load", () => {
     setFetchHookResults({}, {
       data: undefined,
@@ -270,6 +338,40 @@ describe("Release Calendar", () => {
     expect(window.localStorage.getItem("emmovie_movie_region")).toBe("FR");
   });
 
+  it("stores the media mode in the URL and clears movie-only filters", async () => {
+    renderCalendar(
+      "/calendar?week=2026-09-07&region=GB&type=digital&page=3"
+    );
+
+    userEvent.click(screen.getByRole("button", { name: "TV series" }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("location")).toHaveTextContent("media=tv");
+    });
+    expect(screen.getByTestId("location")).toHaveTextContent(
+      "week=2026-09-07"
+    );
+    expect(screen.getByTestId("location")).toHaveTextContent("region=GB");
+    expect(screen.getByTestId("location")).not.toHaveTextContent("type=");
+    expect(screen.getByTestId("location")).not.toHaveTextContent("page=");
+    expect(fetchData).toHaveBeenLastCalledWith(
+      "GET",
+      "/discover/tv",
+      expect.objectContaining({
+        "first_air_date.gte": "2026-09-07",
+      })
+    );
+
+    userEvent.click(screen.getByRole("button", { name: "Movies" }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("location")).not.toHaveTextContent("media=");
+    });
+    expect(
+      screen.getByRole("group", { name: "Release format" })
+    ).toBeInTheDocument();
+  });
+
   it("uses current regional provider availability for streaming releases", () => {
     renderCalendar(
       "/calendar?week=2026-09-07&region=SG&type=streaming"
@@ -327,5 +429,43 @@ describe("Release Calendar", () => {
     });
     renderCalendar("/calendar?week=2026-09-07");
     expect(screen.getByText("No releases listed for this week")).toBeInTheDocument();
+  });
+
+  it("uses TV-specific error retry and empty states", () => {
+    setFetchHookResults({
+      data: undefined,
+      loading: false,
+      error: new Error("Network error"),
+      fetchData,
+    });
+    const { unmount } = renderCalendar(
+      "/calendar?media=tv&week=2026-09-07"
+    );
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "TV premieres could not be loaded"
+    );
+    userEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(fetchData).toHaveBeenLastCalledWith(
+      "GET",
+      "/discover/tv",
+      expect.objectContaining({
+        "first_air_date.lte": "2026-09-13",
+      })
+    );
+    unmount();
+
+    setFetchHookResults({
+      data: { data: { results: [], total_results: 0, total_pages: 0 } },
+      loading: false,
+      error: false,
+      fetchData,
+    });
+    renderCalendar("/calendar?media=tv&week=2026-09-07");
+
+    expect(
+      screen.getByText("No TV premieres listed for this week")
+    ).toBeInTheDocument();
+    expect(screen.getByText("Try another week.")).toBeInTheDocument();
   });
 });

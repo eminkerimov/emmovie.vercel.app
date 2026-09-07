@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  act,
   render,
   screen,
 } from "@testing-library/react";
@@ -244,5 +245,49 @@ describe("Home discovery and library sections", () => {
 
     const recentlyOpenedCard = screen.getByText("Recently Opened Series");
     expect(recentlyOpenedCard).toHaveAttribute("data-media-type", "tv");
+  });
+
+  it("keeps the current trending hero visible until the next period resolves", async () => {
+    let resolveWeeklyRequest;
+
+    trendingFetch.mockImplementation((method, endpoint) => {
+      if (endpoint.endsWith("/week")) {
+        return new Promise((resolve) => {
+          resolveWeeklyRequest = resolve;
+        });
+      }
+
+      return Promise.resolve({
+        data: { results: [createMovie(1, "Daily Hero")] },
+      });
+    });
+
+    renderHome();
+
+    expect(
+      await screen.findByRole("heading", { name: "Daily Hero" })
+    ).toBeInTheDocument();
+    expect(await screen.findByText("Popular Movie")).toBeInTheDocument();
+
+    userEvent.click(screen.getByRole("button", { name: "This week" }));
+
+    expect(
+      screen.getByRole("heading", { name: "Daily Hero" })
+    ).toBeInTheDocument();
+    expect(screen.getByText("Trending today")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Popular Movie" })
+    ).not.toBeInTheDocument();
+
+    await act(async () => {
+      resolveWeeklyRequest({
+        data: { results: [createMovie(2, "Weekly Hero")] },
+      });
+    });
+
+    expect(
+      await screen.findByRole("heading", { name: "Weekly Hero" })
+    ).toBeInTheDocument();
+    expect(screen.getByText("Trending this week")).toBeInTheDocument();
   });
 });

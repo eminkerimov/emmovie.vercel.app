@@ -50,6 +50,8 @@ const Home = () => {
   const [trendingWindow, setTrendingWindow] = useState("day");
   const [moviesByTab, setMoviesByTab] = useState({});
   const [trendingByWindow, setTrendingByWindow] = useState({});
+  const [lastResolvedTrendingHero, setLastResolvedTrendingHero] =
+    useState(null);
   const [recommendationsByMovie, setRecommendationsByMovie] =
     useState({});
   const catalogRequestIdRef = useRef(0);
@@ -101,10 +103,22 @@ const Home = () => {
           return;
         }
 
+        const nextTrendingMovies = response.data.results;
+        const nextHero = nextTrendingMovies.find(
+          (movie) => movie.backdrop_path
+        );
+
         setTrendingByWindow((current) => ({
           ...current,
-          [trendingWindow]: response.data.results,
+          [trendingWindow]: nextTrendingMovies,
         }));
+
+        if (nextHero) {
+          setLastResolvedTrendingHero({
+            movie: nextHero,
+            window: trendingWindow,
+          });
+        }
       });
 
     return () => {
@@ -203,9 +217,12 @@ const Home = () => {
   const activeMovies = getCardMovies(moviesByTab[activeTab]);
   const trendingMovies =
     trendingByWindow[trendingWindow] || [];
-  const heroMovie =
-    trendingMovies.find((movie) => movie.backdrop_path) ||
-    moviesByTab.popular?.find((movie) => movie.backdrop_path);
+  const activeTrendingHero = trendingMovies.find(
+    (movie) => movie.backdrop_path
+  );
+  const activeHeroSelection = activeTrendingHero
+    ? { movie: activeTrendingHero, window: trendingWindow }
+    : lastResolvedTrendingHero;
   const recentMovies = getCardMovies(recentlyViewed, 4);
   const recommendationMovies = useMemo(() => {
     if (!recommendationSeed) return [];
@@ -232,6 +249,13 @@ const Home = () => {
   const initialCatalogSettled =
     Object.prototype.hasOwnProperty.call(moviesByTab, "popular") ||
     Boolean(catalogRequest.error);
+  const heroMovie =
+    activeHeroSelection?.movie ||
+    (initialTrendingSettled
+      ? moviesByTab.popular?.find((movie) => movie.backdrop_path)
+      : undefined);
+  const displayedTrendingWindow =
+    activeHeroSelection?.window || trendingWindow;
 
   if (
     !heroMovie &&
@@ -309,7 +333,7 @@ const Home = () => {
                   "Date unknown"}
               </span>
               <span>
-                {trendingWindow === "day"
+                {displayedTrendingWindow === "day"
                   ? "Trending today"
                   : "Trending this week"}
               </span>

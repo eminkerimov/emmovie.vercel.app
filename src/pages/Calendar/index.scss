@@ -39,6 +39,40 @@
     text-transform: uppercase;
   }
 
+  &__media {
+    width: fit-content;
+    display: inline-flex;
+    gap: 4px;
+    margin-top: $space-5;
+    padding: 4px;
+    border: 1px solid $color-border;
+    border-radius: $radius-sm;
+    background: $color-surface;
+
+    button {
+      min-height: 44px;
+      border: 0;
+      border-radius: 7px;
+      padding-inline: $space-5;
+      background: transparent;
+      color: $color-text-secondary;
+      font-weight: $font-weight-bold;
+      cursor: pointer;
+      transition:
+        background-color $motion-fast $motion-ease,
+        color $motion-fast $motion-ease;
+
+      &:hover {
+        color: $color-text-primary;
+      }
+
+      &.is-active {
+        background: $color-surface-elevated;
+        color: $color-primary;
+      }
+    }
+  }
+
   &__controls {
     position: relative;
     z-index: 3;
@@ -445,6 +479,15 @@
       padding: $space-4;
     }
 
+    &__media {
+      width: 100%;
+
+      button {
+        min-width: 0;
+        flex: 1;
+      }
+    }
+
     &__week-controls {
       display: grid;
       grid-template-columns: 44px minmax(0, 1fr) 44px;
@@ -506,7 +549,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .release-calendar__types button::after {
+  .release-calendar__types button::after,
+  .release-calendar__media button {
     transition: none;
   }
 }

@@ -222,6 +222,8 @@ const Calendar = () => {
 
   const requestedWeek = searchParams.get("week");
   const requestedRegion = searchParams.get("region");
+  const mediaType = searchParams.get("media") === "tv" ? "tv" : "movie";
+  const isTv = mediaType === "tv";
   const requestedReleaseType = searchParams.get("type") || "all";
   const page = getPage(searchParams.get("page"));
 
@@ -233,11 +235,23 @@ const Calendar = () => {
   const startDate = toDateValue(weekStart);
   const endDate = toDateValue(weekEnd);
   const region = normalizeRegionCode(requestedRegion) || readPreferredRegion();
-  const releaseFilter =
-    RELEASE_FILTERS.find(({ id }) => id === requestedReleaseType) ||
-    RELEASE_FILTERS[0];
+  const releaseFilter = isTv
+    ? RELEASE_FILTERS[0]
+    : RELEASE_FILTERS.find(({ id }) => id === requestedReleaseType) ||
+      RELEASE_FILTERS[0];
 
   const requestParams = useMemo(() => {
+    if (isTv) {
+      return {
+        language: "en-US",
+        page,
+        include_adult: false,
+        sort_by: "first_air_date.asc",
+        "first_air_date.gte": startDate,
+        "first_air_date.lte": endDate,
+      };
+    }
+
     const params = {
       language: "en-US",
       page,
@@ -261,6 +275,7 @@ const Calendar = () => {
     return params;
   }, [
     endDate,
+    isTv,
     page,
     region,
     releaseFilter.monetization,
@@ -269,18 +284,23 @@ const Calendar = () => {
   ]);
 
   useEffect(() => {
-    document.title = "Release Calendar | M-movie";
-  }, []);
+    document.title = isTv
+      ? "TV Premiere Calendar | M-movie"
+      : "Release Calendar | M-movie";
+  }, [isTv]);
 
   useEffect(() => {
-    fetchData("GET", "/discover/movie", requestParams);
-  }, [fetchData, requestParams]);
+    fetchData("GET", `/discover/${mediaType}`, requestParams);
+  }, [fetchData, mediaType, requestParams]);
 
   useEffect(() => {
+    if (isTv) return undefined;
+
     fetchCountries("GET", "/configuration/countries", {
       language: "en-US",
     });
-  }, [fetchCountries]);
+    return undefined;
+  }, [fetchCountries, isTv]);
 
   const configuredRegions = useMemo(
     () => normalizeRegionOptions(countriesData?.data),
@@ -321,22 +341,25 @@ const Calendar = () => {
 
   const releaseGroups = useMemo(() => {
     const groups = new Map();
-    const movies = Array.isArray(data?.data?.results)
+    const titles = Array.isArray(data?.data?.results)
       ? data.data.results
       : [];
+    const dateField = isTv ? "first_air_date" : "release_date";
 
-    movies.forEach((movie) => {
-      if (!parseDate(movie.release_date)) return;
+    titles.forEach((title) => {
+      const releaseDate = title[dateField];
 
-      const group = groups.get(movie.release_date) || [];
-      group.push(movie);
-      groups.set(movie.release_date, group);
+      if (!parseDate(releaseDate)) return;
+
+      const group = groups.get(releaseDate) || [];
+      group.push(title);
+      groups.set(releaseDate, group);
     });
 
     return [...groups.entries()].sort(([firstDate], [secondDate]) =>
       firstDate.localeCompare(secondDate)
     );
-  }, [data]);
+  }, [data, isTv]);
 
   const updateSearch = (updates, resetPage = true) => {
     const nextParams = new URLSearchParams(searchParams);
@@ -374,6 +397,15 @@ const Calendar = () => {
     updateSearch({ type: releaseType === "all" ? "" : releaseType });
   };
 
+  const handleMediaTypeChange = (nextMediaType) => {
+    if (nextMediaType === mediaType) return;
+
+    updateSearch({
+      media: nextMediaType === "tv" ? "tv" : "",
+      type: "",
+    });
+  };
+
   const handlePageChange = (nextPage) => {
     updateSearch({ page: String(nextPage) }, false);
     window.scrollTo?.({ top: 0, behavior: "auto" });
@@ -386,11 +418,35 @@ const Calendar = () => {
           <div>
             <span className="release-calendar__eyebrow">Release schedule</span>
             <h1>Release calendar</h1>
+
+            <div
+              className="release-calendar__media"
+              role="group"
+              aria-label="Calendar media type"
+            >
+              <button
+                type="button"
+                className={!isTv ? "is-active" : ""}
+                aria-pressed={!isTv}
+                onClick={() => handleMediaTypeChange("movie")}
+              >
+                Movies
+              </button>
+              <button
+                type="button"
+                className={isTv ? "is-active" : ""}
+                aria-pressed={isTv}
+                onClick={() => handleMediaTypeChange("tv")}
+              >
+                TV series
+              </button>
+            </div>
           </div>
 
           <p>
-            Browse regional movie premieres one week at a time. Dates and
-            release formats are supplied by TMDB.
+            {isTv
+              ? "Browse series premieres one week at a time, grouped by their first air date on TMDB."
+              : "Browse regional movie premieres one week at a time. Dates and release formats are supplied by TMDB."}
           </p>
         </header>
 
@@ -432,7 +488,8 @@ const Calendar = () => {
             </button>
           </div>
 
-          <div className="release-calendar__region">
+          {!isTv && (
+            <div className="release-calendar__region">
             <label htmlFor="calendar-region">
               <span>Release region</span>
             </label>
@@ -462,14 +519,16 @@ const Calendar = () => {
                 TMDB region list unavailable. Using fallback regions.
               </small>
             )}
-          </div>
+            </div>
+          )}
         </section>
 
-        <div
-          className="release-calendar__types"
-          role="group"
-          aria-label="Release format"
-        >
+        {!isTv && (
+          <div
+            className="release-calendar__types"
+            role="group"
+            aria-label="Release format"
+          >
           {RELEASE_FILTERS.map((filter) => (
             <button
               key={filter.id}
@@ -481,9 +540,17 @@ const Calendar = () => {
               {filter.label}
             </button>
           ))}
-        </div>
+          </div>
+        )}
 
-        {releaseFilter.id === "streaming" && (
+        {isTv && (
+          <p className="release-calendar__filter-note">
+            TV series use global first-air dates, so regional movie release
+            formats do not apply.
+          </p>
+        )}
+
+        {!isTv && releaseFilter.id === "streaming" && (
           <p className="release-calendar__filter-note">
             Streaming filters current subscription availability. Day groups
             still use each movie&apos;s regional release date.
@@ -498,14 +565,14 @@ const Calendar = () => {
             <div>
               <span>Week at a glance</span>
               <h2 id="calendar-schedule-title">
-                {selectedRegionName} releases
+                {isTv ? "TV premieres" : `${selectedRegionName} releases`}
               </h2>
             </div>
 
             {!loading && !error && (
               <p>
                 <strong>{totalResults.toLocaleString()}</strong>{" "}
-                {totalResults === 1 ? "movie" : "movies"}
+                {isTv ? "series" : totalResults === 1 ? "movie" : "movies"}
               </p>
             )}
           </div>
@@ -519,12 +586,16 @@ const Calendar = () => {
           {!loading && error && (
             <div className="release-calendar__state" role="alert">
               <i className="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
-              <h3>Release dates could not be loaded</h3>
+              <h3>
+                {isTv
+                  ? "TV premieres could not be loaded"
+                  : "Release dates could not be loaded"}
+              </h3>
               <p>Check the connection and try the request again.</p>
               <button
                 type="button"
                 onClick={() =>
-                  fetchData("GET", "/discover/movie", requestParams)
+                  fetchData("GET", `/discover/${mediaType}`, requestParams)
                 }
               >
                 Try again
@@ -535,8 +606,16 @@ const Calendar = () => {
           {!loading && !error && releaseGroups.length === 0 && (
             <div className="release-calendar__state">
               <i className="fa-regular fa-calendar-xmark" aria-hidden="true"></i>
-              <h3>No releases listed for this week</h3>
-              <p>Try another week, region, or release format.</p>
+              <h3>
+                {isTv
+                  ? "No TV premieres listed for this week"
+                  : "No releases listed for this week"}
+              </h3>
+              <p>
+                {isTv
+                  ? "Try another week."
+                  : "Try another week, region, or release format."}
+              </p>
             </div>
           )}
 
@@ -564,7 +643,13 @@ const Calendar = () => {
                         </h3>
                         <p>
                           {dayMovies.length}{" "}
-                          {dayMovies.length === 1 ? "release" : "releases"}
+                          {isTv
+                            ? dayMovies.length === 1
+                              ? "premiere"
+                              : "premieres"
+                            : dayMovies.length === 1
+                              ? "release"
+                              : "releases"}
                         </p>
                       </div>
                     </header>
@@ -572,10 +657,15 @@ const Calendar = () => {
                     <div className="release-calendar__grid">
                       {dayMovies.map((movie) => (
                         <MovieCard
-                          key={movie.id}
+                          key={`${mediaType}-${movie.id}`}
                           {...movie}
-                          isFavorite={isInWatchlist?.(movie.id) || false}
-                          isWatched={isWatched?.(movie.id) || false}
+                          media_type={mediaType}
+                          isFavorite={
+                            isInWatchlist?.(movie.id, mediaType) || false
+                          }
+                          isWatched={
+                            isWatched?.(movie.id, mediaType) || false
+                          }
                           onToggleFavorite={toggleWatchlist}
                           onToggleWatched={toggleWatched}
                         />

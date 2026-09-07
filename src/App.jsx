@@ -15,6 +15,7 @@ import ScrollToTop from "./helpers/ScrollToTop";
 
 const Home = lazy(() => import("./pages/Home/Home"));
 const Movie = lazy(() => import("./pages/Movie/Movie"));
+const TvSeason = lazy(() => import("./pages/TvSeason/TvSeason"));
 const Movies = lazy(() => import("./pages/Movies/Movies"));
 const Person = lazy(() => import("./pages/Person/Person"));
 const Search = lazy(() => import("./pages/Search/Search"));
@@ -23,6 +24,7 @@ const Watchlist = lazy(() => import("./pages/Watchlist"));
 const Calendar = lazy(() => import("./pages/Calendar"));
 const Collection = lazy(() => import("./pages/Collection"));
 const Company = lazy(() => import("./pages/Company"));
+const Network = lazy(() => import("./pages/Network"));
 const NotFound = lazy(() => import("./pages/NotFound/NotFound"));
 
 const getPageTitle = (pathname) => {
@@ -33,10 +35,14 @@ const getPageTitle = (pathname) => {
   if (pathname === "/search") return "Search | M-movie";
   if (pathname === "/movies") return "Movies | M-movie";
   if (pathname.startsWith("/movie/")) return "Movie Details | M-movie";
+  if (/^\/tv\/[^/]+\/season\/[^/]+\/?$/.test(pathname)) {
+    return "Season Details | M-movie";
+  }
   if (pathname.startsWith("/tv/")) return "Series Details | M-movie";
   if (pathname.startsWith("/person/")) return "Person Details | M-movie";
   if (pathname.startsWith("/collection/")) return "Collection | M-movie";
   if (pathname.startsWith("/company/")) return "Production Company | M-movie";
+  if (pathname.startsWith("/network/")) return "TV Network | M-movie";
 
   return "Page Not Found | M-movie";
 };
@@ -84,10 +90,15 @@ const AppContent = () => {
                 <Route path="/search" element={<Search />} />
                 <Route path="/movies" element={<Movies />} />
                 <Route path="/movie/:id" element={<Movie />} />
+                <Route
+                  path="/tv/:id/season/:seasonNumber"
+                  element={<TvSeason />}
+                />
                 <Route path="/tv/:id" element={<Movie />} />
                 <Route path="/person/:id" element={<Person />} />
                 <Route path="/collection/:id" element={<Collection />} />
                 <Route path="/company/:id" element={<Company />} />
+                <Route path="/network/:id" element={<Network />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>

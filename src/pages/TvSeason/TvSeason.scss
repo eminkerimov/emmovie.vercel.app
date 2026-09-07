@@ -1,0 +1,545 @@
+@import "../../styles/variables";
+
+.tv-season-page {
+  min-height: 100vh;
+  background: #050b10;
+  color: $color-text-primary;
+}
+
+.tv-season-page--state {
+  min-height: calc(100vh - 80px);
+  display: grid;
+  place-items: center;
+}
+
+.tv-season-page__state {
+  display: grid;
+  justify-items: center;
+  gap: $space-3;
+  padding-block: $space-20;
+  text-align: center;
+
+  h1,
+  p {
+    margin: 0;
+  }
+
+  h1 {
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+  }
+
+  p {
+    color: $color-text-secondary;
+  }
+
+  a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    margin-top: $space-3;
+    color: $color-link;
+    font-weight: $font-weight-bold;
+    text-decoration: none;
+  }
+}
+
+.tv-season-page__state-mark {
+  width: 54px;
+  height: 3px;
+  overflow: hidden;
+  background: rgba(237, 200, 116, 0.16);
+
+  &::after {
+    width: 42%;
+    height: 100%;
+    display: block;
+    background: var(--movie-accent, #edc874);
+    animation: tv-season-loading 900ms $motion-ease infinite alternate;
+    content: "";
+  }
+}
+
+.tv-season-hero {
+  min-height: 530px;
+  padding: $space-8 0 $space-16;
+  border-bottom: 1px solid rgba(230, 238, 243, 0.11);
+  background-color: #071017;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.tv-season-hero__back {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: $space-3;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  text-decoration: none;
+  transition:
+    color $motion-fast $motion-ease,
+    transform $motion-fast $motion-ease;
+
+  &:hover,
+  &:focus-visible {
+    color: #edc874;
+    transform: translateX(-3px);
+  }
+}
+
+.tv-season-hero__layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 720px);
+  align-items: center;
+  gap: $space-14;
+  margin-top: $space-10;
+}
+
+.tv-season-hero__poster {
+  overflow: hidden;
+  aspect-ratio: 2 / 3;
+  border: 1px solid rgba(245, 247, 250, 0.15);
+  border-radius: $radius-sm;
+  background: #10242d;
+  box-shadow: $shadow-card;
+
+  img,
+  > span {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    object-fit: cover;
+  }
+
+  > span {
+    color: rgba(170, 183, 194, 0.5);
+    font-size: 2rem;
+  }
+}
+
+.tv-season-hero__content {
+  min-width: 0;
+
+  h1 {
+    margin: $space-2 0 $space-4;
+    font-size: clamp(2.8rem, 6vw, 4.8rem);
+    line-height: 0.98;
+    letter-spacing: -0.05em;
+  }
+
+  > p {
+    max-width: 62ch;
+    margin: $space-6 0 0;
+    color: rgba(245, 247, 250, 0.76);
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+}
+
+.tv-season-hero__eyebrow {
+  color: #edc874;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-extra-bold;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.tv-season-hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-4;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+
+  span + span::before {
+    margin-right: $space-4;
+    color: rgba(170, 183, 194, 0.45);
+    content: "•";
+  }
+}
+
+.tv-season-hero__progress-panel {
+  max-width: 540px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: $space-3 $space-5;
+  margin-top: $space-8;
+  padding-top: $space-5;
+  border-top: 1px solid rgba(245, 247, 250, 0.12);
+
+  > div {
+    display: flex;
+    justify-content: space-between;
+    gap: $space-4;
+    color: $color-text-secondary;
+    font-size: $font-size-sm;
+
+    strong {
+      color: $color-text-primary;
+    }
+  }
+
+  button {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    min-height: 44px;
+    padding: 0 $space-4;
+    border: 1px solid rgba(237, 200, 116, 0.34);
+    border-radius: $radius-sm;
+    background: rgba(237, 200, 116, 0.08);
+    color: #edc874;
+    font: inherit;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-bold;
+    cursor: pointer;
+    transition:
+      border-color $motion-fast $motion-ease,
+      background-color $motion-fast $motion-ease;
+
+    &:hover,
+    &:focus-visible {
+      border-color: rgba(237, 200, 116, 0.62);
+      background: rgba(237, 200, 116, 0.13);
+    }
+  }
+}
+
+.tv-season-hero__progress {
+  height: 4px;
+  display: block;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(170, 183, 194, 0.16);
+
+  > span {
+    width: var(--season-progress);
+    height: 100%;
+    display: block;
+    border-radius: inherit;
+    background: #edc874;
+    transition: width $motion-base $motion-ease;
+  }
+}
+
+.tv-season-episodes {
+  padding: $space-20 0;
+  background: linear-gradient(180deg, #08141b 0%, #050b10 100%);
+}
+
+.tv-season-episodes__heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: $space-6;
+  margin-bottom: $space-8;
+  padding-bottom: $space-5;
+  border-bottom: 1px solid rgba(230, 238, 243, 0.11);
+
+  span {
+    color: #edc874;
+    font-size: 10px;
+    font-weight: $font-weight-extra-bold;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  h2,
+  p {
+    margin: 0;
+  }
+
+  h2 {
+    margin-top: $space-1;
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+    letter-spacing: -0.04em;
+  }
+
+  p {
+    color: $color-text-secondary;
+    font-size: $font-size-sm;
+  }
+}
+
+.tv-season-episodes__list {
+  display: grid;
+  gap: $space-4;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tv-episode-card {
+  display: grid;
+  grid-template-columns: minmax(240px, 340px) minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid rgba(230, 238, 243, 0.11);
+  border-radius: $radius-sm;
+  background: #0a171f;
+  transition:
+    border-color $motion-base $motion-ease,
+    background-color $motion-base $motion-ease;
+
+  &.is-watched {
+    border-color: rgba(120, 215, 244, 0.28);
+    background: #0b1b24;
+  }
+}
+
+.tv-episode-card__still {
+  position: relative;
+  min-height: 190px;
+  overflow: hidden;
+  background: #10242d;
+
+  img,
+  > span {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    object-fit: cover;
+  }
+
+  > span {
+    color: rgba(170, 183, 194, 0.5);
+    font-size: 1.8rem;
+  }
+
+  > strong {
+    position: absolute;
+    left: $space-4;
+    bottom: $space-4;
+    min-width: 38px;
+    min-height: 32px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(245, 247, 250, 0.14);
+    border-radius: 6px;
+    background: rgba(5, 11, 16, 0.88);
+    color: $color-text-primary;
+    font-size: $font-size-xs;
+  }
+}
+
+.tv-episode-card__content {
+  min-width: 0;
+  padding: $space-5 $space-6;
+
+  > p {
+    display: -webkit-box;
+    margin: $space-4 0 0;
+    overflow: hidden;
+    color: rgba(245, 247, 250, 0.7);
+    font-size: $font-size-sm;
+    line-height: 1.6;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+}
+
+.tv-episode-card__title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $space-5;
+
+  > div > span {
+    color: #edc874;
+    font-size: 10px;
+    font-weight: $font-weight-bold;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  h3 {
+    margin: $space-1 0 0;
+    font-size: clamp(1.15rem, 2vw, 1.45rem);
+    line-height: 1.2;
+  }
+
+  button {
+    min-width: 132px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-2;
+    padding: 0 $space-4;
+    border: 1px solid rgba(245, 247, 250, 0.14);
+    border-radius: $radius-sm;
+    background: transparent;
+    color: $color-text-secondary;
+    font: inherit;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-bold;
+    cursor: pointer;
+    transition:
+      border-color $motion-fast $motion-ease,
+      background-color $motion-fast $motion-ease,
+      color $motion-fast $motion-ease;
+
+    &:hover,
+    &:focus-visible {
+      border-color: rgba(120, 215, 244, 0.4);
+      color: $color-text-primary;
+    }
+
+    &.is-active {
+      border-color: rgba(120, 215, 244, 0.3);
+      background: rgba(120, 215, 244, 0.09);
+      color: #78d7f4;
+    }
+  }
+}
+
+.tv-episode-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-3;
+  margin-top: $space-3;
+  color: $color-text-secondary;
+  font-size: 11px;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  i {
+    color: #edc874;
+  }
+}
+
+.tv-season-episodes__empty {
+  min-height: 220px;
+  display: grid;
+  place-content: center;
+  gap: $space-2;
+  border: 1px solid rgba(230, 238, 243, 0.11);
+  border-radius: $radius-sm;
+  background: #0a171f;
+  text-align: center;
+
+  h3,
+  p {
+    margin: 0;
+  }
+
+  p {
+    color: $color-text-secondary;
+  }
+}
+
+@keyframes tv-season-loading {
+  to {
+    transform: translateX(140%);
+  }
+}
+
+@media (max-width: $breakpoint-tablet) {
+  .tv-season-hero__layout {
+    grid-template-columns: 190px minmax(0, 1fr);
+    gap: $space-10;
+  }
+
+  .tv-episode-card {
+    grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+  }
+}
+
+@media (max-width: $breakpoint-tablet-small) {
+  .tv-season-hero {
+    min-height: 0;
+    padding-bottom: $space-12;
+  }
+
+  .tv-season-hero__layout {
+    grid-template-columns: 150px minmax(0, 1fr);
+    align-items: start;
+    gap: $space-7;
+  }
+
+  .tv-season-hero__content h1 {
+    font-size: clamp(2.4rem, 8vw, 3.4rem);
+  }
+
+  .tv-episode-card {
+    grid-template-columns: minmax(190px, 250px) minmax(0, 1fr);
+  }
+}
+
+@media (max-width: $breakpoint-sm) {
+  .tv-season-hero__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .tv-season-hero__poster {
+    width: 150px;
+  }
+
+  .tv-season-hero__progress-panel {
+    grid-template-columns: 1fr;
+
+    button {
+      grid-column: auto;
+      grid-row: auto;
+      width: 100%;
+    }
+  }
+
+  .tv-season-episodes {
+    padding-block: $space-14;
+  }
+
+  .tv-episode-card {
+    grid-template-columns: 1fr;
+  }
+
+  .tv-episode-card__still {
+    min-height: 0;
+    aspect-ratio: 16 / 9;
+  }
+}
+
+@media (max-width: $breakpoint-mobile) {
+  .tv-season-episodes__heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: $space-2;
+  }
+
+  .tv-episode-card__content {
+    padding: $space-5;
+  }
+
+  .tv-episode-card__title-row {
+    flex-direction: column;
+
+    button {
+      width: 100%;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tv-season-page__state-mark::after {
+    animation: none;
+  }
+
+  .tv-season-hero__back,
+  .tv-season-hero__progress > span,
+  .tv-episode-card,
+  .tv-episode-card__title-row button {
+    transition: none;
+  }
+
+  .tv-season-hero__back:hover,
+  .tv-season-hero__back:focus-visible {
+    transform: none;
+  }
+}

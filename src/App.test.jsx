@@ -23,6 +23,9 @@ jest.mock("./pages/Movies/Movies", () => () => (
 jest.mock("./pages/Movie/Movie", () => () => (
   <div data-testid="route-movie">Movie route</div>
 ));
+jest.mock("./pages/TvSeason/TvSeason", () => () => (
+  <div data-testid="route-tv-season">TV season route</div>
+));
 jest.mock("./pages/Person/Person", () => () => (
   <div data-testid="route-person">Person route</div>
 ));
@@ -31,6 +34,9 @@ jest.mock("./pages/Collection", () => () => (
 ));
 jest.mock("./pages/Company", () => () => (
   <div data-testid="route-company">Company route</div>
+));
+jest.mock("./pages/Network", () => () => (
+  <div data-testid="route-network">Network route</div>
 ));
 jest.mock("./pages/NotFound/NotFound", () => () => (
   <div data-testid="route-not-found">Not found route</div>
@@ -46,9 +52,11 @@ describe("main routes", () => {
     ["/movies", "route-movies"],
     ["/movie/550", "route-movie"],
     ["/tv/1399", "route-movie"],
+    ["/tv/1399/season/2", "route-tv-season"],
     ["/person/287", "route-person"],
     ["/collection/10", "route-collection"],
     ["/company/42", "route-company"],
+    ["/network/49", "route-network"],
     ["/missing-page", "route-not-found"],
   ])("renders %s", async (path, testId) => {
     window.history.pushState({}, "", path);

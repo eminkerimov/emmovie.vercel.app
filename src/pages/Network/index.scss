@@ -1,0 +1,13 @@
+.network-page__country {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  img {
+    width: 30px;
+    height: 22px;
+    border-radius: 3px;
+    object-fit: cover;
+    box-shadow: 0 0 0 1px rgba(170, 183, 194, 0.22);
+  }
+}

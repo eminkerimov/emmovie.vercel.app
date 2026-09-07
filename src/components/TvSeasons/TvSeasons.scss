@@ -1,0 +1,209 @@
+@import "../../styles/variables";
+
+.movie-tv-seasons {
+  padding: $space-20 0;
+  border-block: 1px solid var(--movie-line);
+  background: #08141b;
+}
+
+.movie-tv-seasons__heading {
+  p {
+    flex: 0 0 auto;
+    margin: 0 0 7px;
+    color: $color-text-secondary;
+    font-size: $font-size-sm;
+  }
+}
+
+.movie-tv-seasons__grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: $space-5;
+}
+
+.movie-tv-season-card {
+  min-width: 0;
+
+  > a {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--movie-line);
+    border-radius: $radius-sm;
+    background: var(--movie-surface);
+    color: $color-text-primary;
+    text-decoration: none;
+    transition:
+      border-color $motion-base $motion-ease,
+      transform $motion-base $motion-ease,
+      box-shadow $motion-base $motion-ease;
+
+    &:hover,
+    &:focus-visible {
+      border-color: rgba(237, 200, 116, 0.35);
+      box-shadow: $shadow-card-hover;
+      transform: translateY(-4px);
+    }
+  }
+}
+
+.movie-tv-season-card__poster {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 2 / 3;
+  background: var(--movie-surface-raised);
+
+  img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    transition: transform 360ms $motion-ease;
+  }
+
+  .movie-tv-season-card:hover & img {
+    transform: scale(1.025);
+  }
+
+  > span {
+    position: absolute;
+    right: $space-3;
+    bottom: $space-3;
+    min-height: 28px;
+    display: inline-flex;
+    align-items: center;
+    padding-inline: $space-3;
+    border: 1px solid rgba(245, 247, 250, 0.14);
+    border-radius: 999px;
+    background: rgba(5, 11, 16, 0.88);
+    color: rgba(245, 247, 250, 0.88);
+    font-size: 11px;
+    font-weight: $font-weight-bold;
+  }
+}
+
+.movie-tv-season-card__content {
+  display: grid;
+  gap: $space-3;
+  padding: $space-4;
+
+  > div:first-child {
+    min-width: 0;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: $space-3;
+  }
+
+  h3 {
+    margin: 0;
+    overflow: hidden;
+    font-size: $font-size-sm;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  > div:first-child > span {
+    color: $color-text-secondary;
+    font-size: 11px;
+  }
+}
+
+.movie-tv-season-card__progress-copy {
+  display: flex;
+  justify-content: space-between;
+  gap: $space-2;
+  color: $color-text-secondary;
+  font-size: 10px;
+
+  strong {
+    color: var(--movie-accent);
+    font-weight: $font-weight-bold;
+  }
+}
+
+.movie-tv-season-card__progress {
+  height: 3px;
+  display: block;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(170, 183, 194, 0.16);
+
+  > span {
+    width: var(--season-progress);
+    height: 100%;
+    display: block;
+    border-radius: inherit;
+    background: var(--movie-accent);
+    transition: width $motion-base $motion-ease;
+  }
+}
+
+.movie-tv-seasons__toggle {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: $space-8 auto 0;
+  padding: 0 $space-5;
+  border: 1px solid rgba(245, 247, 250, 0.16);
+  border-radius: $radius-sm;
+  background: transparent;
+  color: $color-text-primary;
+  font: inherit;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  cursor: pointer;
+  transition:
+    border-color $motion-fast $motion-ease,
+    background-color $motion-fast $motion-ease;
+
+  &:hover,
+  &:focus-visible {
+    border-color: rgba(237, 200, 116, 0.42);
+    background: rgba(237, 200, 116, 0.07);
+  }
+}
+
+@media (max-width: $breakpoint-desktop) {
+  .movie-tv-seasons__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: $breakpoint-tablet-small) {
+  .movie-tv-seasons {
+    padding-block: $space-16;
+  }
+
+  .movie-tv-seasons__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: $breakpoint-sm) {
+  .movie-tv-seasons__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: $space-4;
+  }
+
+  .movie-tv-seasons__heading p {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .movie-tv-season-card > a,
+  .movie-tv-season-card__poster img,
+  .movie-tv-season-card__progress > span {
+    transition: none;
+  }
+
+  .movie-tv-season-card > a:hover,
+  .movie-tv-season-card > a:focus-visible,
+  .movie-tv-season-card:hover .movie-tv-season-card__poster img {
+    transform: none;
+  }
+}

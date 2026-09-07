@@ -12,6 +12,7 @@ import MovieMain from "../../components/MovieMain/MovieMain";
 import MovieCredits from "../../components/MovieCredits/MovieCredits";
 import MovieBackdrops from "../../components/MovieBackdrops/MovieBackdrops";
 import MovieMedia from "../../components/MovieMedia/MovieMedia";
+import TvSeasons from "../../components/TvSeasons/TvSeasons";
 import MovieAvailability from "./MovieAvailability";
 import MovieCollection from "./MovieCollection";
 import useMovieCollection from "./useMovieCollection";
@@ -190,6 +191,19 @@ const Movie = () => {
         title: isTv ? "Episode runtime" : "Runtime",
         value: data.runtime ? `${data.runtime} min` : "—",
       },
+      ...(isTv && data.networks?.length
+        ? [
+            {
+              title: "Networks",
+              value: formatList(data.networks, "name", 3),
+              links: data.networks?.slice(0, 3).map((network) => ({
+                id: network.id,
+                label: network.name,
+                to: `/network/${network.id}`,
+              })),
+            },
+          ]
+        : []),
       {
         title: "Production Companies",
         value: formatList(data.production_companies, "name", 3),
@@ -295,6 +309,7 @@ const Movie = () => {
         mediaType={mediaType}
       />
       <Overview data={data} detailsData={detailsData} />
+      {isTv && <TvSeasons data={data} />}
       <MovieBackdrops imagesRequest={imagesRequest} title={data.title} />
       <MovieCredits request={details} />
       <MovieAvailability
