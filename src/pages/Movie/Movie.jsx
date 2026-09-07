@@ -1,11 +1,10 @@
 import React, { useEffect, useMemo } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useLocation, useParams, useSearchParams } from "react-router-dom";
 import useFetch from "../../helpers/useFetch.js";
 import useWatchlist from "../../hooks/useWatchlist.jsx";
 import useRecentlyViewed from "../../hooks/useRecentlyViewed.jsx";
 import { API_KEY } from "../../helpers/baseURL.js";
 import "./Movie.scss";
-import Loading from "../../components/Loading/Loading";
 import Reviews from "../../components/Reviews/Reviews";
 import Related from "../../components/Related/Related";
 import Overview from "../../components/Overview/Overview";
@@ -16,6 +15,7 @@ import MovieMedia from "../../components/MovieMedia/MovieMedia";
 import MovieAvailability from "./MovieAvailability";
 import MovieCollection from "./MovieCollection";
 import useMovieCollection from "./useMovieCollection";
+import { MoviePageSkeleton } from "../../components/Skeletons/PageSkeletons";
 import {
   getRelatedSelection,
   selectFeaturedVideo,
@@ -57,8 +57,7 @@ const normalizeTvRequest = (request) => {
       ...request.data,
       results: request.data.results.map((title) => ({
         ...normalizeTvTitle(title),
-        detailsPath: `/movie/${title.id}?media=tv`,
-        libraryDisabled: true,
+        detailsPath: `/tv/${title.id}`,
       })),
     },
   };
@@ -66,8 +65,12 @@ const normalizeTvRequest = (request) => {
 
 const Movie = () => {
   const { id } = useParams();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
-  const mediaType = searchParams.get("media") === "tv" ? "tv" : "movie";
+  const mediaType =
+    location.pathname.startsWith("/tv/") || searchParams.get("media") === "tv"
+      ? "tv"
+      : "movie";
   const isTv = mediaType === "tv";
 
   const details = useFetch(
@@ -111,6 +114,7 @@ const Movie = () => {
     watchlist,
     toggleWatchlist: toggleStoredMovie,
     toggleWatched: toggleStoredWatched,
+    isInWatchlist,
     isWatched,
   } = useWatchlist();
   const { addRecentlyViewed } = useRecentlyViewed();
@@ -122,7 +126,12 @@ const Movie = () => {
         : movieRequest.data,
     [isTv, movieRequest.data]
   );
-  const movieIsWatched = !isTv && data ? isWatched(data.id) : false;
+  const titleIsFavorite = data
+    ? isInWatchlist?.(data.id, mediaType) || false
+    : false;
+  const titleIsWatched = data
+    ? isWatched?.(data.id, mediaType) || false
+    : false;
   const collectionRequest = useMovieCollection(
     isTv ? null : data?.belongs_to_collection?.id
   );
@@ -208,12 +217,12 @@ const Movie = () => {
   useEffect(() => {
     if (data?.title) {
       document.title = `${data.title} | M-movie`;
-      if (!isTv) addRecentlyViewed(data);
+      addRecentlyViewed(data);
     }
-  }, [addRecentlyViewed, data, isTv]);
+  }, [addRecentlyViewed, data]);
 
   const toggleWatchlist = () => {
-    if (!data || isTv) return;
+    if (!data) return;
 
     const movie = {
       id: data.id,
@@ -222,13 +231,14 @@ const Movie = () => {
       overview: data.overview,
       vote_average: data.vote_average,
       release_date: data.release_date,
+      ...(isTv ? { media_type: "tv" } : {}),
     };
 
     toggleStoredMovie(movie);
   };
 
   const toggleWatched = () => {
-    if (!data || isTv) return;
+    if (!data) return;
 
     toggleStoredWatched({
       id: data.id,
@@ -237,14 +247,15 @@ const Movie = () => {
       overview: data.overview,
       vote_average: data.vote_average,
       release_date: data.release_date,
+      ...(isTv ? { media_type: "tv" } : {}),
     });
   };
 
   if (movieRequest.loading) {
     return (
-      <main className="page-state">
-        <Loading />
-      </main>
+      <MoviePageSkeleton
+        transitionName={`detail-poster-${mediaType}-${id}`}
+      />
     );
   }
 
@@ -276,10 +287,11 @@ const Movie = () => {
         data={data}
         details={details}
         videos={videos}
-        watchlist={isTv ? [] : watchlist}
-        isWatched={movieIsWatched}
-        toggleWatchlist={isTv ? undefined : toggleWatchlist}
-        toggleWatched={isTv ? undefined : toggleWatched}
+        watchlist={watchlist}
+        isFavorite={titleIsFavorite}
+        isWatched={titleIsWatched}
+        toggleWatchlist={toggleWatchlist}
+        toggleWatched={toggleWatched}
         mediaType={mediaType}
       />
       <Overview data={data} detailsData={detailsData} />
@@ -313,6 +325,7 @@ const Movie = () => {
       <Related
         {...relatedSelection}
         watchlist={watchlist}
+        isInWatchlist={isInWatchlist}
         toggleWatchlist={toggleStoredMovie}
         toggleWatched={toggleStoredWatched}
         isWatched={isWatched}

@@ -186,7 +186,6 @@ const Reviews = ({
                                 aria-hidden="true"
                               ></i>
                               {rating ?? "N/A"}
-                              <small>/10</small>
                             </span>
                           </div>
                         </header>

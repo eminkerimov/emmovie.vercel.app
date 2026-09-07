@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import Loading from "../../components/Loading/Loading";
 import MovieCard from "../../components/MovieCard/MovieCard";
+import ProgressiveImage from "../../components/ProgressiveImage/ProgressiveImage";
+import { PersonPageSkeleton } from "../../components/Skeletons/PageSkeletons";
 import useWatchlist from "../../hooks/useWatchlist";
 import Default from "../../images/Default.jpg";
 import {
@@ -185,6 +186,21 @@ const sortCredits = (credits, sortBy) => {
   return sortedCredits;
 };
 
+const getCareerTimeline = (credits) => {
+  const creditsByYear = new Map();
+
+  credits.forEach((credit) => {
+    const year = Number.parseInt(credit.release_date?.slice(0, 4), 10);
+
+    if (!Number.isFinite(year)) return;
+    creditsByYear.set(year, (creditsByYear.get(year) || 0) + 1);
+  });
+
+  return Array.from(creditsByYear, ([year, count]) => ({ year, count })).sort(
+    (first, second) => first.year - second.year
+  );
+};
+
 const SOCIAL_PROFILES = [
   {
     key: "instagram_id",
@@ -239,14 +255,15 @@ const Person = () => {
   const [creditMediaType, setCreditMediaType] = useState("all");
   const [creditSort, setCreditSort] = useState("latest");
   const [creditDecade, setCreditDecade] = useState("all");
+  const [creditYear, setCreditYear] = useState("all");
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [visibleCreditCount, setVisibleCreditCount] = useState(
     INITIAL_CREDIT_COUNT
   );
   const {
-    watchlist,
     toggleWatchlist,
     toggleWatched,
+    isInWatchlist,
     isWatched,
   } = useWatchlist();
 
@@ -272,6 +289,7 @@ const Person = () => {
       setCreditMediaType("all");
       setCreditSort("latest");
       setCreditDecade("all");
+      setCreditYear("all");
       setLightboxOpen(false);
       setVisibleCreditCount(INITIAL_CREDIT_COUNT);
       thumbnailRefs.current = [];
@@ -429,10 +447,20 @@ const Person = () => {
         .map((year) => Math.floor(year / 10) * 10)
     )
   ).sort((a, b) => b - a);
+  const careerTimeline = getCareerTimeline(mediaCredits);
+  const maxCreditsInYear = Math.max(
+    ...careerTimeline.map((entry) => entry.count),
+    1
+  );
   const filteredCredits = mediaCredits.filter((credit) => {
+    const releaseYear = Number.parseInt(credit.release_date?.slice(0, 4), 10);
+
+    if (creditYear !== "all") {
+      return releaseYear === Number(creditYear);
+    }
+
     if (creditDecade === "all") return true;
 
-    const releaseYear = Number.parseInt(credit.release_date?.slice(0, 4), 10);
     return Math.floor(releaseYear / 10) * 10 === Number(creditDecade);
   });
   const sortedCredits = sortCredits(filteredCredits, creditSort);
@@ -518,12 +546,14 @@ const Person = () => {
     setActiveCreditType(type);
     setCreditMediaType("all");
     setCreditDecade("all");
+    setCreditYear("all");
     setVisibleCreditCount(INITIAL_CREDIT_COUNT);
   };
 
   const changeCreditMediaType = (event) => {
     setCreditMediaType(event.target.value);
     setCreditDecade("all");
+    setCreditYear("all");
     setVisibleCreditCount(INITIAL_CREDIT_COUNT);
   };
 
@@ -534,6 +564,13 @@ const Person = () => {
 
   const changeCreditDecade = (event) => {
     setCreditDecade(event.target.value);
+    setCreditYear("all");
+    setVisibleCreditCount(INITIAL_CREDIT_COUNT);
+  };
+
+  const changeCreditYear = (year) => {
+    setCreditYear(String(year));
+    setCreditDecade("all");
     setVisibleCreditCount(INITIAL_CREDIT_COUNT);
   };
 
@@ -607,11 +644,7 @@ const Person = () => {
   };
 
   if (loading) {
-    return (
-      <main className="page-state">
-        <Loading />
-      </main>
-    );
+    return <PersonPageSkeleton />;
   }
 
   if (error) {
@@ -665,7 +698,7 @@ const Person = () => {
 
           <div className="person-hero__dossier">
             <div className="person-hero__portrait">
-              <img
+              <ProgressiveImage
                 src={
                   person.profile_path
                     ? POSTER_API + person.profile_path
@@ -782,7 +815,7 @@ const Person = () => {
 
             <div className="person-featured__grid">
               {knownForCredits.map((movie) => {
-                const isMovie = movie.media_type !== "tv";
+                const mediaType = movie.media_type || "movie";
 
                 return (
                   <div
@@ -791,22 +824,12 @@ const Person = () => {
                   >
                     <MovieCard
                       {...movie}
-                      detailsPath={
-                        isMovie
-                          ? undefined
-                          : `/movie/${movie.id}?media=tv`
-                      }
                       isFavorite={
-                        isMovie &&
-                        watchlist.some(
-                          (watchlistMovie) => watchlistMovie.id === movie.id
-                        )
+                        isInWatchlist?.(movie.id, mediaType) || false
                       }
-                      isWatched={
-                        isMovie && (isWatched?.(movie.id) || false)
-                      }
-                      onToggleFavorite={isMovie ? toggleWatchlist : undefined}
-                      onToggleWatched={isMovie ? toggleWatched : undefined}
+                      isWatched={isWatched?.(movie.id, mediaType) || false}
+                      onToggleFavorite={toggleWatchlist}
+                      onToggleWatched={toggleWatched}
                     />
                     {movie.creditRole && (
                       <p className="person-featured__role">
@@ -834,7 +857,7 @@ const Person = () => {
               {upcomingCredits.map((movie) => {
                 const detailsPath =
                   movie.media_type === "tv"
-                    ? `/movie/${movie.id}?media=tv`
+                    ? `/tv/${movie.id}`
                     : `/movie/${movie.id}`;
 
                 return (
@@ -843,7 +866,7 @@ const Person = () => {
                     key={`${movie.media_type}-${movie.id}`}
                     to={detailsPath}
                   >
-                    <img
+                    <ProgressiveImage
                       src={
                         movie.poster_path
                           ? POSTER_API + movie.poster_path
@@ -942,7 +965,7 @@ const Person = () => {
                         aria-label={`Open portrait ${index + 1} fullscreen`}
                         tabIndex={isActivePhoto ? 0 : -1}
                       >
-                        <img
+                        <ProgressiveImage
                           className="person-gallery__image"
                           src={POSTER_API + photo.file_path}
                           alt={
@@ -1062,25 +1085,28 @@ const Person = () => {
             {activeCredits.length > 0 && (
               <div className="person-known__controls">
                 {castCredits.length > 0 && crewCredits.length > 0 && (
-                  <div
-                    className="person-known__switch"
-                    role="group"
-                    aria-label="Filmography category"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => changeCreditType("cast")}
-                      aria-pressed={activeCreditType === "cast"}
+                  <div className="person-known__role-filter">
+                    <span>Role</span>
+                    <div
+                      className="person-known__switch"
+                      role="group"
+                      aria-label="Filmography category"
                     >
-                      Acting
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => changeCreditType("crew")}
-                      aria-pressed={activeCreditType === "crew"}
-                    >
-                      Crew
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => changeCreditType("cast")}
+                        aria-pressed={activeCreditType === "cast"}
+                      >
+                        Acting
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => changeCreditType("crew")}
+                        aria-pressed={activeCreditType === "crew"}
+                      >
+                        Crew
+                      </button>
+                    </div>
                   </div>
                 )}
 
@@ -1135,11 +1161,51 @@ const Person = () => {
             )}
           </div>
 
+          {careerTimeline.length > 1 && (
+            <section className="person-career" aria-labelledby="person-career-title">
+              <header className="person-career__header">
+                <div>
+                  <span>Career pulse</span>
+                  <h3 id="person-career-title">Work by year</h3>
+                </div>
+                {creditYear !== "all" && (
+                  <button type="button" onClick={() => changeCreditYear("all") }>
+                    Show all years
+                  </button>
+                )}
+              </header>
+
+              <div
+                className="person-career__chart"
+                role="group"
+                aria-labelledby="person-career-title"
+              >
+                {careerTimeline.map(({ year, count }) => (
+                  <button
+                    type="button"
+                    className={creditYear === String(year) ? "is-active" : ""}
+                    key={year}
+                    aria-pressed={creditYear === String(year)}
+                    aria-label={`${year}: ${count} ${count === 1 ? "credit" : "credits"}`}
+                    onClick={() => changeCreditYear(year)}
+                  >
+                    <span
+                      className="person-career__bar"
+                      style={{ "--career-value": count / maxCreditsInYear }}
+                      aria-hidden="true"
+                    ></span>
+                    <span className="person-career__year">{year}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
           {sortedCredits.length > 0 ? (
             <>
               <div className="person-known__grid">
                 {visibleCredits.map((movie) => {
-                  const isMovie = movie.media_type !== "tv";
+                  const mediaType = movie.media_type || "movie";
 
                   return (
                     <div
@@ -1148,26 +1214,12 @@ const Person = () => {
                     >
                       <MovieCard
                         {...movie}
-                        detailsPath={
-                          isMovie
-                            ? undefined
-                            : `/movie/${movie.id}?media=tv`
-                        }
                         isFavorite={
-                          isMovie &&
-                          watchlist.some(
-                            (watchlistMovie) => watchlistMovie.id === movie.id
-                          )
+                          isInWatchlist?.(movie.id, mediaType) || false
                         }
-                        isWatched={
-                          isMovie && (isWatched?.(movie.id) || false)
-                        }
-                        onToggleFavorite={
-                          isMovie ? toggleWatchlist : undefined
-                        }
-                        onToggleWatched={
-                          isMovie ? toggleWatched : undefined
-                        }
+                        isWatched={isWatched?.(movie.id, mediaType) || false}
+                        onToggleFavorite={toggleWatchlist}
+                        onToggleWatched={toggleWatched}
                       />
                       <p className="person-known__credit-role">
                         {movie.creditRole ||
@@ -1198,7 +1250,9 @@ const Person = () => {
             </>
           ) : mediaCredits.length > 0 ? (
             <p className="person-known__empty">
-              No credits match this decade.
+              {creditYear !== "all"
+                ? "No credits match the selected year."
+                : "No credits match the selected filters."}
             </p>
           ) : (
             <p className="person-known__empty">

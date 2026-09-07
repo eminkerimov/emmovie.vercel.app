@@ -14,14 +14,23 @@ jest.mock("../../hooks/useWatchlist");
 jest.mock("../../components/Loading/Loading", () => () => (
   <div role="status">Loading person</div>
 ));
-jest.mock("../../components/MovieCard/MovieCard", () => ({ title, detailsPath }) => (
-  <article
-    data-testid={detailsPath ? "person-tv-card" : "person-movie-card"}
-    data-details-path={detailsPath || ""}
-  >
-    {title}
-  </article>
-));
+jest.mock(
+  "../../components/MovieCard/MovieCard",
+  () => ({ id, title, name, media_type, detailsPath }) => {
+    const mediaType = media_type === "tv" ? "tv" : "movie";
+    const resolvedDetailsPath =
+      detailsPath || `/${mediaType}/${id}`;
+
+    return (
+      <article
+        data-testid={`person-${mediaType}-card`}
+        data-details-path={resolvedDetailsPath}
+      >
+        {title || name}
+      </article>
+    );
+  }
+);
 
 const longBiography = "A detailed career story. ".repeat(24).trim();
 
@@ -316,10 +325,39 @@ describe("Person", () => {
     expect(televisionCards[0]).toHaveTextContent("Series One");
     expect(televisionCards[0]).toHaveAttribute(
       "data-details-path",
-      "/movie/501?media=tv"
+      "/tv/501"
     );
     expect(within(filmography).getByText("Archive Series")).toBeInTheDocument();
     expect(within(filmography).queryByText("Movie 1")).not.toBeInTheDocument();
+  });
+
+  it("filters filmography by a selected career timeline year", async () => {
+    mockSuccessfulRequests();
+    renderPerson();
+
+    await screen.findByRole("heading", { name: "Alex Morgan" });
+    const filmography = screen.getByRole("region", { name: "Filmography" });
+    const yearButton = within(filmography).getByRole("button", {
+      name: "2020: 1 credit",
+    });
+
+    userEvent.click(yearButton);
+
+    expect(yearButton).toHaveAttribute("aria-pressed", "true");
+    expect(within(filmography).getAllByTestId("person-movie-card")).toHaveLength(
+      1
+    );
+    expect(within(filmography).getByText("Movie 11")).toBeInTheDocument();
+    expect(within(filmography).getByLabelText("Decade")).toHaveValue("all");
+
+    userEvent.click(
+      within(filmography).getByRole("button", { name: "Show all years" })
+    );
+
+    expect(within(filmography).getAllByTestId("person-movie-card")).toHaveLength(
+      12
+    );
+    expect(yearButton).toHaveAttribute("aria-pressed", "false");
   });
 
   it("shows only future-dated credits as upcoming projects", async () => {

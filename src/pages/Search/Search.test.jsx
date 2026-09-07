@@ -12,16 +12,18 @@ import Search from "./Search";
 
 jest.mock("../../hooks/useFetchMovies");
 jest.mock("../../hooks/useWatchlist");
-jest.mock("../../components/Loading/Loading", () => () => (
-  <div role="status" aria-label="Loading movies">
-    Loading movies
-  </div>
-));
-jest.mock("../../components/MovieCard/MovieCard", () => ({ title }) => (
-  <article data-testid="search-result">{title}</article>
-));
+jest.mock(
+  "../../components/MovieCard/MovieCard",
+  () => ({ title, name, media_type }) => (
+    <article data-testid="search-result" data-media-type={media_type}>
+      {title || name}
+    </article>
+  )
+);
 
 const fetchData = jest.fn();
+const isInWatchlist = jest.fn(() => false);
+const isWatched = jest.fn(() => false);
 
 const LocationProbe = () => {
   const location = useLocation();
@@ -61,10 +63,14 @@ const setRequestState = ({ data, loading = false, error = false } = {}) => {
 describe("Search", () => {
   beforeEach(() => {
     fetchData.mockReset();
+    isInWatchlist.mockClear();
+    isWatched.mockClear();
     localStorage.clear();
     useWatchlist.mockReturnValue({
       toggleWatchlist: jest.fn(),
-      isInWatchlist: () => false,
+      toggleWatched: jest.fn(),
+      isInWatchlist,
+      isWatched,
     });
     setRequestState();
   });
@@ -105,7 +111,7 @@ describe("Search", () => {
     renderSearch("/search?q=Dune");
 
     expect(
-      screen.getByRole("status", { name: /loading movies/i })
+      screen.getByRole("status", { name: /loading titles/i })
     ).toBeInTheDocument();
   });
 
@@ -185,6 +191,44 @@ describe("Search", () => {
     expect(screen.getByTestId("location")).toHaveTextContent(
       "type=person"
     );
+  });
+
+  it("searches TV series through the TV endpoint and keeps their media type", async () => {
+    setRequestState({
+      data: {
+        data: {
+          results: [
+            {
+              id: 1399,
+              name: "Game of Thrones",
+              first_air_date: "2011-04-17",
+            },
+          ],
+          total_pages: 1,
+          total_results: 1,
+        },
+      },
+    });
+
+    renderSearch("/search?q=Thrones&type=tv");
+
+    expect(await screen.findByTestId("search-result")).toHaveTextContent(
+      "Game of Thrones"
+    );
+    expect(screen.getByTestId("search-result")).toHaveAttribute(
+      "data-media-type",
+      "tv"
+    );
+    expect(screen.getByRole("button", { name: "TV" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+    expect(fetchData).toHaveBeenCalledWith(
+      "GET",
+      "/search/tv",
+      expect.objectContaining({ query: "Thrones", page: 1 })
+    );
+    expect(isInWatchlist).toHaveBeenCalledWith(1399, "tv");
   });
 
   it("writes the server page to the URL", async () => {

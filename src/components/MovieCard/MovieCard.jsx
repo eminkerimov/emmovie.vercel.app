@@ -1,8 +1,20 @@
 import React, { useEffect, useId, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import Default from "../../images/Default.jpg";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { POSTER_API } from "../../helpers/baseURL";
+import {
+  getMediaDetailsPath,
+  getMediaReleaseDate,
+  getMediaSummary,
+  getMediaTitle,
+  getMediaTransitionName,
+  getMediaType,
+} from "../../helpers/media";
+import ProgressiveImage from "../ProgressiveImage/ProgressiveImage";
 import "./MovieCard.scss";
+
+const preloadDetailsPage = () => import("../../pages/Movie/Movie");
 
 const setVoteClass = (vote) => {
   if (vote >= 8) return "rating-high";
@@ -135,10 +147,13 @@ export const MovieLibraryMenu = ({
 
 const MovieCard = ({
   title,
+  name,
+  media_type,
   poster_path,
   overview,
   vote_average,
   release_date,
+  first_air_date,
   id,
   detailsPath,
   isFavorite = false,
@@ -146,38 +161,81 @@ const MovieCard = ({
   onToggleFavorite,
   onToggleWatched,
 }) => {
-  const year = release_date ? release_date.slice(0, 4) : "N/A";
+  const navigate = useNavigate();
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const media = {
+    id,
+    title,
+    name,
+    media_type,
+    poster_path,
+    overview,
+    vote_average,
+    release_date: release_date || first_air_date,
+  };
+  const mediaType = getMediaType(media);
+  const displayTitle = getMediaTitle(media);
+  const displayDate = getMediaReleaseDate(media);
+  const year = displayDate ? displayDate.slice(0, 4) : "N/A";
+  const destination = detailsPath || getMediaDetailsPath(media);
+  const transitionName = getMediaTransitionName(media);
 
   const handleFavoriteClick = () => {
     if (onToggleFavorite) {
-      onToggleFavorite({
-        id,
-        title,
-        poster_path,
-        overview,
-        vote_average,
-        release_date,
-      });
+      onToggleFavorite(getMediaSummary(media));
     }
   };
 
   const handleWatchedClick = () => {
     if (onToggleWatched) {
-      onToggleWatched({
-        id,
-        title,
-        poster_path,
-        overview,
-        vote_average,
-        release_date,
+      onToggleWatched(getMediaSummary(media));
+    }
+  };
+
+  const handleDetailsClick = async (event) => {
+    const canTransition =
+      typeof document.startViewTransition === "function" &&
+      !window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    const isModifiedClick =
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey;
+
+    if (!canTransition || isModifiedClick || event.defaultPrevented) return;
+
+    event.preventDefault();
+
+    try {
+      await preloadDetailsPage();
+    } catch {
+      navigate(destination);
+      return;
+    }
+
+    flushSync(() => setIsTransitioning(true));
+
+    try {
+      const transition = document.startViewTransition(() => {
+        flushSync(() => navigate(destination));
       });
+
+      [
+        transition?.ready,
+        transition?.updateCallbackDone,
+        transition?.finished,
+      ].forEach((promise) => promise?.catch(() => undefined));
+    } catch {
+      flushSync(() => setIsTransitioning(false));
+      navigate(destination);
     }
   };
 
   return (
     <article className="movieCard">
       <MovieLibraryMenu
-        title={title}
+        title={displayTitle}
         isFavorite={isFavorite}
         isWatched={isWatched}
         onToggleFavorite={onToggleFavorite ? handleFavoriteClick : undefined}
@@ -186,13 +244,27 @@ const MovieCard = ({
 
       <Link
         className="movieCard-link"
-        to={detailsPath || `/movie/${id}`}
-        aria-label={`Open ${title} details`}
+        to={destination}
+        aria-label={`Open ${displayTitle} details`}
+        onClick={handleDetailsClick}
+        onFocus={() => {
+          preloadDetailsPage().catch(() => undefined);
+        }}
+        onPointerEnter={() => {
+          preloadDetailsPage().catch(() => undefined);
+        }}
       >
-        <div className="movieCard-poster">
-          <img
+        <div
+          className="movieCard-poster"
+          style={
+            isTransitioning
+              ? { viewTransitionName: transitionName }
+              : undefined
+          }
+        >
+          <ProgressiveImage
             src={poster_path ? POSTER_API + poster_path : Default}
-            alt={`${title} poster`}
+            alt={`${displayTitle} poster`}
             loading="lazy"
             decoding="async"
           />
@@ -209,8 +281,13 @@ const MovieCard = ({
 
         <div className="movieCard-info">
           <div>
-            <h3>{title}</h3>
-            <span className="movieCard-year">{year}</span>
+            <h3>{displayTitle}</h3>
+            <span className="movieCard-year">
+              {year}
+              {mediaType === "tv" && (
+                <span className="movieCard-type">Series</span>
+              )}
+            </span>
           </div>
 
           {vote_average > 0 && (

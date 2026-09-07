@@ -10,9 +10,6 @@ jest.mock("../../helpers/useFetch");
 jest.mock("../../hooks/useWatchlist");
 jest.mock("../../hooks/useRecentlyViewed");
 jest.mock("./useMovieCollection");
-jest.mock("../../components/Loading/Loading", () => () => (
-  <div>Movie loading</div>
-));
 jest.mock("../../components/MovieMain/MovieMain", () => (props) => (
   <div data-testid="movie-main" data-media-type={props.mediaType}>
     {props.data.title}
@@ -60,6 +57,7 @@ const renderMovie = (entry = "/movie/42") =>
     >
       <Routes>
         <Route path="/movie/:id" element={<Movie />} />
+        <Route path="/tv/:id" element={<Movie />} />
       </Routes>
     </MemoryRouter>
   );
@@ -78,6 +76,7 @@ describe("Movie", () => {
       toggleWatchlist: jest.fn(),
       toggleWatched: jest.fn(),
       updateWatchlistMeta: jest.fn(),
+      isInWatchlist: jest.fn(() => false),
       isWatched: jest.fn(() => false),
       watchlist: [],
     });
@@ -95,7 +94,9 @@ describe("Movie", () => {
 
     renderMovie();
 
-    expect(screen.getByText("Movie loading")).toBeInTheDocument();
+    expect(
+      screen.getByRole("status", { name: /loading title details/i })
+    ).toBeInTheDocument();
     expect(screen.queryByTestId("movie-main")).not.toBeInTheDocument();
   });
 
@@ -142,7 +143,7 @@ describe("Movie", () => {
     expect(screen.queryByTestId("movie-main")).not.toBeInTheDocument();
   });
 
-  it("loads TV cards through the internal movie details route", () => {
+  it("loads TV titles through the dedicated TV details route", () => {
     useFetch.mockImplementation((url) => {
       if (/^42\?/.test(url)) {
         return settledRequest({
@@ -159,7 +160,7 @@ describe("Movie", () => {
       return settledRequest();
     });
 
-    renderMovie("/movie/42?media=tv");
+    renderMovie("/tv/42");
 
     expect(screen.getByTestId("movie-main")).toHaveTextContent("Core Series");
     expect(screen.getByTestId("movie-main")).toHaveAttribute(

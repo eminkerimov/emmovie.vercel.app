@@ -18,6 +18,16 @@ const movie = {
   release_date: "1999-10-15",
 };
 
+const tvSeries = {
+  id: 550,
+  name: "Twin Peaks",
+  poster_path: "/twin-peaks.jpg",
+  overview: "A mystery in a small town.",
+  vote_average: 8.5,
+  first_air_date: "1990-04-08",
+  media_type: "tv",
+};
+
 const WatchlistHarness = () => {
   const {
     watchlist,
@@ -40,11 +50,23 @@ const WatchlistHarness = () => {
       <output data-testid="watched-state">
         {isWatched(movie.id) ? "watched" : "not watched"}
       </output>
+      <output data-testid="tv-favorite-state">
+        {isInWatchlist(tvSeries.id, "tv") ? "saved" : "not saved"}
+      </output>
+      <output data-testid="tv-watched-state">
+        {isWatched(tvSeries.id, "tv") ? "watched" : "not watched"}
+      </output>
       <button type="button" onClick={() => toggleWatchlist(movie)}>
         Toggle watchlist
       </button>
       <button type="button" onClick={() => toggleWatched(movie)}>
         Toggle watched
+      </button>
+      <button type="button" onClick={() => toggleWatchlist(tvSeries)}>
+        Toggle TV watchlist
+      </button>
+      <button type="button" onClick={() => toggleWatched(tvSeries)}>
+        Toggle TV watched
       </button>
       <button type="button" onClick={clearWatchlist}>
         Clear watchlist
@@ -100,6 +122,65 @@ describe("useWatchlist persistence", () => {
     expect(JSON.parse(localStorage.getItem(WATCHED_KEY))).toEqual([movie]);
     expect(screen.getByTestId("favorite-state")).toHaveTextContent("saved");
     expect(screen.getByTestId("watched-state")).toHaveTextContent("watched");
+  });
+
+  it("keeps movie and TV entries with the same numeric id independent", async () => {
+    renderWatchlist();
+
+    userEvent.click(
+      screen.getByRole("button", { name: "Toggle watchlist" })
+    );
+
+    await waitFor(() => {
+      expect(JSON.parse(localStorage.getItem(WATCHLIST_KEY))).toEqual([
+        movie,
+      ]);
+    });
+
+    userEvent.click(
+      screen.getByRole("button", { name: "Toggle TV watchlist" })
+    );
+    userEvent.click(
+      screen.getByRole("button", { name: "Toggle TV watched" })
+    );
+
+    await waitFor(() =>
+      expect(JSON.parse(localStorage.getItem(WATCHLIST_KEY))).toEqual([
+        tvSeries,
+        movie,
+      ])
+    );
+    expect(JSON.parse(localStorage.getItem(WATCHED_KEY))).toEqual([
+      tvSeries,
+    ]);
+
+    const metadata = JSON.parse(
+      localStorage.getItem(WATCHLIST_META_KEY)
+    );
+    expect(metadata).toHaveProperty("550");
+    expect(metadata).toHaveProperty("tv:550");
+    expect(screen.getByTestId("favorite-state")).toHaveTextContent("saved");
+    expect(screen.getByTestId("tv-favorite-state")).toHaveTextContent("saved");
+    expect(screen.getByTestId("watched-state")).toHaveTextContent(
+      "not watched"
+    );
+    expect(screen.getByTestId("tv-watched-state")).toHaveTextContent(
+      "watched"
+    );
+
+    userEvent.click(
+      screen.getByRole("button", { name: "Toggle watchlist" })
+    );
+
+    await waitFor(() => {
+      expect(JSON.parse(localStorage.getItem(WATCHLIST_KEY))).toEqual([
+        tvSeries,
+      ]);
+    });
+    expect(screen.getByTestId("favorite-state")).toHaveTextContent(
+      "not saved"
+    );
+    expect(screen.getByTestId("tv-favorite-state")).toHaveTextContent("saved");
   });
 
   it("clearing either collection never clears the other", async () => {

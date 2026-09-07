@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { POSTER_API } from "../../helpers/baseURL";
 import FullscreenGallery from "../FullscreenGallery/FullscreenGallery";
+import ProgressiveImage from "../ProgressiveImage/ProgressiveImage";
+import { GallerySkeleton } from "../Skeletons/PageSkeletons";
 import "./MovieMedia.scss";
 
 const INITIAL_MEDIA_COUNT = 8;
@@ -211,9 +213,11 @@ const MovieMedia = ({ imagesRequest, title, videosRequest }) => {
           </header>
 
           {!categories.length ? (
-            <p className="movie-media__status" role="status">
-              Loading movie media…
-            </p>
+            <GallerySkeleton
+              className="movie-media__grid"
+              count={4}
+              label="Loading movie media"
+            />
           ) : (
             <>
               <div className="movie-media__tabs" role="tablist" aria-label="Media types">
@@ -253,7 +257,7 @@ const MovieMedia = ({ imagesRequest, title, videosRequest }) => {
                       aria-label={`Open ${item.label} ${index + 1} of ${currentItems.length}`}
                       onClick={(event) => openViewer(event, index)}
                     >
-                      <img
+                      <ProgressiveImage
                         src={getImageUrl(item)}
                         alt=""
                         loading="lazy"

@@ -7,12 +7,15 @@ import {
 } from "../../helpers/baseURL.js";
 import { Link, useNavigate } from "react-router-dom";
 import { MovieLibraryMenu } from "../MovieCard/MovieCard";
+import ProgressiveImage from "../ProgressiveImage/ProgressiveImage";
+import { getMediaTransitionName } from "../../helpers/media";
 
 const MovieMain = ({
   data,
   details,
   videos,
   watchlist,
+  isFavorite: favoriteState,
   isWatched,
   toggleWatchlist,
   toggleWatched,
@@ -28,8 +31,10 @@ const MovieMain = ({
   const rating = data?.vote_average ? data.vote_average.toFixed(1) : "—";
   const popularity = data?.popularity ? data.popularity.toFixed(0) : "—";
   const trailerKey = videos?.[0]?.key;
-  const isFavorite = watchlist?.some((movie) => movie.id === data?.id);
+  const isFavorite = favoriteState ??
+    watchlist?.some((movie) => movie.id === data?.id);
   const cast = details?.data?.cast?.slice(0, 8) || [];
+  const posterTransitionName = getMediaTransitionName(data, mediaType);
 
   useEffect(() => {
     if (!trailerOpen) return;
@@ -96,12 +101,16 @@ const MovieMain = ({
           </button>
 
           <div className="movie__main__content">
-            <div className="movie__main__poster-frame">
-              <img
+            <div
+              className="movie__main__poster-frame"
+              style={{ viewTransitionName: posterTransitionName }}
+            >
+              <ProgressiveImage
                 className="movie__main__poster"
                 src={data?.poster_path ? POSTER_API + data.poster_path : Default}
                 alt={data?.title}
                 decoding="async"
+                fetchpriority="high"
               />
             </div>
 

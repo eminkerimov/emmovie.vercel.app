@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import ProgressiveImage from "../ProgressiveImage/ProgressiveImage";
 import "./FullscreenGallery.scss";
 
 const FullscreenGallery = ({
@@ -106,7 +107,7 @@ const FullscreenGallery = ({
         )}
 
         <div className="fullscreen-gallery__stage">
-          <img
+          <ProgressiveImage
             className="fullscreen-gallery__image"
             src={getImageSrc(activeItem)}
             alt={label}

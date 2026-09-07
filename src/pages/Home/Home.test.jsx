@@ -2,7 +2,6 @@ import React from "react";
 import {
   render,
   screen,
-  waitFor,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
@@ -17,9 +16,14 @@ jest.mock("../../hooks/useWatchlist");
 jest.mock("../../components/Loading/Loading", () => () => (
   <div role="status">Loading</div>
 ));
-jest.mock("../../components/MovieCard/MovieCard", () => ({ title }) => (
-  <article data-testid="home-movie-card">{title}</article>
-));
+jest.mock(
+  "../../components/MovieCard/MovieCard",
+  () => ({ title, name, media_type }) => (
+    <article data-testid="home-movie-card" data-media-type={media_type || "movie"}>
+      {title || name}
+    </article>
+  )
+);
 
 const createMovie = (id, title) => ({
   id,
@@ -29,6 +33,17 @@ const createMovie = (id, title) => ({
   overview: `${title} overview`,
   vote_average: 8.2,
   release_date: "2025-01-01",
+});
+
+const createTvSeries = (id, name) => ({
+  id,
+  name,
+  media_type: "tv",
+  poster_path: `/${id}-poster.jpg`,
+  backdrop_path: `/${id}-backdrop.jpg`,
+  overview: `${name} overview`,
+  vote_average: 8.4,
+  first_air_date: "2025-02-02",
 });
 
 describe("Home discovery and library sections", () => {
@@ -124,6 +139,10 @@ describe("Home discovery and library sections", () => {
     renderHome();
 
     expect(
+      screen.getByRole("status", { name: "Loading home page" })
+    ).toBeInTheDocument();
+
+    expect(
       await screen.findByRole("heading", {
         name: "Daily Hero",
       })
@@ -171,17 +190,59 @@ describe("Home discovery and library sections", () => {
       screen.getByRole("button", { name: "This week" })
     );
 
-    await waitFor(() =>
-      expect(
-        screen.getByRole("heading", {
-          name: "Weekly Hero",
-        })
-      ).toBeInTheDocument()
-    );
+    expect(
+      await screen.findByRole("heading", {
+        name: "Weekly Hero",
+      })
+    ).toBeInTheDocument();
     expect(trendingFetch).toHaveBeenLastCalledWith(
       "GET",
       "/trending/movie/week",
       { language: "en-US" }
     );
+  });
+
+  it("loads TV recommendations from the TV endpoint and keeps their media type", async () => {
+    const tvSeed = createTvSeries(60, "Saved Series");
+
+    useRecentlyViewed.mockReturnValue({
+      recentlyViewed: [createTvSeries(50, "Recently Opened Series")],
+    });
+    useWatchlist.mockReturnValue({
+      watchlist: [tvSeed],
+      toggleWatchlist: jest.fn(),
+      toggleWatched: jest.fn(),
+      isInWatchlist: () => false,
+      isWatched: () => false,
+    });
+    recommendationsFetch.mockResolvedValue({
+      data: {
+        results: [
+          {
+            ...createTvSeries(70, "Recommended Series"),
+            media_type: undefined,
+          },
+        ],
+      },
+    });
+
+    renderHome();
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "Because you saved Saved Series",
+      })
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText("Recommended Series")
+    ).toHaveAttribute("data-media-type", "tv");
+    expect(recommendationsFetch).toHaveBeenCalledWith(
+      "GET",
+      "/tv/60/recommendations",
+      { language: "en-US", page: 1 }
+    );
+
+    const recentlyOpenedCard = screen.getByText("Recently Opened Series");
+    expect(recentlyOpenedCard).toHaveAttribute("data-media-type", "tv");
   });
 });

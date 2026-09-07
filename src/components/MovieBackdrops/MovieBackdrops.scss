@@ -85,6 +85,10 @@
   }
 }
 
+.movie-backdrops__skeleton {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .movie-backdrops__slide {
   position: relative;
   aspect-ratio: 16 / 9;
@@ -153,29 +157,6 @@
   }
 }
 
-.movie-backdrops__loading {
-  min-height: clamp(190px, 25vw, 340px);
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(245, 247, 250, 0.1);
-  border-radius: $radius-md;
-  background: linear-gradient(
-    100deg,
-    $color-surface 20%,
-    $color-surface-elevated 45%,
-    $color-surface 70%
-  );
-  background-size: 220% 100%;
-  color: $color-text-secondary;
-  animation: movie-backdrops-loading 1.4s linear infinite;
-}
-
-@keyframes movie-backdrops-loading {
-  to {
-    background-position: -220% 0;
-  }
-}
-
 @media (max-width: $breakpoint-tablet-small) {
   .movie-backdrops {
     padding-block: $space-12 $space-16;
@@ -184,6 +165,10 @@
   .movie-backdrops__track {
     grid-auto-columns: clamp(300px, 62vw, 500px);
     gap: $space-4;
+  }
+
+  .movie-backdrops__skeleton {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -200,6 +185,10 @@
   .movie-backdrops__slide {
     aspect-ratio: 16 / 10;
     border-radius: $radius-sm;
+  }
+
+  .movie-backdrops__skeleton {
+    grid-template-columns: minmax(0, 1fr);
   }
 
 }
@@ -219,10 +208,6 @@
 
   .movie-backdrops__progress span {
     transition: none;
-  }
-
-  .movie-backdrops__loading {
-    animation: none;
   }
 
 }

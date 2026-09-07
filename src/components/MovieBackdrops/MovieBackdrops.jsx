@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { IMG_API } from "../../helpers/baseURL";
 import FullscreenGallery from "../FullscreenGallery/FullscreenGallery";
+import ProgressiveImage from "../ProgressiveImage/ProgressiveImage";
+import { GallerySkeleton } from "../Skeletons/PageSkeletons";
 import "./MovieBackdrops.scss";
 
 const MAX_BACKDROPS = 16;
@@ -49,9 +51,11 @@ const MovieBackdrops = ({ imagesRequest, title }) => {
               <h2 id="movie-backdrops-title">Backdrops</h2>
             </div>
           </header>
-          <div className="movie-backdrops__loading" role="status">
-            Loading backdrops…
-          </div>
+          <GallerySkeleton
+            className="movie-backdrops__skeleton"
+            count={3}
+            label="Loading backdrops"
+          />
         </div>
       </section>
     );
@@ -179,7 +183,7 @@ const MovieBackdrops = ({ imagesRequest, title }) => {
                 aria-label={`Open backdrop ${index + 1} fullscreen`}
                 onClick={(event) => openViewer(event, index)}
               >
-                <img
+                <ProgressiveImage
                   src={IMG_API + backdrop.file_path}
                   alt={`${title || "Movie"} backdrop ${index + 1}`}
                   loading={index === 0 ? "eager" : "lazy"}

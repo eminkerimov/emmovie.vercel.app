@@ -33,6 +33,7 @@ const getPageTitle = (pathname) => {
   if (pathname === "/search") return "Search | M-movie";
   if (pathname === "/movies") return "Movies | M-movie";
   if (pathname.startsWith("/movie/")) return "Movie Details | M-movie";
+  if (pathname.startsWith("/tv/")) return "Series Details | M-movie";
   if (pathname.startsWith("/person/")) return "Person Details | M-movie";
   if (pathname.startsWith("/collection/")) return "Collection | M-movie";
   if (pathname.startsWith("/company/")) return "Production Company | M-movie";
@@ -83,6 +84,7 @@ const AppContent = () => {
                 <Route path="/search" element={<Search />} />
                 <Route path="/movies" element={<Movies />} />
                 <Route path="/movie/:id" element={<Movie />} />
+                <Route path="/tv/:id" element={<Movie />} />
                 <Route path="/person/:id" element={<Person />} />
                 <Route path="/collection/:id" element={<Collection />} />
                 <Route path="/company/:id" element={<Company />} />

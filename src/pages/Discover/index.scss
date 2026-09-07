@@ -385,6 +385,41 @@
   }
 }
 
+.discover-media-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3px;
+  margin-top: $space-6;
+  padding: 3px;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  background: rgba(7, 16, 23, 0.42);
+
+  button {
+    min-height: 44px;
+    padding: 0 $space-3;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: $color-text-secondary;
+    font-weight: $font-weight-bold;
+    cursor: pointer;
+    transition:
+      background-color $motion-fast $motion-ease,
+      color $motion-fast $motion-ease;
+
+    &:hover,
+    &:focus-visible {
+      color: $color-text-primary;
+    }
+
+    &.is-active {
+      background: $color-primary;
+      color: $color-canvas;
+    }
+  }
+}
+
 .discover-pagination {
   display: flex;
   align-items: center;

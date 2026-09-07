@@ -45,6 +45,7 @@ describe("main routes", () => {
     ["/search?q=dune", "route-search"],
     ["/movies", "route-movies"],
     ["/movie/550", "route-movie"],
+    ["/tv/1399", "route-movie"],
     ["/person/287", "route-person"],
     ["/collection/10", "route-collection"],
     ["/company/42", "route-company"],

@@ -8,6 +8,7 @@ const Related = ({
   loading = false,
   mode = "recommendations",
   watchlist,
+  isInWatchlist: checkWatchlist,
   toggleWatchlist,
   toggleWatched,
   isWatched,
@@ -17,7 +18,11 @@ const Related = ({
   const movies = data?.results?.slice(0, 5) || [];
 
   const isInWatchlist = (movieId) => {
-    return watchlist.some((movie) => movie.id === movieId);
+    if (checkWatchlist) return checkWatchlist(movieId, mediaType);
+
+    return watchlist.some(
+      (movie) => movie.id === movieId && (movie.media_type || "movie") === mediaType
+    );
   };
 
   return (
@@ -58,16 +63,11 @@ const Related = ({
               <MovieCard
                 key={movie.id}
                 {...movie}
-                isFavorite={!movie.libraryDisabled && isInWatchlist(movie.id)}
-                isWatched={
-                  !movie.libraryDisabled && (isWatched?.(movie.id) || false)
-                }
-                onToggleFavorite={
-                  movie.libraryDisabled ? undefined : toggleWatchlist
-                }
-                onToggleWatched={
-                  movie.libraryDisabled ? undefined : toggleWatched
-                }
+                media_type={mediaType}
+                isFavorite={isInWatchlist(movie.id)}
+                isWatched={isWatched?.(movie.id, mediaType) || false}
+                onToggleFavorite={toggleWatchlist}
+                onToggleWatched={toggleWatched}
               />
             ))}
           </div>

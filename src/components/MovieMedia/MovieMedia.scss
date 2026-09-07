@@ -41,17 +41,6 @@
   }
 }
 
-.movie-media__status {
-  min-height: 180px;
-  display: grid;
-  place-items: center;
-  margin: 0;
-  border: 1px solid rgba(245, 247, 250, 0.1);
-  border-radius: $radius-md;
-  background: $color-surface;
-  color: $color-text-secondary;
-}
-
 .movie-media__tabs {
   display: flex;
   gap: $space-2;

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import Loading from "../../components/Loading/Loading";
 import MovieCard from "../../components/MovieCard/MovieCard";
+import { CardGridSkeleton } from "../../components/Skeletons/PageSkeletons";
 import useFetchMovies from "../../hooks/useFetchMovies";
 import useWatchlist from "../../hooks/useWatchlist";
 import "./Movies.scss";
@@ -85,7 +85,9 @@ const Movies = () => {
           ))}
         </div>
 
-        {loading && <Loading />}
+        {loading && (
+          <CardGridSkeleton className="movies-page__grid" count={8} />
+        )}
 
         {!loading && error && (
           <div className="movies-page__state" role="alert">

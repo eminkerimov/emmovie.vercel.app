@@ -58,4 +58,41 @@ describe("Overview", () => {
       "/company/10"
     );
   });
+
+  it("uses TMDB company logos and country flags in production details", () => {
+    renderOverview({
+      data: {
+        overview: "A concise synopsis.",
+        production_companies: [
+          { id: 420, name: "Marvel Studios", logo_path: "/marvel.png" },
+        ],
+        production_countries: [
+          { iso_3166_1: "US", name: "United States of America" },
+        ],
+      },
+      detailsData: [
+        { title: "Runtime", value: "110 min" },
+        {
+          title: "Production Companies",
+          value: "Marvel Studios",
+          links: [{ id: 420, label: "Marvel Studios", to: "/company/420" }],
+        },
+        { title: "Countries", value: "United States of America" },
+      ],
+    });
+
+    expect(screen.getByRole("img", { name: "Marvel Studios" })).toHaveAttribute(
+      "src",
+      expect.stringContaining("/marvel.png")
+    );
+    expect(
+      screen.getByRole("img", { name: "United States of America" })
+    ).toHaveAttribute(
+      "src",
+      "https://flagcdn.io/flags/4x3/us.svg"
+    );
+    expect(
+      screen.getAllByRole("term").map((term) => term.textContent)
+    ).toEqual(["Runtime", "Production Companies", "Countries"]);
+  });
 });

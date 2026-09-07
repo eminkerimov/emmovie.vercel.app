@@ -14,6 +14,12 @@ import {
   THUMBNAIL_API,
 } from "../../helpers/baseURL";
 import Default from "../../images/Default.jpg";
+import ProgressiveImage from "../ProgressiveImage/ProgressiveImage";
+import {
+  getMediaDetailsPath,
+  getMediaReleaseDate,
+  getMediaTitle,
+} from "../../helpers/media";
 import "./Navbar.scss";
 
 const Navbar = () => {
@@ -39,7 +45,7 @@ const Navbar = () => {
   const searchResults =
     data?.data?.results
       ?.filter((result) =>
-        ["movie", "person"].includes(
+        ["movie", "tv", "person"].includes(
           result.media_type || "movie"
         )
       )
@@ -202,7 +208,7 @@ const Navbar = () => {
   const getResultPath = (result) =>
     result.media_type === "person"
       ? `/person/${result.id}`
-      : `/movie/${result.id}`;
+      : getMediaDetailsPath(result);
 
   const handleSearchKeyDown = (event) => {
     if (!dropdownOpen || !searchResults.length) {
@@ -299,14 +305,14 @@ const Navbar = () => {
             role="search"
           >
             <label className="sr-only" htmlFor="header-movie-search">
-              Search movies and people
+              Search movies, TV series and people
             </label>
             <input
               id="header-movie-search"
               ref={searchInputRef}
               type="search"
               role="combobox"
-              placeholder="Search movies and people..."
+              placeholder="Search movies, TV and people..."
               value={searchTerm}
               aria-autocomplete="list"
               aria-expanded={dropdownOpen}
@@ -357,9 +363,10 @@ const Navbar = () => {
                       {searchResults.map((result, index) => {
                         const isPerson =
                           result.media_type === "person";
+                        const isTv = result.media_type === "tv";
                         const title = isPerson
                           ? result.name
-                          : result.title;
+                          : getMediaTitle(result);
                         const imagePath = isPerson
                           ? result.profile_path
                           : result.poster_path;
@@ -387,7 +394,7 @@ const Navbar = () => {
                             }
                             onClick={handleResultClick}
                           >
-                            <img
+                            <ProgressiveImage
                               src={
                                 imagePath
                                   ? (isPerson
@@ -408,12 +415,14 @@ const Navbar = () => {
                                 <span className="header-search__type">
                                   {isPerson
                                     ? "Person"
-                                    : "Movie"}
+                                    : isTv
+                                      ? "TV"
+                                      : "Movie"}
                                 </span>
                                 {isPerson
                                   ? result.known_for_department ||
                                     "Known talent"
-                                  : result.release_date?.slice(
+                                  : getMediaReleaseDate(result)?.slice(
                                       0,
                                       4
                                     ) || "Date unknown"}
@@ -445,7 +454,7 @@ const Navbar = () => {
                 searchTerm.trim().length >= 2 &&
                 searchResults.length === 0 && (
                   <div className="header-search__status">
-                    No movies or people found
+                    No movies, TV series or people found
                   </div>
                 )}
             </div>

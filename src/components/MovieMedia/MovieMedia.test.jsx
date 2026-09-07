@@ -68,7 +68,6 @@ describe("MovieMedia", () => {
     const posterImage = screen.getByRole("img", {
       name: "Test Movie fullscreen poster",
     });
-    expect(posterImage.parentElement).toHaveClass("fullscreen-gallery__stage");
     expect(posterImage).toHaveAttribute(
       "src",
       expect.stringContaining("/original/poster-one.jpg")

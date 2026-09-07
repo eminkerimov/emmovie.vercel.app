@@ -86,11 +86,11 @@ describe("Navbar universal search", () => {
     jest.useRealTimers();
   });
 
-  it("searches movies and people and supports keyboard selection", () => {
+  it("searches movies, TV series and people and supports keyboard selection", () => {
     renderNavbar();
 
     const search = screen.getByRole("combobox", {
-      name: /search movies and people/i,
+      name: /search movies, tv series and people/i,
     });
     userEvent.type(search, "matt");
 
@@ -106,9 +106,7 @@ describe("Navbar universal search", () => {
     expect(
       screen.getByRole("option", { name: /matt damon/i })
     ).toBeInTheDocument();
-    expect(
-      screen.queryByText("TV result")
-    ).not.toBeInTheDocument();
+    expect(screen.getByText("TV result")).toBeInTheDocument();
 
     fireEvent.keyDown(search, { key: "ArrowDown" });
     fireEvent.keyDown(search, { key: "ArrowDown" });
@@ -117,6 +115,23 @@ describe("Navbar universal search", () => {
     expect(screen.getByTestId("location")).toHaveTextContent(
       "/person/1892"
     );
+  });
+
+  it("navigates a TV suggestion to the dedicated TV route", () => {
+    renderNavbar();
+
+    const search = screen.getByRole("combobox", {
+      name: /search movies, tv series and people/i,
+    });
+    userEvent.type(search, "tv");
+
+    act(() => {
+      jest.advanceTimersByTime(450);
+    });
+
+    userEvent.click(screen.getByRole("option", { name: /tv result/i }));
+
+    expect(screen.getByTestId("location")).toHaveTextContent("/tv/99");
   });
 
   it("shows Watchlist without an ambiguous shared count", () => {

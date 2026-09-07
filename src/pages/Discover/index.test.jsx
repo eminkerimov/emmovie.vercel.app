@@ -20,9 +20,14 @@ jest.mock("../../hooks/useWatchlist");
 jest.mock("../../components/Loading/Loading", () => () => (
   <div role="status">Loading</div>
 ));
-jest.mock("../../components/MovieCard/MovieCard", () => ({ title }) => (
-  <article>{title}</article>
-));
+jest.mock(
+  "../../components/MovieCard/MovieCard",
+  () => ({ title, name, media_type }) => (
+    <article data-testid="discover-card" data-media-type={media_type}>
+      {title || name}
+    </article>
+  )
+);
 
 const LocationProbe = () => {
   const location = useLocation();
@@ -195,5 +200,51 @@ describe("Discover URL filters", () => {
         with_genres: "28",
       })
     );
+  });
+
+  it("uses TV endpoints, TV date parameters, and a supported TV sort", () => {
+    renderDiscover(
+      "/discover?media=tv&year=2024&from=2024-01-01&to=2024-12-31&sort=revenue.desc&region=GB"
+    );
+
+    expect(
+      screen.getByRole("button", { name: "TV series" })
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByTestId("discover-card")).toHaveAttribute(
+      "data-media-type",
+      "tv"
+    );
+    expect(genresFetch).toHaveBeenCalledWith(
+      "GET",
+      "/genre/tv/list",
+      { language: "en-US" }
+    );
+    expect(providersFetch).toHaveBeenCalledWith(
+      "GET",
+      "/watch/providers/tv",
+      {
+        language: "en-US",
+        watch_region: "GB",
+      }
+    );
+    expect(discoverFetch).toHaveBeenCalledWith(
+      "GET",
+      "/discover/tv",
+      expect.objectContaining({
+        sort_by: "popularity.desc",
+        first_air_date_year: "2024",
+        "first_air_date.gte": "2024-01-01",
+        "first_air_date.lte": "2024-12-31",
+      })
+    );
+
+    const tvParams = discoverFetch.mock.calls.find(
+      ([, endpoint]) => endpoint === "/discover/tv"
+    )[2];
+
+    expect(tvParams).not.toHaveProperty("include_video");
+    expect(tvParams).not.toHaveProperty("primary_release_year");
+    expect(tvParams).not.toHaveProperty("primary_release_date.gte");
+    expect(tvParams).not.toHaveProperty("primary_release_date.lte");
   });
 });

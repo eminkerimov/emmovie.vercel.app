@@ -19,6 +19,15 @@ const firstMovie = {
   ignoredField: "not persisted",
 };
 
+const tvSeries = {
+  ...firstMovie,
+  name: "Twin Peaks",
+  title: undefined,
+  release_date: undefined,
+  first_air_date: "1990-04-08",
+  media_type: "tv",
+};
+
 const HistoryHarness = () => {
   const {
     recentlyViewed,
@@ -47,6 +56,12 @@ const HistoryHarness = () => {
         }
       >
         Add second
+      </button>
+      <button
+        type="button"
+        onClick={() => addRecentlyViewed(tvSeries)}
+      >
+        Add TV
       </button>
     </>
   );
@@ -92,5 +107,47 @@ describe("useRecentlyViewed", () => {
       })
     );
     expect(storedMovies[0].ignoredField).toBeUndefined();
+  });
+
+  it("keeps movie and TV history with the same numeric id separate", async () => {
+    render(<HistoryHarness />);
+
+    userEvent.click(
+      screen.getByRole("button", { name: "Add first" })
+    );
+    userEvent.click(
+      screen.getByRole("button", { name: "Add TV" })
+    );
+    userEvent.click(
+      screen.getByRole("button", { name: "Add TV" })
+    );
+
+    expect(screen.getByTestId("history")).toHaveTextContent(
+      "Twin Peaks,Fight Club"
+    );
+
+    await waitFor(() => {
+      expect(
+        JSON.parse(localStorage.getItem(RECENTLY_VIEWED_KEY))
+      ).toEqual([
+        {
+          id: 550,
+          title: "Twin Peaks",
+          poster_path: "/fight.jpg",
+          overview: "Overview",
+          vote_average: 8.4,
+          release_date: "1990-04-08",
+          media_type: "tv",
+        },
+        {
+          id: 550,
+          title: "Fight Club",
+          poster_path: "/fight.jpg",
+          overview: "Overview",
+          vote_average: 8.4,
+          release_date: "1999-10-15",
+        },
+      ]);
+    });
   });
 });

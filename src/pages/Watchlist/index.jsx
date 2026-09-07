@@ -1,6 +1,13 @@
 import React, { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import MovieCard from "../../components/MovieCard/MovieCard";
+import {
+  getLibraryItemKey,
+  getMediaDetailsPath,
+  getMediaReleaseDate,
+  getMediaTitle,
+  getMediaType,
+} from "../../helpers/media";
 import useWatchlist from "../../hooks/useWatchlist";
 import "./index.scss";
 
@@ -11,15 +18,13 @@ const sortMovies = (movies, sortBy, getWatchlistMeta) => {
 
   if (sortBy === "title") {
     return sortedMovies.sort((first, second) =>
-      (first.title || "").localeCompare(second.title || "")
+      getMediaTitle(first).localeCompare(getMediaTitle(second))
     );
   }
 
   if (sortBy === "year") {
     return sortedMovies.sort((first, second) =>
-      (second.release_date || "").localeCompare(
-        first.release_date || ""
-      )
+      getMediaReleaseDate(second).localeCompare(getMediaReleaseDate(first))
     );
   }
 
@@ -32,8 +37,10 @@ const sortMovies = (movies, sortBy, getWatchlistMeta) => {
   }
 
   return sortedMovies.sort((first, second) =>
-    (getWatchlistMeta(second.id).addedAt || "").localeCompare(
-      getWatchlistMeta(first.id).addedAt || ""
+    (
+      getWatchlistMeta(second.id, getMediaType(second)).addedAt || ""
+    ).localeCompare(
+      getWatchlistMeta(first.id, getMediaType(first)).addedAt || ""
     )
   );
 };
@@ -65,7 +72,7 @@ const Watchlist = () => {
     const filteredMovies = activeMovies.filter(
       (movie) =>
         !normalizedQuery ||
-        movie.title?.toLowerCase().includes(normalizedQuery)
+        getMediaTitle(movie).toLowerCase().includes(normalizedQuery)
     );
 
     return sortMovies(
@@ -123,7 +130,7 @@ const Watchlist = () => {
     const randomIndex = Math.floor(
       Math.random() * visibleMovies.length
     );
-    navigate("/movie/" + visibleMovies[randomIndex].id);
+    navigate(getMediaDetailsPath(visibleMovies[randomIndex]));
   };
 
   return (
@@ -136,8 +143,8 @@ const Watchlist = () => {
             <h1>Watchlist</h1>
 
             <p>
-              Plan what to watch, mark completed movies and keep
-              your own rating and notes.
+              Plan movies and series, track what you have watched, and
+              keep your own ratings and notes.
             </p>
           </div>
 
@@ -249,21 +256,25 @@ const Watchlist = () => {
             aria-labelledby={`watchlist-tab-${activeTab}`}
           >
             <p className="watchlist-results-count" aria-live="polite">
-              {visibleMovies.length} of {activeMovies.length} movies in {" "}
+              {visibleMovies.length} of {activeMovies.length} titles in {" "}
               {activeTabLabel}
             </p>
 
             {visibleMovies.length > 0 ? (
               <div className="watchlist-grid">
                 {visibleMovies.map((movie) => {
-                  const metadata = getWatchlistMeta(movie.id);
+                  const mediaType = movie.media_type || "movie";
+                  const metadata = getWatchlistMeta(movie.id, mediaType);
 
                   return (
-                    <div className="watchlist-item" key={movie.id}>
+                    <div
+                      className="watchlist-item"
+                      key={getLibraryItemKey(movie)}
+                    >
                       <MovieCard
                         {...movie}
-                        isFavorite={isInWatchlist(movie.id)}
-                        isWatched={isWatched(movie.id)}
+                        isFavorite={isInWatchlist(movie.id, mediaType)}
+                        isWatched={isWatched(movie.id, mediaType)}
                         onToggleFavorite={toggleWatchlist}
                         onToggleWatched={toggleWatched}
                       />
@@ -272,14 +283,18 @@ const Watchlist = () => {
                         <label className="watchlist-item__rating">
                           <span>My rating</span>
                           <select
-                            aria-label={`My rating for ${movie.title}`}
+                            aria-label={`My rating for ${getMediaTitle(movie)}`}
                             value={metadata.personalRating ?? ""}
                             onChange={(event) =>
-                              updateWatchlistMeta(movie.id, {
-                                personalRating: event.target.value
-                                  ? Number(event.target.value)
-                                  : null,
-                              })
+                              updateWatchlistMeta(
+                                movie.id,
+                                {
+                                  personalRating: event.target.value
+                                    ? Number(event.target.value)
+                                    : null,
+                                },
+                                mediaType
+                              )
                             }
                           >
                             <option value="">Not rated</option>
@@ -299,12 +314,14 @@ const Watchlist = () => {
                             <span>Date watched</span>
                             <input
                               type="date"
-                              aria-label={`Date watched for ${movie.title}`}
+                              aria-label={`Date watched for ${getMediaTitle(movie)}`}
                               value={metadata.watchedAt || ""}
                               onChange={(event) =>
-                                updateWatchlistMeta(movie.id, {
-                                  watchedAt: event.target.value,
-                                })
+                                updateWatchlistMeta(
+                                  movie.id,
+                                  { watchedAt: event.target.value },
+                                  mediaType
+                                )
                               }
                             />
                           </label>
@@ -315,13 +332,15 @@ const Watchlist = () => {
                           <textarea
                             rows="2"
                             maxLength="180"
-                            aria-label={`Private note for ${movie.title}`}
+                            aria-label={`Private note for ${getMediaTitle(movie)}`}
                             placeholder="What do you want to remember?"
                             value={metadata.note || ""}
                             onChange={(event) =>
-                              updateWatchlistMeta(movie.id, {
-                                note: event.target.value,
-                              })
+                              updateWatchlistMeta(
+                                movie.id,
+                                { note: event.target.value },
+                                mediaType
+                              )
                             }
                           />
                         </label>
@@ -364,8 +383,8 @@ const Watchlist = () => {
                   </h3>
                   <p>
                     {activeTab === "watched"
-                      ? "Use the eye button on any movie card to build your watched collection."
-                      : "Explore the catalogue and use the heart button to plan what to watch next."}
+                      ? "Use the library menu on any title card to build your watched collection."
+                      : "Explore the catalogue and save movies or series for later."}
                   </p>
 
                   <Link to="/discover">

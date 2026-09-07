@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import Loading from "../../components/Loading/Loading";
 import MovieCard from "../../components/MovieCard/MovieCard";
+import ProgressiveImage from "../../components/ProgressiveImage/ProgressiveImage";
+import { CardGridSkeleton } from "../../components/Skeletons/PageSkeletons";
 import { PROFILE_API } from "../../helpers/baseURL";
 import Default from "../../images/Default.jpg";
 import useFetchMovies from "../../hooks/useFetchMovies";
@@ -11,6 +12,7 @@ import "./Search.scss";
 const SEARCH_TYPES = [
   { id: "all", label: "All" },
   { id: "movie", label: "Movies" },
+  { id: "tv", label: "TV" },
   { id: "person", label: "People" },
 ];
 
@@ -34,7 +36,7 @@ const PersonResult = ({ person }) => {
         aria-label={`Open ${person.name} profile`}
       >
         <div className="person-result__portrait">
-          <img
+          <ProgressiveImage
             src={
               person.profile_path
                 ? PROFILE_API + person.profile_path
@@ -79,7 +81,11 @@ const Search = () => {
     () => {
       const requestResults = response?.results || [];
 
-      if (activeType === "movie" || activeType === "person") {
+      if (
+        activeType === "movie" ||
+        activeType === "tv" ||
+        activeType === "person"
+      ) {
         return requestResults.map((result) => ({
           ...result,
           media_type: activeType,
@@ -89,12 +95,14 @@ const Search = () => {
       return requestResults.filter(
         (result) =>
           result.media_type === "movie" ||
+          result.media_type === "tv" ||
           result.media_type === "person"
       );
     },
     [activeType, response?.results]
   );
   const movies = results.filter((result) => result.media_type === "movie");
+  const series = results.filter((result) => result.media_type === "tv");
   const people = results.filter((result) => result.media_type === "person");
   const totalResults = response?.total_results || 0;
   const totalPages = Math.min(response?.total_pages || 0, 500);
@@ -165,8 +173,7 @@ const Search = () => {
   };
 
   const hasVisibleResults =
-    (activeType !== "person" && movies.length > 0) ||
-    (activeType !== "movie" && people.length > 0);
+    movies.length > 0 || series.length > 0 || people.length > 0;
 
   return (
     <main className="search-page">
@@ -177,12 +184,12 @@ const Search = () => {
           role="search"
         >
           <label className="sr-only" htmlFor="movie-search">
-            Search movies and people
+            Search movies, TV series and people
           </label>
           <input
             id="movie-search"
             type="search"
-            placeholder="Search movies and people..."
+            placeholder="Search movies, TV and people..."
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
           />
@@ -193,7 +200,7 @@ const Search = () => {
           <div className="search-page__heading">
             <span>Search TMDB</span>
             <h1 id="search-results-title">
-              {query ? `Results for "${query}"` : "Find a movie or person"}
+              {query ? `Results for "${query}"` : "Find a title or person"}
             </h1>
 
             {!loading && query && (
@@ -224,7 +231,11 @@ const Search = () => {
             </div>
           )}
 
-          {loading && <Loading />}
+          {loading && (
+            <div className="search-page__loading">
+              <CardGridSkeleton className="search-page__grid" count={4} />
+            </div>
+          )}
 
           {!loading && error && (
             <div className="search-page__empty" role="alert">
@@ -258,6 +269,33 @@ const Search = () => {
                   </div>
                 </section>
               )}
+
+              {activeType !== "movie" &&
+                activeType !== "person" &&
+                series.length > 0 && (
+                  <section
+                    className="search-group"
+                    aria-labelledby="tv-results-title"
+                  >
+                    <div className="search-group__heading">
+                      <h2 id="tv-results-title">TV series</h2>
+                      <span>{series.length} on this page</span>
+                    </div>
+
+                    <div className="search-page__grid">
+                      {series.map((show) => (
+                        <MovieCard
+                          key={show.id}
+                          {...show}
+                          isFavorite={isInWatchlist(show.id, "tv")}
+                          isWatched={isWatched?.(show.id, "tv") || false}
+                          onToggleFavorite={toggleWatchlist}
+                          onToggleWatched={toggleWatched}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                )}
 
               {activeType !== "movie" && people.length > 0 && (
                 <section

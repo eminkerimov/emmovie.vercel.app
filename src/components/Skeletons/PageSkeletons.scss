@@ -1,0 +1,271 @@
+@import "../../styles/variables";
+
+.skeleton-block {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: $radius-sm;
+  background: #10212a;
+
+  &::after {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 30%,
+      rgba(245, 247, 250, 0.055) 48%,
+      transparent 66%
+    );
+    animation: skeleton-sweep 1.35s $motion-ease infinite;
+    content: "";
+    transform: translateX(-100%);
+  }
+}
+
+.skeleton-card-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: $space-8 $space-6;
+}
+
+.skeleton-card {
+  overflow: hidden;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: $color-surface;
+
+  &__poster {
+    border-radius: 0;
+    aspect-ratio: 2 / 3;
+  }
+
+  &__copy {
+    display: grid;
+    gap: $space-3;
+    padding: $space-5 $space-4;
+
+    .skeleton-block:first-child {
+      width: 78%;
+      height: 18px;
+    }
+
+    .skeleton-block:last-child {
+      width: 34%;
+      height: 12px;
+    }
+  }
+}
+
+.home-skeleton {
+  min-height: 660px;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(120deg, #071017, #0b1a22);
+
+  &__content {
+    display: grid;
+    gap: $space-5;
+  }
+
+  &__eyebrow {
+    width: 120px;
+    height: 12px;
+  }
+
+  &__title {
+    width: min(620px, 86vw);
+    height: clamp(64px, 8vw, 110px);
+  }
+
+  &__copy {
+    width: min(520px, 76vw);
+    height: 54px;
+  }
+
+  &__action {
+    width: 150px;
+    height: 48px;
+  }
+}
+
+.movie-page-skeleton,
+.person-page-skeleton {
+  min-height: 740px;
+  padding: $space-20 0 $space-16;
+  background: linear-gradient(120deg, #050b10, #0a1820);
+}
+
+.movie-page-skeleton__layout {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 680px);
+  align-items: center;
+  gap: $space-16;
+}
+
+.movie-page-skeleton__poster {
+  width: 280px;
+  aspect-ratio: 2 / 3;
+}
+
+.movie-page-skeleton__content,
+.person-page-skeleton__content {
+  display: grid;
+  gap: $space-5;
+}
+
+.movie-page-skeleton__eyebrow,
+.person-page-skeleton__eyebrow {
+  width: 124px;
+  height: 12px;
+}
+
+.movie-page-skeleton__title,
+.person-page-skeleton__title {
+  width: min(560px, 100%);
+  height: 76px;
+}
+
+.movie-page-skeleton__meta {
+  width: 240px;
+  height: 18px;
+}
+
+.movie-page-skeleton__copy {
+  width: min(500px, 100%);
+  height: 56px;
+}
+
+.movie-page-skeleton__actions {
+  display: flex;
+  gap: $space-3;
+
+  .skeleton-block {
+    width: 148px;
+    height: 48px;
+  }
+}
+
+.person-page-skeleton__layout {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr) 280px;
+  align-items: center;
+  gap: $space-12;
+}
+
+.person-page-skeleton__portrait {
+  aspect-ratio: 2 / 3;
+}
+
+.person-page-skeleton__alias {
+  width: min(320px, 80%);
+  height: 18px;
+}
+
+.person-page-skeleton__copy {
+  width: 100%;
+  height: 70px;
+
+  &--short {
+    width: 70%;
+    height: 20px;
+  }
+}
+
+.person-page-skeleton__facts {
+  display: grid;
+  gap: $space-6;
+
+  .skeleton-block {
+    height: 58px;
+  }
+}
+
+.gallery-skeleton {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: $space-4;
+
+  .skeleton-block {
+    aspect-ratio: 16 / 10;
+  }
+}
+
+@keyframes skeleton-sweep {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (max-width: $breakpoint-tablet) {
+  .skeleton-card-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .person-page-skeleton__layout {
+    grid-template-columns: 240px minmax(0, 1fr);
+  }
+
+  .person-page-skeleton__facts {
+    display: none;
+  }
+}
+
+@media (max-width: $breakpoint-tablet-small) {
+  .movie-page-skeleton__layout {
+    grid-template-columns: 1fr;
+    gap: $space-8;
+  }
+
+  .movie-page-skeleton__poster {
+    width: 220px;
+  }
+
+  .skeleton-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: $space-6 $space-4;
+  }
+
+  .gallery-skeleton {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: $breakpoint-sm) {
+  .person-page-skeleton__layout {
+    grid-template-columns: 1fr;
+    gap: $space-8;
+  }
+
+  .person-page-skeleton__portrait {
+    width: 168px;
+  }
+}
+
+@media (max-width: 550px) {
+  .home-skeleton {
+    min-height: 470px;
+  }
+}
+
+@media (max-width: $breakpoint-mobile) {
+  .movie-page-skeleton__actions {
+    flex-wrap: wrap;
+
+    .skeleton-block {
+      width: min(148px, 100%);
+      flex: 1 1 120px;
+    }
+  }
+
+  .skeleton-card-grid {
+    grid-template-columns: minmax(0, 320px);
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-block::after {
+    display: none;
+  }
+}

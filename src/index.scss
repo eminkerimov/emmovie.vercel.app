@@ -137,6 +137,19 @@ textarea:focus-visible {
   }
 }
 
+@supports (view-transition-name: none) {
+  ::view-transition-group(*) {
+    animation-duration: 240ms;
+    animation-timing-function: $motion-ease;
+  }
+
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 240ms;
+    mix-blend-mode: normal;
+  }
+}
+
 @media (max-width: $breakpoint-tablet) {
   .page-container {
     padding-inline: $container-gutter-tablet;
@@ -171,5 +184,11 @@ textarea:focus-visible {
 
   .app-route {
     animation: none;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 0.01ms !important;
   }
 }

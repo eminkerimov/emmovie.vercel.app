@@ -5,7 +5,10 @@ import {
   waitFor,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import {
+  MemoryRouter,
+  useLocation,
+} from "react-router-dom";
 import {
   WatchlistProvider,
   WATCHLIST_KEY,
@@ -35,6 +38,22 @@ const movies = [
 ];
 const watchedMovies = [movies[1]];
 
+const tvSeries = {
+  id: 550,
+  name: "Twin Peaks",
+  poster_path: "/twin-peaks.jpg",
+  overview: "A mystery in a small town.",
+  vote_average: 8.5,
+  first_air_date: "1990-04-08",
+  media_type: "tv",
+};
+
+const LocationProbe = () => {
+  const location = useLocation();
+
+  return <output data-testid="location">{location.pathname}</output>;
+};
+
 const renderWatchlist = () =>
   render(
     <MemoryRouter
@@ -46,6 +65,7 @@ const renderWatchlist = () =>
       <NotificationProvider>
         <WatchlistProvider>
           <Watchlist />
+          <LocationProbe />
         </WatchlistProvider>
       </NotificationProvider>
     </MemoryRouter>
@@ -276,6 +296,23 @@ describe("Watchlist library", () => {
       expect(
         JSON.parse(localStorage.getItem(WATCHLIST_KEY))
       ).toEqual(movies);
+    });
+  });
+
+  it("navigates a random TV pick to its dedicated details route", async () => {
+    localStorage.setItem(WATCHLIST_KEY, JSON.stringify([tvSeries]));
+    localStorage.setItem(WATCHED_KEY, JSON.stringify([]));
+
+    renderWatchlist();
+
+    userEvent.click(
+      screen.getByRole("button", { name: "Pick for me" })
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("location")).toHaveTextContent(
+        "/tv/550"
+      );
     });
   });
 });

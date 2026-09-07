@@ -1,8 +1,16 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import Loading from "../../components/Loading/Loading";
 import MovieCard from "../../components/MovieCard/MovieCard";
+import {
+  CardGridSkeleton,
+  HomeSkeleton,
+} from "../../components/Skeletons/PageSkeletons";
 import { IMG_API } from "../../helpers/baseURL";
+import {
+  getLibraryItemKey,
+  getMediaTitle,
+  getMediaType,
+} from "../../helpers/media";
 import useFetchMovies from "../../hooks/useFetchMovies";
 import useRecentlyViewed from "../../hooks/useRecentlyViewed";
 import useWatchlist from "../../hooks/useWatchlist";
@@ -67,6 +75,10 @@ const Home = () => {
   const activeTabData =
     TABS.find((tab) => tab.id === activeTab) || TABS[0];
   const recommendationSeed = watchlist[0];
+  const recommendationSeedType = getMediaType(recommendationSeed);
+  const recommendationSeedKey = recommendationSeed
+    ? getLibraryItemKey(recommendationSeed)
+    : null;
 
   useEffect(() => {
     if (trendingByWindow[trendingWindow]) return undefined;
@@ -143,7 +155,7 @@ const Home = () => {
   useEffect(() => {
     if (
       !recommendationSeed ||
-      recommendationsByMovie[recommendationSeed.id]
+      recommendationsByMovie[recommendationSeedKey]
     ) {
       return undefined;
     }
@@ -154,7 +166,7 @@ const Home = () => {
 
     fetchRecommendations(
         "GET",
-        `/movie/${recommendationSeed.id}/recommendations`,
+        `/${recommendationSeedType}/${recommendationSeed.id}/recommendations`,
         { language: "en-US", page: 1 }
       )
       .then((response) => {
@@ -168,7 +180,12 @@ const Home = () => {
 
         setRecommendationsByMovie((current) => ({
           ...current,
-          [recommendationSeed.id]: response.data.results,
+          [recommendationSeedKey]: response.data.results.map((title) => ({
+            ...title,
+            ...(recommendationSeedType === "tv"
+              ? { media_type: "tv" }
+              : {}),
+          })),
         }));
       });
 
@@ -177,6 +194,8 @@ const Home = () => {
     };
   }, [
     recommendationSeed,
+    recommendationSeedKey,
+    recommendationSeedType,
     recommendationsByMovie,
     fetchRecommendations,
   ]);
@@ -192,29 +211,33 @@ const Home = () => {
     if (!recommendationSeed) return [];
 
     const savedMovieIds = new Set(
-      watchlist.map((movie) => movie.id)
+      watchlist.map((movie) => getLibraryItemKey(movie))
     );
 
     return getCardMovies(
-      recommendationsByMovie[recommendationSeed.id],
+      recommendationsByMovie[recommendationSeedKey],
       8
-    ).filter((movie) => !savedMovieIds.has(movie.id));
+    ).filter((movie) => !savedMovieIds.has(getLibraryItemKey(movie)));
   }, [
     recommendationSeed,
+    recommendationSeedKey,
     recommendationsByMovie,
     watchlist,
   ]);
+  const initialTrendingSettled =
+    Object.prototype.hasOwnProperty.call(
+      trendingByWindow,
+      trendingWindow
+    ) || Boolean(trendingRequest.error);
+  const initialCatalogSettled =
+    Object.prototype.hasOwnProperty.call(moviesByTab, "popular") ||
+    Boolean(catalogRequest.error);
 
   if (
     !heroMovie &&
-    trendingRequest.loading &&
-    catalogRequest.loading
+    (!initialTrendingSettled || !initialCatalogSettled)
   ) {
-    return (
-      <main className="home home__initial-loading">
-        <Loading />
-      </main>
-    );
+    return <HomeSkeleton />;
   }
 
   return (
@@ -242,28 +265,30 @@ const Home = () => {
           aria-labelledby="home-featured-title"
         >
           <div className="home-hero__content" key={heroMovie.id}>
-            <div
-              className="home-hero__trend"
-              role="group"
-              aria-label="Trending period"
-            >
-              <span>Trending</span>
-              {[
-                ["day", "Today"],
-                ["week", "This week"],
-              ].map(([value, label]) => (
-                <button
-                  key={value}
-                  type="button"
-                  className={
-                    trendingWindow === value ? "is-active" : ""
-                  }
-                  aria-pressed={trendingWindow === value}
-                  onClick={() => setTrendingWindow(value)}
-                >
-                  {label}
-                </button>
-              ))}
+            <div className="home-hero__trend-row">
+              <span className="home-hero__trend-label">Trending</span>
+              <div
+                className="home-hero__trend"
+                role="group"
+                aria-label="Trending period"
+              >
+                {[
+                  ["day", "Today"],
+                  ["week", "This week"],
+                ].map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className={
+                      trendingWindow === value ? "is-active" : ""
+                    }
+                    aria-pressed={trendingWindow === value}
+                    onClick={() => setTrendingWindow(value)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <h1 id="home-featured-title">{heroMovie.title}</h1>
@@ -400,7 +425,10 @@ const Home = () => {
         >
           {!moviesByTab[activeTab] && catalogRequest.loading && (
             <div className="home-section-state">
-              <Loading />
+              <CardGridSkeleton
+                className="home-catalog__grid"
+                count={4}
+              />
             </div>
           )}
 
@@ -444,17 +472,19 @@ const Home = () => {
               <h2 id="recently-viewed-title">
                 Recently viewed
               </h2>
-              <p>Your latest movie pages, ready to reopen.</p>
+              <p>Your latest title pages, ready to reopen.</p>
             </div>
           </div>
 
           <div className="home-library__grid home-library__grid--compact">
             {recentMovies.map((movie) => (
               <MovieCard
-                key={movie.id}
+                key={getLibraryItemKey(movie)}
                 {...movie}
-                isFavorite={isInWatchlist(movie.id)}
-                isWatched={isWatched?.(movie.id) || false}
+                isFavorite={isInWatchlist(movie.id, getMediaType(movie))}
+                isWatched={
+                  isWatched?.(movie.id, getMediaType(movie)) || false
+                }
                 onToggleFavorite={toggleWatchlist}
                 onToggleWatched={toggleWatched}
               />
@@ -472,28 +502,31 @@ const Home = () => {
             <div>
               <span>From your library</span>
               <h2 id="saved-recommendations-title">
-                Because you saved {recommendationSeed.title}
+                Because you saved {getMediaTitle(recommendationSeed)}
               </h2>
-              <p>Recommendations based on your latest saved movie.</p>
+              <p>Recommendations based on your latest saved title.</p>
             </div>
             <Link to="/watchlist">Open My Library</Link>
           </div>
 
-          {!recommendationsByMovie[recommendationSeed.id] &&
+          {!recommendationsByMovie[recommendationSeedKey] &&
             recommendationsRequest.loading && (
               <div className="home-section-state">
-                <Loading />
+                <CardGridSkeleton
+                  className="home-library__grid"
+                  count={4}
+                />
               </div>
             )}
 
-          {!recommendationsByMovie[recommendationSeed.id] &&
+          {!recommendationsByMovie[recommendationSeedKey] &&
             recommendationsRequest.error && (
               <div className="home-section-state" role="status">
                 Recommendations are temporarily unavailable.
               </div>
             )}
 
-          {recommendationsByMovie[recommendationSeed.id] &&
+          {recommendationsByMovie[recommendationSeedKey] &&
             recommendationMovies.length === 0 && (
               <div className="home-section-state">
                 No new recommendations are available yet.
@@ -504,10 +537,12 @@ const Home = () => {
             <div className="home-library__grid">
               {recommendationMovies.map((movie) => (
                 <MovieCard
-                  key={movie.id}
+                  key={getLibraryItemKey(movie)}
                   {...movie}
-                  isFavorite={isInWatchlist(movie.id)}
-                  isWatched={isWatched?.(movie.id) || false}
+                  isFavorite={isInWatchlist(movie.id, getMediaType(movie))}
+                  isWatched={
+                    isWatched?.(movie.id, getMediaType(movie)) || false
+                  }
                   onToggleFavorite={toggleWatchlist}
                   onToggleWatched={toggleWatched}
                 />

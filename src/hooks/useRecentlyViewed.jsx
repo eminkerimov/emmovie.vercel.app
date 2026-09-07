@@ -1,4 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
+import {
+  getLibraryItemKey,
+  getMediaSummary,
+  getMediaTitle,
+} from "../helpers/media";
 
 export const RECENTLY_VIEWED_KEY =
   "emmovie_recently_viewed";
@@ -26,15 +31,6 @@ const getStoredMovies = () => {
   }
 };
 
-const getMovieSummary = (movie) => ({
-  id: movie.id,
-  title: movie.title,
-  poster_path: movie.poster_path,
-  overview: movie.overview,
-  vote_average: movie.vote_average,
-  release_date: movie.release_date,
-});
-
 const useRecentlyViewed = () => {
   const [recentlyViewed, setRecentlyViewed] =
     useState(getStoredMovies);
@@ -51,12 +47,14 @@ const useRecentlyViewed = () => {
   }, [recentlyViewed]);
 
   const addRecentlyViewed = useCallback((movie) => {
-    if (!movie?.id || !movie?.title) return;
+    if (!movie?.id || !getMediaTitle(movie)) return;
+
+    const movieKey = getLibraryItemKey(movie);
 
     setRecentlyViewed((currentMovies) => [
-      getMovieSummary(movie),
+      getMediaSummary(movie),
       ...currentMovies.filter(
-        (currentMovie) => currentMovie.id !== movie.id
+        (currentMovie) => getLibraryItemKey(currentMovie) !== movieKey
       ),
     ].slice(0, RECENTLY_VIEWED_LIMIT));
   }, []);

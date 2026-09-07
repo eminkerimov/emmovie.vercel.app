@@ -231,15 +231,6 @@
   border-radius: $radius-sm;
   background: rgba(7, 16, 23, 0.66);
 
-  > span {
-    padding-inline: $space-3;
-    color: $color-text-secondary;
-    font-size: 10px;
-    font-weight: $font-weight-extra-bold;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-
   button {
     min-height: 34px;
     padding: 0 $space-3;
@@ -259,6 +250,20 @@
       color: $color-primary;
     }
   }
+}
+
+.home-hero__trend-row {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+}
+
+.home-hero__trend-label {
+  color: $color-primary;
+  font-size: 10px;
+  font-weight: $font-weight-extra-bold;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .home-hero--unavailable {

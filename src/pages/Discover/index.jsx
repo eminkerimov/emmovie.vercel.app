@@ -4,8 +4,8 @@ import React, {
   useState,
 } from "react";
 import { useSearchParams } from "react-router-dom";
-import Loading from "../../components/Loading/Loading";
 import MovieCard from "../../components/MovieCard/MovieCard";
+import { CardGridSkeleton } from "../../components/Skeletons/PageSkeletons";
 import useFetchMovies from "../../hooks/useFetchMovies";
 import useWatchlist from "../../hooks/useWatchlist";
 import "./index.scss";
@@ -31,7 +31,37 @@ const GENRE_OPTIONS = [
   { id: 37, name: "Western" },
 ];
 
+const TV_GENRE_OPTIONS = [
+  { id: 10759, name: "Action & Adventure" },
+  { id: 16, name: "Animation" },
+  { id: 35, name: "Comedy" },
+  { id: 80, name: "Crime" },
+  { id: 99, name: "Documentary" },
+  { id: 18, name: "Drama" },
+  { id: 10751, name: "Family" },
+  { id: 10762, name: "Kids" },
+  { id: 9648, name: "Mystery" },
+  { id: 10763, name: "News" },
+  { id: 10764, name: "Reality" },
+  { id: 10765, name: "Sci-Fi & Fantasy" },
+  { id: 10766, name: "Soap" },
+  { id: 10767, name: "Talk" },
+  { id: 10768, name: "War & Politics" },
+  { id: 37, name: "Western" },
+];
+
+const MOVIE_SORT_VALUES = [
+  "popularity.desc",
+  "vote_average.desc",
+  "date.desc",
+  "revenue.desc",
+];
+const TV_SORT_VALUES = MOVIE_SORT_VALUES.filter(
+  (value) => value !== "revenue.desc"
+);
+
 const INITIAL_FILTERS = {
+  mediaType: "movie",
   genres: [],
   year: "",
   dateFrom: "",
@@ -77,21 +107,36 @@ const PROVIDER_OPTIONS = [
   { id: "1899", name: "Max" },
 ];
 
-const getFiltersFromParams = (params) => ({
-  ...INITIAL_FILTERS,
-  genres: (params.get("genres") || "").split(",").filter(Boolean),
-  year: params.get("year") || "",
-  dateFrom: params.get("from") || "",
-  dateTo: params.get("to") || "",
-  runtimeMin: params.get("runtimeMin") || "",
-  runtimeMax: params.get("runtimeMax") || "",
-  originalLanguage: params.get("language") || "",
-  region: params.get("region") || "US",
-  provider: params.get("provider") || "",
-  monetization: params.get("monetization") || "",
-  rating: params.get("rating") || "",
-  sort: params.get("sort") || "popularity.desc",
-});
+const getFiltersFromParams = (params) => {
+  const mediaType = params.get("media") === "tv" ? "tv" : "movie";
+  const requestedSort = [
+    "primary_release_date.desc",
+    "first_air_date.desc",
+  ].includes(params.get("sort"))
+    ? "date.desc"
+    : params.get("sort") || "popularity.desc";
+  const supportedSorts =
+    mediaType === "tv" ? TV_SORT_VALUES : MOVIE_SORT_VALUES;
+
+  return {
+    ...INITIAL_FILTERS,
+    mediaType,
+    genres: (params.get("genres") || "").split(",").filter(Boolean),
+    year: params.get("year") || "",
+    dateFrom: params.get("from") || "",
+    dateTo: params.get("to") || "",
+    runtimeMin: params.get("runtimeMin") || "",
+    runtimeMax: params.get("runtimeMax") || "",
+    originalLanguage: params.get("language") || "",
+    region: params.get("region") || "US",
+    provider: params.get("provider") || "",
+    monetization: params.get("monetization") || "",
+    rating: params.get("rating") || "",
+    sort: supportedSorts.includes(requestedSort)
+      ? requestedSort
+      : "popularity.desc",
+  };
+};
 
 const getPage = (value) => {
   const parsedPage = Number.parseInt(value, 10);
@@ -128,12 +173,16 @@ const Discover = () => {
   const fetchProviders = providersRequest.fetchData;
 
   const movies = data?.data?.results || [];
+  const mediaType = appliedFilters.mediaType;
+  const isTv = mediaType === "tv";
   const totalResults = data?.data?.total_results || 0;
   const totalPages = Math.min(data?.data?.total_pages || 0, 500);
   const genreOptions =
     genresRequest.data?.data?.genres?.length
       ? genresRequest.data.data.genres
-      : GENRE_OPTIONS;
+      : isTv
+        ? TV_GENRE_OPTIONS
+        : GENRE_OPTIONS;
   const providerOptions = useMemo(() => {
     const providers = providersRequest.data?.data?.results;
 
@@ -159,17 +208,17 @@ const Discover = () => {
   }, [filters.region, providersRequest.data]);
 
   useEffect(() => {
-    fetchGenres("GET", "/genre/movie/list", {
+    fetchGenres("GET", `/genre/${mediaType}/list`, {
       language: "en-US",
     });
-  }, [fetchGenres]);
+  }, [fetchGenres, mediaType]);
 
   useEffect(() => {
-    fetchProviders("GET", "/watch/providers/movie", {
+    fetchProviders("GET", `/watch/providers/${mediaType}`, {
       language: "en-US",
       watch_region: filters.region,
     });
-  }, [fetchProviders, filters.region]);
+  }, [fetchProviders, filters.region, mediaType]);
 
   useEffect(() => {
     setFilters(appliedFilters);
@@ -184,21 +233,30 @@ const Discover = () => {
       language: "en-US",
       page,
       include_adult: false,
-      include_video: false,
-      sort_by: appliedFilters.sort,
+      sort_by:
+        appliedFilters.sort === "date.desc"
+          ? isTv
+            ? "first_air_date.desc"
+            : "primary_release_date.desc"
+          : appliedFilters.sort,
     };
+
+    if (!isTv) params.include_video = false;
 
     if (appliedFilters.genres.length) {
       params.with_genres = appliedFilters.genres.join(",");
     }
     if (appliedFilters.year) {
-      params.primary_release_year = appliedFilters.year;
+      params[isTv ? "first_air_date_year" : "primary_release_year"] =
+        appliedFilters.year;
     }
     if (appliedFilters.dateFrom) {
-      params["primary_release_date.gte"] = appliedFilters.dateFrom;
+      params[isTv ? "first_air_date.gte" : "primary_release_date.gte"] =
+        appliedFilters.dateFrom;
     }
     if (appliedFilters.dateTo) {
-      params["primary_release_date.lte"] = appliedFilters.dateTo;
+      params[isTv ? "first_air_date.lte" : "primary_release_date.lte"] =
+        appliedFilters.dateTo;
     }
     if (appliedFilters.runtimeMin) {
       params["with_runtime.gte"] = appliedFilters.runtimeMin;
@@ -226,8 +284,24 @@ const Discover = () => {
       params["vote_count.gte"] = 200;
     }
 
-    fetchData("GET", "/discover/movie", params);
-  }, [appliedFilters, fetchData, page]);
+    fetchData("GET", `/discover/${mediaType}`, params);
+  }, [appliedFilters, fetchData, isTv, mediaType, page]);
+
+  const handleMediaTypeChange = (nextMediaType) => {
+    const nextFilters = {
+      ...filters,
+      mediaType: nextMediaType,
+      genres: [],
+      provider: "",
+      sort:
+        nextMediaType === "tv" && filters.sort === "revenue.desc"
+          ? "popularity.desc"
+          : filters.sort,
+    };
+
+    setFilters(nextFilters);
+    writeFiltersToUrl(nextFilters);
+  };
 
   const handleFilterChange = (event) => {
     const { name, value } = event.target;
@@ -252,6 +326,10 @@ const Discover = () => {
 
   const writeFiltersToUrl = (nextFilters, nextPage = 1) => {
     const nextParams = new URLSearchParams();
+
+    if (nextFilters.mediaType === "tv") {
+      nextParams.set("media", "tv");
+    }
 
     if (nextFilters.genres.length) {
       nextParams.set("genres", nextFilters.genres.join(","));
@@ -311,7 +389,7 @@ const Discover = () => {
       <main className="discover-layout">
         <aside className="discover-sidebar">
           <div className="discover-sidebar__heading">
-            <span>Find your next movie</span>
+            <span>Find your next title</span>
 
             <h1>Discover</h1>
 
@@ -319,6 +397,29 @@ const Discover = () => {
               Combine genres, release dates, runtime,
               language and streaming availability.
             </p>
+
+            <div
+              className="discover-media-switch"
+              role="group"
+              aria-label="Content type"
+            >
+              <button
+                type="button"
+                className={!isTv ? "is-active" : ""}
+                aria-pressed={!isTv}
+                onClick={() => handleMediaTypeChange("movie")}
+              >
+                Movies
+              </button>
+              <button
+                type="button"
+                className={isTv ? "is-active" : ""}
+                aria-pressed={isTv}
+                onClick={() => handleMediaTypeChange("tv")}
+              >
+                TV series
+              </button>
+            </div>
           </div>
 
           <form
@@ -545,13 +646,15 @@ const Discover = () => {
                   Top rated
                 </option>
 
-                <option value="primary_release_date.desc">
+                <option value="date.desc">
                   Newest releases
                 </option>
 
-                <option value="revenue.desc">
-                  Highest revenue
-                </option>
+                {!isTv && (
+                  <option value="revenue.desc">
+                    Highest revenue
+                  </option>
+                )}
               </select>
             </div>
 
@@ -559,7 +662,7 @@ const Discover = () => {
               className="discover-filters__submit"
               type="submit"
             >
-              <span>Show movies</span>
+              <span>Show {isTv ? "series" : "movies"}</span>
               <i className="fa-solid fa-arrow-right"></i>
             </button>
 
@@ -597,8 +700,12 @@ const Discover = () => {
 
                 <span>
                   {totalResults === 1
-                    ? "movie"
-                    : "movies"}
+                    ? isTv
+                      ? "series"
+                      : "movie"
+                    : isTv
+                      ? "series"
+                      : "movies"}
                 </span>
               </div>
             )}
@@ -606,7 +713,7 @@ const Discover = () => {
 
           {loading && (
             <div className="discover-results__loading">
-              <Loading />
+              <CardGridSkeleton className="discover-grid" count={8} />
             </div>
           )}
 
@@ -615,7 +722,7 @@ const Discover = () => {
               <i className="fa-solid fa-circle-exclamation"></i>
 
               <h3>
-                Movies could not be loaded
+                {isTv ? "TV series" : "Movies"} could not be loaded
               </h3>
 
               <p>
@@ -632,10 +739,12 @@ const Discover = () => {
                   <MovieCard
                     key={movie.id}
                     {...movie}
+                    media_type={mediaType}
                     isFavorite={isInWatchlist(
-                      movie.id
+                      movie.id,
+                      mediaType
                     )}
-                    isWatched={isWatched?.(movie.id) || false}
+                    isWatched={isWatched?.(movie.id, mediaType) || false}
                     onToggleFavorite={
                       toggleWatchlist
                     }
@@ -651,7 +760,7 @@ const Discover = () => {
               <div className="discover-results__empty">
                 <i className="fa-solid fa-film"></i>
 
-                <h3>No movies found</h3>
+                <h3>No {isTv ? "TV series" : "movies"} found</h3>
 
                 <p>
                   Change one or more filters and

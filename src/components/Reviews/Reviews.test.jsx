@@ -77,7 +77,8 @@ describe("Reviews", () => {
     expect(firstReview).toContainElement(
       screen.getByRole("heading", { level: 3, name: "Ada Lovelace" })
     );
-    expect(rating).toHaveTextContent("0/10");
+    expect(rating).toHaveTextContent("0");
+    expect(rating).not.toHaveTextContent("/10");
     expect(rating).toHaveClass("reviews__rating--low");
     expect(highRating).toHaveClass("reviews__rating--high");
     expect(reviewLink).toHaveAttribute(
